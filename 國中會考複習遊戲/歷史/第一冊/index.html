@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>歷史闖關王 第一冊</title>
+<style>
+:root{
+  --bg:#fff8f0;--ink:#2a1800;--red:#c0392b;--gold:#7d4e0a;
+  --teal:#6b3d08;--blue:#5a2e06;--accent:#a0522d;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(42,24,0,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(160,82,45,.08) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(125,78,10,.06) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#f5deb3 0%,#fff8f0 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(42,24,0,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(42,24,0,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(42,24,0,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(42,24,0,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(42,24,0,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#f5deb3;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(42,24,0,.48);margin-top:3px;line-height:1.4;}
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(42,24,0,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(42,24,0,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(42,24,0,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(42,24,0,.38);border:1px solid rgba(42,24,0,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:var(--red);animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#f5deb3;color:var(--teal);}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:var(--green);}
+.qtag.match{background:#fce8d0;color:#b06010;}
+.qtag.sort{background:#fde8d0;color:#d35400;}
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(42,24,0,.43);margin-bottom:11px;font-style:italic;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#fdf5e6;border:2px solid #e8d5b0;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#f5deb3;}
+.opt.ok{background:#d4f5e2;border-color:var(--green);color:var(--green);font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #e8d5b0;background:#fdf5e6;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:var(--green);}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:var(--green);background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--blue);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#fdf5e6;border:2px solid #e8d5b0;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:var(--gold);background:#f5deb3;font-weight:700;}
+.match-item.matched{border-color:var(--green);background:#d4f5e2;color:var(--green);font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#f5deb3;border:2px solid #e8d5b0;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--teal);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:var(--green);border-left:4px solid var(--green);}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+#result{background:linear-gradient(155deg,#f5deb3 0%,#fff8f0 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(42,24,0,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(42,24,0,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(42,24,0,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#fdf5e6;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">歷史闖關王</div>
+    <div class="home-badge">歷史 第一冊 · 單元1-2 · 會考複習</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip on" data-t="u1a">🏺 史前文化遺址</div>
+      <div class="tchip on" data-t="u1b">🗿 原住民社會</div>
+      <div class="tchip on" data-t="u1c">⚓ 大航海時代與荷西</div>
+      <div class="tchip on" data-t="u1d">⚔️ 鄭氏在臺時期</div>
+      <div class="tchip on" data-t="u2a">🏯 清帝國治臺政策</div>
+      <div class="tchip on" data-t="u2b">🌊 外力侵擾與現代化</div>
+      <div class="tchip on" data-t="u2c">🌾 清代經濟與社會文化</div>
+      <div class="tchip on" data-t="u2d">🏔️ 原住民社會文化變遷</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+<div class="screen" id="game">
+  <div class="gbar">
+    <div><div class="gbar-left" id="gInfo">第 1 / 50 題</div><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;"><div class="gbar-timer" id="gTimer" style="display:none;">20</div><div><div class="gbar-score" id="gScore">0 分</div><div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox"><div class="fb-title" id="fbtitle"></div><div id="fbmsg"></div></div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div><div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div><div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div><div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+<div class="combo" id="combo"></div>
+<script>
+const SK='hist1_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+
+// ══ 單元1a：史前文化遺址 ══
+{t:'u1a',era:'史前・三時期排序',type:'sort',
+ q:'請將台灣史前文化的三個時期依時間先後排列（最早到最晚）：',
+ items:['新石器時代（距今約7000年至2000年前，出現農業）','舊石器時代（距今約5萬年至5000年前，打製石器）','金屬器時代（距今約2000年至400年前，金屬器出現）'],
+ correctOrder:[1,0,2],
+ explain:'台灣史前三時期：舊石器時代（打製石器、採集狩獵）→新石器時代（磨製石器、農業出現、燒製陶器）→金屬器時代（製作金屬器、玻璃器）。'},
+
+{t:'u1a',era:'史前・舊石器時代',type:'mc',
+ q:'台灣目前發現最早的史前文化是哪個？',
+ opts:['A 大坌坑文化','B 長濱文化','C 圓山文化','D 十三行文化'],ans:1,
+ explain:'長濱文化（距今約5萬年至5000年前）：台灣目前發現最早的史前文化，屬舊石器時代晚期，遺址在台東長濱（八仙洞），使用打製石器，以採集、狩獵、捕魚為主，已知用火。'},
+
+{t:'u1a',era:'史前・新石器時代文化',type:'match',
+ q:'請將新石器時代各文化與其遺址地點配對：',
+ pairs:[
+   ['大坌坑文化','新北市八里區，出現農耕、燒製陶器、以粗繩紋裝飾'],
+   ['圓山文化','台北盆地，種植稻穀作物、出土貝塚遺址'],
+   ['卑南文化','台東卑南，出土大量石板棺及玉器，反映東南亞文化交流'],
+ ],
+ explain:'大坌坑→八里（最早期新石器）；圓山→台北（貝塚遺址）；卑南→台東（玉器石板棺，東南亞交流）。'},
+
+{t:'u1a',era:'史前・金屬器時代',type:'mc',
+ q:'十三行文化屬於哪個時期？其最重要的特徵是？',
+ opts:[
+   'A 舊石器時代，以打製石器為主',
+   'B 新石器時代，出現農業',
+   'C 金屬器時代，出土煉鐵遺跡和礦渣，已能製作金屬器',
+   'D 新石器時代，出土大量玉器'
+ ],ans:2,
+ explain:'十三行文化（金屬器時代）：遺址在新北市八里區，出土煉鐵遺跡和礦渣（重要特徵），已能製作金屬器，金屬器取代玉器，與東南亞、中國大陸等地區貿易更為密切。'},
+
+// ══ 單元1b：原住民社會 ══
+{t:'u1b',era:'原住民・南島語族',type:'mc',
+ q:'台灣原住民主要屬於哪個語族？他們與哪些地區有交流？',
+ opts:[
+   'A 印歐語族，與歐洲有交流',
+   'B 南島語族，與太平洋、印度洋上的島嶼有交流，並向外擴散遷徙',
+   'C 漢藏語族，主要與中國大陸交流',
+   'D 阿爾泰語族，與北亞有聯繫'
+ ],ans:1,
+ explain:'台灣原住民主要屬於南島語族，分布在太平洋及印度洋上的島嶼，並向外擴散遷徙。學者推測史前時代的台灣原住民，可能與東南亞、大洋洲地區有貿易交流，並向外擴散。'},
+
+{t:'u1b',era:'原住民・分布與名稱',type:'match',
+ q:'請將原住民族群與其特徵配對：',
+ pairs:[
+   ['平埔族群','分布於西部、東北部平原及丘陵地區，清代後逐漸融入漢人社會，現今多已漢化'],
+   ['高山各族','分布於山區及東部地區，因地形阻隔，保有較多傳統文化，現今以「原住民族」為正式統稱'],
+ ],
+ explain:'平埔族群（平原）→西部平原和丘陵→多已融入漢人社會。高山各族（山地）→山區和東部→保有較多原住民文化→民國80年起以「原住民族」為正式統稱。'},
+
+{t:'u1b',era:'原住民・傳說目的',type:'mc',
+ q:'原住民部落流傳口語傳說的主要目的是？',
+ opts:[
+   'A 娛樂族人，作為休閒活動',
+   'B 原住民沒有創制文字，用口語傳說傳承歷史和文化的記憶',
+   'C 向外來者展示自己的文化',
+   'D 記錄與漢人的貿易往來'
+ ],ans:1,
+ explain:'原住民口語傳說目的：原住民沒有創制文字，因此利用口語傳說傳承歷史和文化的記憶。內容描述族群起源或重大事件。類型包含：起源傳說（高山/海洋外傳說）、遷徙傳說、洪水傳說（布農族、賽德克族等）。'},
+
+// ══ 單元1c：大航海時代與荷西 ══
+{t:'u1c',era:'大航海・背景',type:'mc',
+ q:'15到17世紀歐洲人積極向海外探索，開闢新航路的主要動機是？',
+ opts:[
+   'A 逃避歐洲的宗教迫害',
+   'B 基於貿易與傳教的動機，透過航海技術進步積極向海外探險',
+   'C 尋找失落的文明',
+   'D 解決歐洲人口過多的問題'
+ ],ans:1,
+ explain:'大航海時代（15~17世紀）：歐洲人基於貿易與傳教動機，藉由航海技術進步，積極向海外探索。西班牙向西航向美洲再經太平洋；葡萄牙向東繞過非洲南端，經印度洋到亞洲。'},
+
+{t:'u1c',era:'大航海・荷蘭佔臺',type:'mc',
+ q:'荷蘭東印度公司（VOC）進占台灣南部的主要目的是？',
+ opts:[
+   'A 傳播天主教',
+   'B 以台灣作為國際貿易轉運站，從事轉口貿易',
+   'C 開採台灣礦產資源',
+   'D 作為與中國戰爭的據點'
+ ],ans:1,
+ explain:'荷蘭進占台灣南部（1624年）：目的是以台灣為國際貿易轉運站。在大員建立行政中心（熱蘭遮城），在赤崁建立商業市街（普羅民遮城），從事轉口貿易。輸出：台灣稻米、鹿皮、蔗糖；轉運：瓷器、香料、絲綢品。'},
+
+{t:'u1c',era:'大航海・荷蘭佔臺',type:'mc',
+ q:'荷蘭統治台灣期間，在農業方面採取什麼措施？',
+ opts:[
+   'A 禁止漢人移民台灣',
+   'B 招募漢人來台開墾，嚴格管制，引進耕牛、興修水利',
+   'C 完全依賴原住民耕作',
+   'D 只種植進口農作物'
+ ],ans:1,
+ explain:'荷蘭農業措施：①招募漢人來台開墾，嚴格管制②引進耕牛③興修水利。作物：稻米、甘蔗。商業性格濃厚，輸出台灣產品。這些措施讓台灣的農業生產大幅提升，奠定後來的開墾基礎。'},
+
+{t:'u1c',era:'大航海・西班牙',type:'mc',
+ q:'西班牙在台灣北部（基隆、淡水一帶）設據點的主要目的是？',
+ opts:[
+   'A 永久殖民台灣北部',
+   'B 作為對中國、日本貿易的據點，抗衡荷蘭在南部的勢力',
+   'C 傳播伊斯蘭教',
+   'D 建立農業殖民地'
+ ],ans:1,
+ explain:'西班牙進占台灣北部（1626年）：目的是以台灣北部為對中國、日本貿易的據點，抗衡荷蘭。後因貿易萎縮、兵力不足，1642年被荷蘭人驅逐，結束在台灣的統治。'},
+
+{t:'u1c',era:'大航海・原住民接觸',type:'mc',
+ q:'荷蘭傳教士對原住民的宗教文化影響中，哪項最具歷史意義？',
+ opts:[
+   'A 在原住民部落設立工廠',
+   'B 荷蘭傳教士以羅馬字母拼寫西拉雅語，創制「新港文」，翻譯聖經',
+   'C 推廣原住民傳統舞蹈',
+   'D 建立原住民軍隊'
+ ],ans:1,
+ explain:'荷蘭對原住民的宗教文化影響：①在部落設教堂、學校，傳播基督教；②荷蘭傳教士以羅馬字母拼寫西拉雅語，創制「新港文」，翻譯聖經、土地契約（新港文書）——直到19世紀都仍有使用。'},
+
+{t:'u1c',era:'大航海・郭懷一事件',type:'tf',
+ q:'「郭懷一事件」（1652年）是漢人自發性的武裝抗荷行動，最終成功趕走荷蘭人。',
+ ans:false,
+ explain:'郭懷一事件（1652年）：漢人無法忍受荷蘭的嚴格管制和苛重稅賦，由郭懷一領導漢人發動抗荷行動，但最終失敗，郭懷一戰死。荷蘭人一直統治到1662年才被鄭成功驅逐。'},
+
+// ══ 單元1d：鄭氏在臺時期 ══
+{t:'u1d',era:'鄭氏・攻台背景',type:'mc',
+ q:'鄭成功攻取台灣（1661-1662年）的主要動機是？',
+ opts:[
+   'A 純粹為了台灣的農業資源',
+   'B 以台灣作為反清復明的根據地，持續抗清',
+   'C 受西班牙委託管理台灣',
+   'D 為了控制台灣原住民'
+ ],ans:1,
+ explain:'鄭成功攻台背景：17世紀中期，明朝滅亡，鄭芝龍降清。其子鄭成功以東南沿海為根據地持續反清。1661年鄭成功決定攻取台灣，先攻普羅民遮城，再圍攻熱蘭遮城。1662年荷蘭與鄭成功議和，退出台灣。'},
+
+{t:'u1d',era:'鄭氏・政權結構',type:'mc',
+ q:'鄭氏政權在台灣的行政規劃，以哪座城市為行政中心？',
+ opts:['A 台北','B 基隆','C 承天府（今台南市）','D 淡水'],ans:2,
+ explain:'鄭氏行政規劃：設承天府（今台南市）為行政中心，設「天興、萬年」二縣分轄南北。鄭成功征台後不久病逝，由其子鄭經、孫子鄭克塽相繼統治，直到1683年清廷統一台灣。'},
+
+{t:'u1d',era:'鄭氏・經濟措施',type:'mc',
+ q:'鄭氏政權對外貿易的主要對象和商品是？',
+ opts:[
+   'A 以歐洲為主要貿易對象，出口茶葉',
+   'B 向中國大陸走私貿易（鹿皮、蔗糖），向英、日轉口貿易（鹿皮、蔗糖），向東南亞換取軍用物資',
+   'C 只和日本進行貿易',
+   'D 完全拒絕對外貿易'
+ ],ans:1,
+ explain:'鄭氏對外貿易：①向中國大陸走私（因清朝實施海禁，以鹿皮、蔗糖換取絲綢品、瓷器、茶葉、日用品）；②向英、日等轉口貿易（鹿皮、蔗糖換軍用物資）；③向東南亞貿易。農業：實施屯田制（寓兵於農）。'},
+
+{t:'u1d',era:'鄭氏・文化政策',type:'mc',
+ q:'鄭氏在台灣推廣的文化政策以何為主？',
+ opts:['A 傳播基督教','B 推廣佛教','C 推廣儒家文化（設學校、建孔廟）','D 保存原住民文化'],ans:2,
+ explain:'鄭氏文化政策：在原住民部落設立學校，推廣儒家文化；在台南建孔廟（台灣第一座孔廟），大力推廣漢人儒家文化。鄭氏治台時期，媽祖、關帝君等漢人信仰也在台灣落地生根。'},
+
+// ══ 單元2a：清帝國治臺政策 ══
+{t:'u2a',era:'清初・納入版圖',type:'mc',
+ q:'1683年清廷決定將台灣納入版圖的主要原因是？',
+ opts:[
+   'A 台灣盛產珍貴資源，清廷垂涎已久',
+   'B 台灣孤懸海外，聚集許多盜匪，且戰略地位重要，屏障中國東南沿海省份安全',
+   'C 西班牙要求清廷接管台灣',
+   'D 台灣原住民主動要求加入清帝國'
+ ],ans:1,
+ explain:'清廷納台原因：①台灣孤懸海外，聚集許多盜匪，易治理困難②戰略地位重要，屏障福建省安全。結果：設一府（台灣府）三縣，隸屬福建省。清代最重要的治台官員：施琅（首任福建水師提督，力主保留台灣）。'},
+
+{t:'u2a',era:'清初・渡臺禁令',type:'mc',
+ q:'清初「渡臺禁令」的目的和影響是？',
+ opts:[
+   'A 目的是保護台灣環境，影響是人口減少',
+   'B 目的是防止漢人移民過多，發生反叛事件；影響是造成男女人口比例失衡，出現「唐山公無唐山媽」現象',
+   'C 目的是限制原住民活動範圍',
+   'D 目的是保護荷蘭商人的貿易利益'
+ ],ans:1,
+ explain:'渡臺禁令（清初）：目的是避免漢人移民過多發生反叛事件，來台須先申請照，不準攜帶妻子。影響：①男女人口比例失衡→「唐山公無唐山媽」②大量男性游離人口成為社會安隱患③民間偷渡台灣情形從未斷絕。'},
+
+{t:'u2a',era:'清初・劃界封山',type:'mc',
+ q:'清廷「劃界封山」政策的主要目的是？',
+ opts:[
+   'A 保護山林資源',
+   'B 避免漢原衝突，維持社會秩序，在漢人與原住民之間設立土地界線，禁止漢人越界開墾',
+   'C 限制對外貿易',
+   'D 保護珍貴礦產資源'
+ ],ans:1,
+ explain:'劃界封山：①近山地帶設立番界（以立碑或挖溝）；②不許漢原通婚、不許漢人無禁令與原住民女子通婚→「有唐山公，無唐山媽」；③隨著漢人越界情況嚴重，清廷多次重定番界但成效有限。'},
+
+{t:'u2a',era:'清初・行政區演變',type:'sort',
+ q:'請將清代台灣行政區的演變依時間先後排列：',
+ items:['嘉慶17年（1812年）：一府四縣三廳','康熙23年（1684年）：一府三縣','雍正5年（1727年）：一府四縣二廳'],
+ correctOrder:[1,2,0],
+ explain:'清代台灣行政區演變：1684年（康熙23年）→一府三縣；1727年（雍正5年）→一府四縣二廳（因林爽文事件後增設縣）；1812年（嘉慶17年）→一府四縣三廳。人口增加→行政區劃增加。'},
+
+// ══ 單元2b：外力侵擾與現代化 ══
+{t:'u2b',era:'清中・外力侵擾',type:'mc',
+ q:'1857年「英法聯軍之役」對台灣的最重要影響是？',
+ opts:[
+   'A 台灣被英國割讓',
+   'B 清廷戰敗，台灣被迫開港通商（淡水、安平、雞籠、打狗），洋人在通商口岸設立洋行與領事館',
+   'C 英國開始在台灣種植茶葉',
+   'D 法國佔領台灣全島'
+ ],ans:1,
+ explain:'英法聯軍之役（1857年）→清廷戰敗→台灣開港通商（1860年代）：淡水、安平、雞籠（基隆）、打狗（高雄）。影響：①洋人在通商口岸設洋行與領事館；②帶動茶葉、樟腦貿易；③大稻埕因茶葉加工興起，成為北台灣重要商業區。'},
+
+{t:'u2b',era:'清中・牡丹社事件',type:'mc',
+ q:'1874年「牡丹社事件」的起因和結果是？',
+ opts:[
+   'A 漢人與原住民發生衝突，清廷派兵鎮壓',
+   'B 琉球人民遇難漂流到台灣，被原住民殺害，日本以「保民義舉」為由出兵台灣，清廷承認日本出兵為保民義舉',
+   'C 英國商船在台灣遭劫，英國出兵台灣',
+   'D 台灣民眾發動抗清起義'
+ ],ans:1,
+ explain:'牡丹社事件（1874年）：1871年琉球人民遇難漂至恆春半島，被原住民殺害。1874年日本以「懲兇義務」為由出兵台灣高雄屏東原住民部落。結果：清廷承認日本出兵為保民義舉（等於間接承認日本對琉球有管轄權）→促使清廷積極建設台灣防務。'},
+
+{t:'u2b',era:'清中・現代化建設',type:'match',
+ q:'請將清代現代化建設官員與其主要成就配對：',
+ pairs:[
+   ['沈葆楨','牡丹社事件後來台，開山撫番、廢除渡臺禁令、加強南部防務（安平、旗後、億載金城）'],
+   ['劉銘傳','清法戰爭後任首任台灣巡撫，修建鐵路、架設電報線、購置輪船、興辦西學堂'],
+ ],
+ explain:'沈葆楨（1874年後）：南部防務建設為主。劉銘傳（1885年後，首任巡撫）：全面現代化建設，台灣成為當時中國最進步的省分之一，建設集中北部。'},
+
+{t:'u2b',era:'清末・清法戰爭',type:'mc',
+ q:'「清法戰爭」（1884年）對台灣的主要影響是？',
+ opts:[
+   'A 台灣被割讓給法國',
+   'B 法軍進攻台灣基隆、淡水，清廷戰後加強台灣防務，1885年下令台灣建省，任劉銘傳為首任巡撫',
+   'C 清廷被迫開放台灣所有港口',
+   'D 法國取得台灣永久租借權'
+ ],ans:1,
+ explain:'清法戰爭（光緒10年，1884年）：法國為取得海上優勢，進攻基隆、淡水、澎湖。台灣軍民奮力抵抗（海門天險）。清廷戰後加強台灣建設：1885年（光緒11年）下令台灣建省，任劉銘傳為首任巡撫，展開現代化建設。'},
+
+// ══ 單元2c：清代經濟與社會文化 ══
+{t:'u2c',era:'清代經濟・農業',type:'mc',
+ q:'清代台灣農業發展最重要的水利設施是？',
+ opts:[
+   'A 嘉南大圳',
+   'B 瑠公圳（台北）和八堡圳（彰化），兩者分別由郭錫瑠和施世榜主導興建',
+   'C 曹公圳（高雄）',
+   'D 烏山頭水庫'
+ ],ans:1,
+ explain:'清代重要水利設施：①瑠公圳（台北，清乾隆年間，郭錫瑠主導）→台北地區最重要水圳；②八堡圳（彰化，清正年間，施世榜主導）→中部地區最重要，也是台代最大水圳。擴大水田面積、提高稻米產量。'},
+
+{t:'u2c',era:'清代經濟・開港後貿易',type:'mc',
+ q:'台灣開港（1860年代）後，最主要的出口商品是哪三樣？',
+ opts:[
+   'A 稻米、甘蔗、鹿皮',
+   'B 茶葉、樟腦、糖（開港後台灣出口以茶葉為首，其次為糖，第三是樟腦）',
+   'C 絲綢、瓷器、香料',
+   'D 稻米、紡織品、藥材'
+ ],ans:1,
+ explain:'開港後台灣出口商品（重要性依序）：①茶葉（北台灣北部丘陵，出口淡水，銷往美、東南亞）→大稻埕因此興起；②糖（南部平原，出口打狗、安平，銷往中國、日本）；③樟腦（中北部山區，出口淡水，銷往歐美）。'},
+
+{t:'u2c',era:'清代社會・移民組成',type:'mc',
+ q:'清代移民台灣的漢人以哪些地區的人為主？',
+ opts:[
+   'A 廣東廣州人和山東人',
+   'B 福建（閩）泉州、漳州的閩南人，以及福建西部、廣東東部的客家人為主',
+   'C 浙江人和福建人各半',
+   'D 主要來自北京和江蘇'
+ ],ans:1,
+ explain:'清代移民組成：①閩南人（福建泉州、漳州人）→為最大多數，分布平原一帶；②客家人（福建西部、廣東東部）→北部丘陵地區為主。移民多依地緣或血緣互助，形成同鄉或同姓聚居現象。'},
+
+{t:'u2c',era:'清代社會・閩客衝突',type:'mc',
+ q:'清代台灣「械鬥」現象的主要成因是？',
+ opts:[
+   'A 漢人與原住民之間的衝突',
+   'B 不同祖籍、姓氏或宗教族群之間的利益衝突，加上官治不良、民間充斥仇視風氣',
+   'C 台灣南北地區之間的政治衝突',
+   'D 商業利益競爭引發的族群衝突'
+ ],ans:1,
+ explain:'械鬥成因：①不同組籍（閩、粵、漳、泉）、姓氏或宗教族群之間的利益衝突②官治不良、貪污腐敗③民間積怨和仇視風氣盛行。三大民變：1721年朱一貴事件、1786年林爽文事件、1862年戴潮春事件，都以械鬥擴大為對抗官府。'},
+
+{t:'u2c',era:'清代文化・西方文化再傳入',type:'mc',
+ q:'清代開港後，哪位傳教士在台灣留下重要的醫療與教育貢獻？',
+ opts:[
+   'A 利瑪竇','B 馬偕（George Leslie Mackay）','C 湯若望','D 南懷仁'
+ ],ans:1,
+ explain:'馬偕（加拿大傳教士）：在淡水設立醫館（今馬偕紀念醫院前身）、創建理學堂大書院（牛津學堂）、淡水女學堂，並協助台灣人拔牙、推廣近代醫學。馬雅各：在台南成立台灣第一間西式醫館（今新樓醫院）。'},
+
+// ══ 單元2d：原住民社會文化變遷 ══
+{t:'u2d',era:'清代原住民・平埔族',type:'mc',
+ q:'清帝國統治時期，平埔族群面臨什麼樣的困境？',
+ opts:[
+   'A 清廷積極保護平埔族文化，使其得以保存',
+   'B 官府壓迫（須納稅服役），土地流失（漢人越界開墾），傳統文化逐漸消失，生存空間受擠壓',
+   'C 平埔族主動選擇融入漢人社會',
+   'D 平埔族遷移到中國大陸'
+ ],ans:1,
+ explain:'平埔族群面臨的困境：①官府壓迫：須納稅、服役，長期受官府壓榨；②土地流失：漢人越界開墾，侵占原住民土地；③傳統文化衝擊：被迫學習漢語、種植漢人農作物、接受西方宗教。影響：被迫遷往宜蘭平原等地，傳統文化、生活方式、宗教信仰逐漸消失，多數已融入漢人社會。'},
+
+{t:'u2d',era:'清代原住民・高山原住民',type:'mc',
+ q:'清帝國對高山原住民的「開山撫番」政策（1874年後），主要目的是？',
+ opts:[
+   'A 保護原住民文化不被破壞',
+   'B 政治上：將原住民納入政府管理（避免再發生牡丹社事件）；經濟上：取得丘陵山地資源',
+   'C 協助原住民發展農業技術',
+   'D 讓原住民有更多政治參與機會'
+ ],ans:1,
+ explain:'開山撫番政策（清帝國統治後期）：目的：①政治：將原住民納入政府管理，避免再發生外國侵台事件；②經濟：取得丘陵、山地資源。影響：清廷設置番學堂、設置番屯，接觸原住民生活領域，引發原住民反抗（如大庄事件），被迫遷移他鄉，傳統文化面臨衝擊。'},
+
+{t:'u2d',era:'清代原住民・比較',type:'match',
+ q:'請將三個政權對原住民的統治政策特色配對：',
+ pairs:[
+   ['荷蘭','在部落設教堂學校傳播基督教，以新港文傳教，透過地方會議控制各部落'],
+   ['鄭氏','在原住民部落設立學校，推廣儒家文化，鼓勵土地拓墾加深漢原衝突'],
+   ['清帝國','採劃界封山隔離漢原，後期開山撫番，使原住民生存領域逐漸縮減'],
+ ],
+ explain:'荷蘭→傳教+新港文+地方會議；鄭氏→儒家文化推廣+拓墾加深衝突；清帝國→初期隔離（劃界封山）→後期侵入（開山撫番）→引發反抗。'},
+
+];
+
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.panel).classList.add('active');if(tab.dataset.panel==='wrong')renderWP();});});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+function updateGo(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);const btn=document.getElementById('goBtn');if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}else{btn.disabled=true;btn.textContent='請選擇單元與模式';}}
+document.getElementById('goBtn').addEventListener('click',startGame);
+function startGame(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;const isLong=S.mode==='normal'||S.mode==='timed';let pool=QB.filter(q=>S.topics.includes(q.t));pool=shuffle(pool);S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));S.cur=0;showScreen('game');renderQ();}
+function startWrongPractice(){const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();}
+function renderQ(){if(S.cur>=S.qs.length){showResult();return;}const q=S.qs[S.cur];S.answered=false;const total=S.qs.length;document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));else document.getElementById('gLives').textContent='';const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort'};document.getElementById('qtag').textContent=tMap[q.type]||'題目';document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;document.getElementById('qtext').textContent=q.q;document.getElementById('qsub').textContent=q.hint||'';const area=document.getElementById('ans-area');area.innerHTML='';document.getElementById('fbbox').className='fb-box';document.getElementById('nextBtn').className='next-btn';if(q.type==='mc')renderMC(q,area);else if(q.type==='tf')renderTF(q,area);else if(q.type==='fill')renderFillQ(q,area);else if(q.type==='match')renderMatch(q,area);else if(q.type==='sort')renderSort(q,area);clearInterval(S.timer);const te=document.getElementById('gTimer');if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}else te.style.display='none';}
+function renderMC(q,area){const grid=document.createElement('div');grid.className='opts';q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt';btn.textContent=o;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const ok=i===q.ans;grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});finish(ok,q);});grid.appendChild(btn);});area.appendChild(grid);}
+function renderTF(q,area){const row=document.createElement('div');row.className='tf-row';['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const userT=i===0,ok=userT===q.ans;row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});finish(ok,q);});row.appendChild(btn);});area.appendChild(row);}
+function renderFillQ(q,area){const row=document.createElement('div');row.className='fill-row';const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確：${q.ans}`);};btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});row.append(inp,btn);area.appendChild(row);}
+function renderMatch(q,area){const wrap=document.createElement('div');wrap.className='match-wrap';const lCol=document.createElement('div');lCol.className='match-col';const rCol=document.createElement('div');rCol.className='match-col';const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);let lPicked=null,rPicked=null,matched=0;pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});wrap.append(lCol,rCol);area.appendChild(wrap);function tryM(){if(!lPicked||!rPicked)return;const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}lPicked=null;rPicked=null;}wrap.addEventListener('click',e=>{if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}tryM();});}
+let dragEl=null;
+function renderSort(q,area){const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));const list=document.createElement('div');list.className='sort-list';shuffled.forEach(item=>{const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});el.addEventListener('dragend',()=>el.classList.remove('dragging'));el.addEventListener('dragover',e=>e.preventDefault());el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});list.appendChild(el);});area.appendChild(list);const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});area.appendChild(chk);}
+function finish(ok,q,extraMsg){const pts=calcPts(ok,q.type);if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;document.getElementById('fbmsg').textContent=msg;document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;const nb=document.getElementById('nextBtn');nb.className='next-btn show';const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};}
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+function startTimer(sec){S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';S.timer=setInterval(()=>{S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}},1000);}
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+function showResult(){clearInterval(S.timer);showScreen('result');const max=S.qs.length*6;const pct=max>0?S.score/max:0;let emoji,title,msg;if(pct>=.9){emoji='🏆';title='歷史達人！';msg='歷史第一冊掌握得非常好！繼續保持！';}else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點複習！';}else if(pct>=.5){emoji='📖';title='繼續加油！';msg='去錯題複習區針對弱點加強！';}else{emoji='💪';title='不要灰心！';msg='把講義再仔細看一遍，再來挑戰！';}document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';document.getElementById('rMsg').textContent=msg;const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}else document.getElementById('rWeak').style.display='none';const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';if(pct>=.75)confetti();}
+function renderWP(){const bank=loadWB();const panel=document.getElementById('wrongPanel');const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;pw.style.display='block';cl.style.display='block';}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#a0522d','#7d4e0a','#6b3d08','#cd853f','#f5deb3'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

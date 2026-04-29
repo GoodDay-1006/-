@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>理化闖關王 第二冊</title>
+<style>
+:root{
+  --bg:#f0f4ff;--ink:#0a1a2a;--red:#c0392b;--gold:#3a4ab0;
+  --teal:#2a3aa0;--blue:#1a2a80;--accent:#4a5ac0;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(40,50,160,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(74,90,192,.09) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(40,50,160,.06) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#c8d0f8 0%,var(--bg) 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(10,26,42,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(10,26,42,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(10,26,42,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(10,26,42,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(10,26,42,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#c8d0f8;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(10,26,42,.48);margin-top:3px;line-height:1.4;}
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(10,26,42,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(10,26,42,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(10,26,42,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(10,26,42,.38);border:1px solid rgba(10,26,42,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:var(--red);animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#d8dcf8;color:#3a4ab0;}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:var(--green);}
+.qtag.match{background:#d8dcf8;color:#2a3aa0;}
+.qtag.sort{background:#c8d0f8;color:#1a2a80;}
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(10,26,42,.43);margin-bottom:11px;font-style:italic;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#eaecf8;border:2px solid #b0b8e8;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#c8d0f8;}
+.opt.ok{background:#d4f5e2;border-color:var(--green);color:var(--green);font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #b0b8e8;background:#eaecf8;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:var(--green);}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:var(--green);background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#eaecf8;border:2px solid #b0b8e8;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:#e6b800;background:#c8d0f8;font-weight:700;}
+.match-item.matched{border-color:var(--green);background:#d4f5e2;color:var(--green);font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#eaecf8;border:2px solid #b0b8e8;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--accent);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:var(--green);border-left:4px solid var(--green);}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+#result{background:linear-gradient(155deg,#c8d0f8 0%,var(--bg) 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(10,26,42,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(10,26,42,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(10,26,42,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#eaecf8;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">理化闖關王</div>
+    <div class="home-badge">理化 第二冊 · 單元07–11 · 會考複習</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip" data-t="u7a">單元07・化學反應與質量守恆</div>
+      <div class="tchip" data-t="u7b">單元07・化學式與莫耳</div>
+      <div class="tchip" data-t="u7c">單元07・化學反應類型</div>
+      <div class="tchip" data-t="u7d">單元07・氧化還原</div>
+      <div class="tchip" data-t="u8a">單元08・酸與鹼</div>
+      <div class="tchip" data-t="u8b">單元08・pH值與中和</div>
+      <div class="tchip" data-t="u8c">單元08・鹽類與生活應用</div>
+      <div class="tchip" data-t="u9a">單元09・反應速率</div>
+      <div class="tchip" data-t="u9b">單元09・化學平衡</div>
+      <div class="tchip" data-t="u10a">單元10・有機化合物</div>
+      <div class="tchip" data-t="u10b">單元10・烴、醇、酸、酯與聚合物</div>
+      <div class="tchip" data-t="u11a">單元11・力與壓力</div>
+      <div class="tchip" data-t="u11b">單元11・浮力</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+<div class="screen" id="game">
+  <div class="gbar">
+    <div><div class="gbar-left" id="gInfo">第 1 / 50 題</div><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;"><div class="gbar-timer" id="gTimer" style="display:none;">20</div><div><div class="gbar-score" id="gScore">0 分</div><div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox"><div class="fb-title" id="fbtitle"></div><div id="fbmsg"></div></div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div><div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div><div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div><div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+<div class="combo" id="combo"></div>
+<script>
+const SK='sci_b2_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+// ===== 單元07 化學反應與質量守恆 =====
+{type:'mc',t:'u7a',era:'化學反應・定義與現象',q:'下列哪一個現象最可能是化學變化（而非物理變化）？',opts:['冰融化成水（物理變化，狀態改變）','蠟燭燃燒產生二氧化碳和水（化學變化）','水蒸發成水蒸氣（物理變化，狀態改變）','食鹽溶於水（物理變化，溶解現象）'],ans:1,explain:'化學變化會產生新物質：蠟燭燃燒→生成CO₂和H₂O（新物質）。冰融化、水蒸發是物理變化（狀態改變，物質種類不變）；食鹽溶於水是溶解（物理變化）。'},
+{type:'mc',t:'u7a',era:'質量守恆・定義',q:'「質量守恆定律」是指什麼？',opts:['化學反應後，反應物與生成物的分子數目不變','反應前所有物質的總質量＝反應後所有物質的總質量','只有密閉系統的化學反應才遵守質量守恆','化學反應前後，反應物的溫度保持不變'],ans:1,explain:'質量守恆定律：化學反應前後，反應物的總質量＝生成物的總質量。適用範圍：密閉系統（質量不變）和非密閉系統（遵守質量守恆，但質量可能因氣體逸散而看起來增加或減少）。'},
+{type:'tf',t:'u7a',era:'質量守恆・非密閉系統',q:'大理石與鹽酸反應（非密閉系統）時，反應後測得質量比反應前小，這違反了質量守恆定律。',ans:false,explain:'錯誤。大理石與鹽酸反應產生CO₂氣體逸散到大氣中，所以秤重時減少，但實際上反應前後所有物質（含逸出的CO₂）總質量仍相等。質量守恆定律並未被違反。'},
+{type:'mc',t:'u7a',era:'質量守恆・實驗',q:'氯化鈣溶液與碳酸鈉溶液混合，在密閉容器中反應，反應前後天平顯示質量相同，這說明了什麼？',opts:['只有液體間的反應才遵守質量守恆定律','密閉系統中反應前後物質的總質量不變','密閉系統中的反應不會產生沉澱或氣體','兩溶液的顏色沒有改變，故沒有發生反應'],ans:1,explain:'氯化鈣（CaCl₂）和碳酸鈉（Na₂CO₃）反應產生碳酸鈣（CaCO₃）白色沉澱，這是化學反應。在密閉容器中進行，反應前後質量相同，驗證了密閉系統遵守質量守恆定律。'},
+// ===== 單元07 化學式與莫耳 =====
+{type:'mc',t:'u7b',era:'化學式・原子量與分子量',q:'水（H₂O）的分子量是多少？（H的原子量=1，O的原子量=16）',opts:['8（H×1＋O×0.5）','16（H×0＋O×1）','18（H×2＋O×1）','34（H×2＋O×2）'],ans:2,explain:'H₂O的分子量＝H×2＋O×1＝1×2＋16×1＝18。分子量的計算是各元素原子量乘以其在分子式中的個數再加總。'},
+{type:'mc',t:'u7b',era:'化學式・莫耳',q:'1莫耳（mol）的粒子數是多少？這個數稱為什麼？',opts:['6×10²³個，稱為亞佛加厥常數','1×10²³個，稱為波以耳常數（波以耳定律）','6×10²²個，稱為莫耳常數（摩爾數目）','1×10²⁴個，稱為普朗克常數（能量計算）'],ans:0,explain:'1莫耳（mol）含有6×10²³個粒子，此數值稱為亞佛加厥常數（Avogadro\'s number）。莫耳是化學中用來計量粒子數目的單位，1莫耳任何物質都含有6×10²³個該種粒子。'},
+{type:'fill',t:'u7b',era:'化學式・莫耳質量',q:'1莫耳物質的質量（克）等於該物質的分子量。例如1莫耳水（H₂O）的質量為________克。',ans:'18',explain:'莫耳質量：1莫耳物質的質量（g）等於其分子量（g/mol）。水（H₂O）的分子量＝2×1＋16＝18，所以1莫耳水＝18克。'},
+{type:'mc',t:'u7b',era:'化學式・化學方程式平衡',q:'配平化學方程式 __H₂ + O₂ → __H₂O，係數應為何？',opts:['1H₂ + 1O₂ → 1H₂O（原子數不守恆）','1H₂ + 1O₂ → 2H₂O（原子數不守恆）','2H₂ + O₂ → 2H₂O（原子數守恆，正確）','3H₂ + O₂ → 3H₂O（原子數不守恆）'],ans:2,explain:'配平：2H₂ + O₂ → 2H₂O。左側：H=4，O=2；右側：H=4，O=2，質量守恆。係數比為2:1:2。化學方程式配平需確保反應前後各元素原子數相等。'},
+// ===== 單元07 化學反應類型 =====
+{type:'mc',t:'u7c',era:'反應類型・化合與分解',q:'下列哪一個反應屬於「分解反應」？',opts:['2H₂ + O₂ → 2H₂O（化合反應，多→一）','2H₂O → 2H₂ + O₂（分解反應，一→多）','Fe + S → FeS（化合反應，多→一）','CaO + H₂O → Ca(OH)₂（化合反應，多→一）'],ans:1,explain:'分解反應：一種物質分解成兩種或多種物質。2H₂O → 2H₂ + O₂（電解水）。化合反應：兩種或多種物質化合成一種物質（選項A）；選項C是化合；選項D是化合。'},
+{type:'mc',t:'u7c',era:'反應類型・單置換',q:'以下哪一個反應屬於「單置換反應」（取代反應）？',opts:['CaCO₃ → CaO + CO₂（分解反應，一→多）','2Mg + O₂ → 2MgO（化合反應，多→一）','Zn + 2HCl → ZnCl₂ + H₂↑（單置換，元素取代）','NaOH + HCl → NaCl + H₂O（雙置換，中和反應）'],ans:2,explain:'單置換反應：一種元素取代化合物中的另一種元素。Zn + 2HCl → ZnCl₂ + H₂↑（鋅取代氫）。選項A分解；B化合；D雙置換（中和）。'},
+{type:'mc',t:'u7c',era:'反應類型・雙置換',q:'碳酸鈣（CaCO₃）與鹽酸（HCl）反應：CaCO₃ + 2HCl → CaCl₂ + H₂O + CO₂，此反應屬於哪種類型？',opts:['化合反應（多種物質合為一種）','分解反應（一種物質分為多種）','單置換反應（一元素取代另一元素）','雙置換反應（兩化合物互換離子）'],ans:3,explain:'雙置換反應：兩種化合物互相交換離子，生成兩種新化合物。CaCO₃ + 2HCl → CaCl₂ + H₂O + CO₂是雙置換，同時有CO₂氣體產生（分解成分）。雙置換的特徵：常生成沉澱、氣體或水。'},
+{type:'sort',t:'u7c',era:'化學反應類型排序',q:'請依照反應物→生成物的「種類數目變化」，將以下反應類型從「多→少種類」到「少→多種類」排列：',items:['分解反應（1→多）','化合反應（多→1）','單置換（2→2）','雙置換（2→2）'],correctOrder:[1,0,2,3],explain:'化合：多→1（種類減少）；分解：1→多（種類增加）；單置換與雙置換：都是兩種反應物生成兩種生成物（種類不變，但組成改變）。'},
+// ===== 單元07 氧化還原 =====
+{type:'mc',t:'u7d',era:'氧化還原・定義',q:'「氧化」是指什麼？「還原」是指什麼？',opts:['氧化是失去電子或與氧化合；還原是得到電子或失去氧','氧化是得到電子氧化數降低；還原是失去電子升高','氧化反應使溶液pH升高；還原反應使pH降低','氧化只發生在金屬元素；還原只發生在非金屬元素'],ans:0,explain:'氧化（狹義）：物質與氧化合，或（廣義）失去電子、氧化數升高。還原（狹義）：物質失去氧，或（廣義）得到電子、氧化數降低。氧化與還原同時發生（氧化還原反應）。'},
+{type:'mc',t:'u7d',era:'氧化還原・判斷',q:'反應：2Mg + O₂ → 2MgO 中，哪個物質被氧化？哪個是氧化劑？',opts:['Mg被氧化（失電子）；O₂是氧化劑','O₂被氧化（失電子）；Mg是氧化劑','Mg被還原（得電子）；O₂是還原劑','Mg與O₂兩者同時被氧化、同時被還原'],ans:0,explain:'Mg與O₂反應生成MgO：Mg→MgO（Mg失去電子，氧化數從0→+2），故Mg被氧化；O₂得到電子（還原），O₂是氧化劑（使Mg氧化的物質）。口訣：氧化劑被還原；還原劑被氧化。'},
+{type:'tf',t:'u7d',era:'氧化還原・活性序',q:'活性序越強的金屬越容易被氧化（失去電子），活性序：K > Na > Mg > Al > Zn > Fe > Cu > Ag > Au。所以鋅可以從硫酸銅溶液中置換出銅。',ans:true,explain:'正確。活性序強的金屬可置換活性序弱的金屬：Zn > Cu，所以鋅（Zn）加入硫酸銅（CuSO₄）溶液中，Zn失去電子（被氧化），Cu²⁺得到電子（被還原），置換出銅（Cu）。'},
+{type:'mc',t:'u7d',era:'氧化還原・生活應用',q:'鐵釘生鏽（鐵與空氣中的氧和水反應生成氧化鐵）是什麼反應？如何防止？',opts:['還原反應；增加水分接觸可以防止鐵繼續生鏽','氧化反應；塗油漆或電鍍可隔絕空氣和水防鏽','中和反應；加酸性溶液可以防止鐵生鏽','分解反應；對鐵加熱可以防止其繼續生鏽'],ans:1,explain:'鐵生鏽是鐵（Fe）與氧（O₂）和水（H₂O）反應生成氧化鐵（Fe₂O₃），鐵失去電子→氧化反應。防鏽方法：塗油漆、電鍍（鋅、錫）、鍍鉻等，目的是隔絕鐵與空氣和水的接觸。'},
+// ===== 單元08 酸與鹼 =====
+{type:'mc',t:'u8a',era:'酸鹼・定義',q:'下列關於「酸」的敘述，何者正確？',opts:['酸是溶於水產生OH⁻離子，使石蕊變藍','酸是溶於水解離出H⁺的物質，使石蕊試紙變紅','酸一定具有強腐蝕性，絕對不可接觸皮膚','酸溶液的pH值一定大於7，為鹼性溶液'],ans:1,explain:'酸的定義（阿瑞尼斯）：溶於水解離出H⁺（氫離子）的物質。性質：水溶液使石蕊試紙變紅、使酚酞試液不變色（無色）、pH < 7、與金屬反應放出H₂。例：HCl（鹽酸）、H₂SO₄（硫酸）、HNO₃（硝酸）、醋酸（CH₃COOH）。'},
+{type:'mc',t:'u8a',era:'酸鹼・鹼的定義',q:'下列哪些是鹼性物質的正確描述？',opts:['溶水解離出H⁺，pH<7，使石蕊變藍，使酚酞變紅','溶水解離出OH⁻，pH>7，使石蕊變藍，使酚酞變紅','溶水不解離，呈中性，pH=7，試紙不變色','溶水解離出OH⁻，pH<7，使石蕊變紅，使酚酞無色'],ans:1,explain:'鹼的定義：溶於水解離出OH⁻（氫氧根離子）的物質。性質：使石蕊試紙變藍、使酚酞試液變紅（粉紅色）、pH > 7、有滑溜感。例：NaOH（燒鹼）、Ca(OH)₂（石灰水）、NH₃（氨水）、KOH。'},
+{type:'mc',t:'u8a',era:'酸鹼・強弱酸鹼',q:'下列關於「強酸」與「弱酸」的區別，何者正確？',opts:['強酸的濃度一定比弱酸的濃度更大','強酸完全解離（HCl、H₂SO₄）；弱酸部分解離（醋酸）','強酸的腐蝕性一定比同濃度弱酸更強','強酸pH一定比任何濃度的弱酸更低'],ans:1,explain:'強酸與弱酸的區別在於「解離程度」，與濃度無關：強酸（HCl、H₂SO₄、HNO₃）在水中幾乎完全解離；弱酸（CH₃COOH醋酸、H₂CO₃碳酸）只部分解離。同濃度的強酸pH比弱酸低，[H⁺]較高。'},
+{type:'match',t:'u8a',era:'酸鹼物質配對',q:'請將以下物質與其酸鹼性質配對：',pairs:[['鹽酸（HCl）','強酸，使石蕊變紅，pH < 7'],['氫氧化鈉（NaOH）','強鹼，使酚酞變紅，pH > 7'],['醋酸（CH₃COOH）','弱酸，僅部分解離'],['氨水（NH₃水溶液）','弱鹼，使石蕊變藍']],explain:'強酸：HCl、H₂SO₄、HNO₃；弱酸：CH₃COOH（醋酸）、H₂CO₃；強鹼：NaOH、KOH、Ca(OH)₂；弱鹼：NH₃（氨水）、Mg(OH)₂。試劑判斷：石蕊紅→酸；石蕊藍→鹼；酚酞紅→鹼；酚酞無色→酸或中性。'},
+// ===== 單元08 pH值與中和 =====
+{type:'mc',t:'u8b',era:'pH值・定義',q:'pH值的意義是什麼？pH=7、pH<7、pH>7分別代表什麼？',opts:['pH代表溶液溫度；pH=7最熱；pH<7較冷；pH>7較熱','pH=7為中性；pH<7為酸性（H⁺越高pH越低）；pH>7為鹼性'],ans:1,explain:'pH值（酸鹼值）：pH = -log[H⁺]。pH = 7：[H⁺]=[OH⁻]=10⁻⁷ M，中性（25°C純水）；pH < 7：酸性，H⁺濃度越高pH越小；pH > 7：鹼性，OH⁻濃度越高pH越大。pH每差1，H⁺濃度差10倍。'},
+{type:'mc',t:'u8b',era:'pH值・比較',q:'下列pH排列，何者正確（由酸性最強到鹼性最強）？',opts:['pH 13酸性最強，pH 7次之，pH 1最弱','pH 1酸性最強，pH 7為中性，pH 13鹼性最強','pH 7是所有溶液中酸性最強的','pH 1是所有溶液中鹼性最強的'],ans:1,explain:'pH 1 < pH 3 < pH 7（中性）< pH 11 < pH 13。pH越小酸性越強（H⁺濃度越高）；pH越大鹼性越強（OH⁻濃度越高）。常見pH：胃酸≈1.5、醋酸≈3、純水=7、血液≈7.4、小蘇打≈8.3、NaOH≈13。'},
+{type:'tf',t:'u8b',era:'pH值・計算概念',q:'pH = 3的溶液，其[H⁺] = 10⁻³ M；pH = 5的溶液，其[H⁺] = 10⁻⁵ M。因此pH=3的溶液酸性比pH=5強，且[H⁺]濃度是pH=5的100倍。',ans:true,explain:'正確。pH = -log[H⁺]，所以pH = 3時[H⁺] = 10⁻³ M，pH = 5時[H⁺] = 10⁻⁵ M。兩者相差2個pH單位，[H⁺]差10² = 100倍。pH每差1，[H⁺]差10倍。'},
+{type:'mc',t:'u8b',era:'中和反應',q:'「中和反應」是指什麼？產物是什麼？',opts:['兩種酸混合，生成更強酸和水的反應','酸與鹼反應，H⁺與OH⁻結合生成鹽和水','鹼與氧氣反應，生成金屬氧化物的反應','金屬與鹽酸反應，生成氫氣和鹽的反應'],ans:1,explain:'中和反應：酸與鹼反應，H⁺（來自酸）與OH⁻（來自鹼）結合生成水，同時生成鹽。H⁺ + OH⁻ → H₂O。例：HCl + NaOH → NaCl + H₂O；H₂SO₄ + 2NaOH → Na₂SO₄ + 2H₂O。中和時放熱（放熱反應）。'},
+{type:'mc',t:'u8b',era:'pH滴定',q:'將NaOH溶液逐漸加入鹽酸中進行滴定，溶液pH的變化趨勢為何？',opts:['pH值隨NaOH增加而一直持續減小','pH值不論加多少NaOH都一直持續增大','pH先從酸性升高，到當量點pH=7，再繼續升入鹼性','pH值在整個滴定過程中始終保持不變'],ans:2,explain:'將鹼（NaOH）加入酸（HCl）中：一開始溶液偏酸性（pH < 7）；隨著NaOH增加，H⁺被中和，pH逐漸升高；當NaOH恰好中和HCl時，達到當量點（pH = 7，強酸強鹼）；繼續加入NaOH後，OH⁻過多，pH > 7（鹼性）。'},
+// ===== 單元08 鹽類與生活應用 =====
+{type:'mc',t:'u8c',era:'鹽類・定義與生成',q:'「鹽」是如何形成的？下列哪一個是鹽？',opts:['鹽只能由金屬和非金屬直接化合形成，NaCl是唯一的鹽','鹽由酸的陰離子和鹼的陽離子結合，如NaCl、Na₂SO₄、CaCO₃'],ans:1,explain:'鹽：酸根（陰離子）+ 金屬離子（陽離子）組成的化合物。常見的鹽：NaCl（食鹽，HCl+NaOH）、Na₂CO₃（蘇打）、NaHCO₃（小蘇打）、CaCO₃（石灰石/大理石）、CaSO₄（石膏）、MgSO₄（瀉鹽）。'},
+{type:'mc',t:'u8c',era:'鹽類・生活中的鹽',q:'下列關於NaHCO₃（碳酸氫鈉，小蘇打）的敘述，何者正確？',opts:['小蘇打是強鹼，具有強腐蝕性，不可食用','小蘇打是弱鹼性的鹽，與酸反應釋放CO₂，可用於烘焙'],ans:1,explain:'NaHCO₃（小蘇打）性質：弱鹼性（水溶液pH約8.3）；加熱分解：2NaHCO₃→Na₂CO₃+H₂O+CO₂；與酸反應：NaHCO₃+HCl→NaCl+H₂O+CO₂。用途：烘焙（釋放CO₂使麵包蓬鬆）、滅火器、制酸藥（中和胃酸）。'},
+{type:'tf',t:'u8c',era:'鹽類・水解',q:'鹽的水溶液不一定是中性。強酸弱鹼形成的鹽（如NH₄Cl）水溶液偏酸性；強鹼弱酸形成的鹽（如Na₂CO₃）水溶液偏鹼性。',ans:true,explain:'正確。鹽的水解：（1）強酸+強鹼的鹽（如NaCl）水溶液為中性（2）強酸+弱鹼的鹽（如NH₄Cl）：NH₄⁺水解→偏酸性（3）強鹼+弱酸的鹽（如Na₂CO₃、CH₃COONa）：CO₃²⁻或CH₃COO⁻水解→偏鹼性。'},
+// ===== 單元09 反應速率 =====
+{type:'mc',t:'u9a',era:'反應速率・定義',q:'「反應速率」是指什麼？如何計算？',opts:['反應速率是反應物質量除以溫度變化量','反應速率是單位時間內反應物消耗量或產物生成量'],ans:1,explain:'反應速率：單位時間內反應物消耗量或生成物生成量。速率越快，反應所需時間越短。碰撞學說：反應粒子需互相碰撞，且碰撞需有足夠能量（活化能）和正確方向（有效碰撞）。'},
+{type:'mc',t:'u9a',era:'反應速率・影響因素',q:'下列哪個操作可以「提高」化學反應速率？',opts:['降低反應溫度，減慢粒子的運動速度','增大反應物顆粒大小，減少接觸面積','加入催化劑，降低反應所需活化能','降低反應物濃度，減少有效碰撞次數'],ans:2,explain:'提高反應速率的方法：（1）升高溫度（粒子碰撞次數增加，能量增大）（2）增大濃度（粒子碰撞機會增加）（3）增大接觸面積（顆粒研磨更小）（4）加入催化劑（降低活化能）。催化劑：改變速率但不增加生成物產量，反應後質量不變。'},
+{type:'tf',t:'u9a',era:'反應速率・催化劑',q:'催化劑可以提高反應速率，但不改變生成物的產量；反應結束後，催化劑的質量也不會改變。',ans:true,explain:'正確。催化劑的特性：（1）改變反應速率（通常加速）（2）不改變反應的生成物種類和產量（3）反應後催化劑的質量和化學性質不變（可重複使用）（4）作用原理：降低反應的活化能。生物體內的催化劑稱為酵素（酶）。'},
+{type:'mc',t:'u9a',era:'反應速率・溫度影響',q:'食物放入冰箱可以延緩腐敗，其主要原因是什麼？',opts:['冰箱內完全沒有氧氣，細菌缺氧無法分解食物','低溫降低細菌的代謝速率和酵素活性，使腐敗變慢','冰箱的低溫能殺死食物中所有的細菌','食物在低溫下水分蒸發乾燥，細菌無法生長'],ans:1,explain:'食物冷藏的原理：低溫→降低細菌的代謝速率（酵素活性下降）→腐敗速率減慢→食物保存時間延長。這是溫度影響反應速率的生活應用。類似應用：藥品低溫保存、冷凍食品等。'},
+// ===== 單元09 化學平衡 =====
+{type:'mc',t:'u9b',era:'化學平衡・定義',q:'「可逆反應」達到化學平衡時，正確的描述是什麼？',opts:['反應完全停止，正逆反應速率都等於零','正反應速率等於逆反應速率，各物質濃度維持不變','只有正反應在進行，逆反應已完全停止','所有反應物都已完全轉化為生成物，無剩餘'],ans:1,explain:'化學平衡（動態平衡）：可逆反應在密閉系統中，當正反應速率＝逆反應速率時達到平衡狀態。特徵：（1）正逆反應同時進行（2）各物質濃度不變（但不一定相等）（3）是動態的（非靜止）（4）需在密閉系統中才能達到平衡。'},
+{type:'mc',t:'u9b',era:'化學平衡・勒沙特列原理',q:'N₂ + 3H₂ ⇌ 2NH₃（合成氨，正反應為放熱）。若增加反應物N₂的濃度，平衡會如何移動？',opts:['平衡向左移動（逆反應方向），NH₃分解增加','平衡向右移動（正反應方向），NH₃產量增加','增加反應物濃度不影響平衡，NH₃量不變','增加N₂濃度使反應停止，NH₃不再生成'],ans:1,explain:'勒沙特列原理：增加反應物濃度→平衡向正反應方向（右）移動，使NH₃產量增加，N₂濃度降低回到新平衡。工業合成氨（哈柏法）正是利用增大壓力（增加N₂和H₂濃度）和加催化劑來提高NH₃產量。'},
+{type:'mc',t:'u9b',era:'化學平衡・壓力影響',q:'N₂O₄（無色）⇌ 2NO₂（棕紅色）。增大壓力（縮小體積）後，顏色會如何變化？',opts:['顏色立即變淡，因壓縮使平衡向右移動產生更多NO₂','顏色先變深（壓縮濃度增大），再稍微變淡（平衡左移）','顏色完全不變，增壓對此平衡沒有任何影響','顏色立即消失，NO₂完全轉化為無色N₂O₄'],ans:1,explain:'增大壓力（縮小體積）：（1）瞬間：所有氣體濃度增大→NO₂濃度增大→顏色變深（2）平衡移動：縮小體積→平衡向氣體分子數少的方向移動（左移，2NO₂→N₂O₄），部分NO₂轉化→顏色稍微回淡，但仍比原來深。'},
+{type:'tf',t:'u9b',era:'化學平衡・溫度影響',q:'N₂ + 3H₂ ⇌ 2NH₃，正反應為放熱。升高溫度會使平衡向右移動，增加NH₃的產量。',ans:false,explain:'錯誤。升溫對放熱反應的影響：升溫→平衡向吸熱方向（逆反應，左移）→NH₃分解，NH₃產量減少。工業合成氨雖用高溫（約500°C），目的是提高反應速率，但同時犧牲了部分平衡產量，需靠催化劑補償。'},
+// ===== 單元10 有機化合物 =====
+{type:'mc',t:'u10a',era:'有機化合物・定義',q:'如何區分有機化合物和無機化合物？',opts:['有機化合物常溫都是液態；無機化合物都是固態','有機化合物必含碳（C）；CO、CO₂、碳酸鹽等雖含碳仍歸無機物'],ans:1,explain:'有機化合物：必含碳（C）元素，且多含H，以及O、N、S等。例：葡萄糖、甲烷、乙醇、醋酸、尿素。無機化合物：不含碳，或含碳但屬例外（CO、CO₂、碳酸鹽/碳酸根如CaCO₃、NaHCO₃等）。判斷最簡單方法：加熱是否變黑（有機物燃燒→炭C）。'},
+{type:'mc',t:'u10a',era:'有機化合物・實驗辨別',q:'竹筷乾餾實驗的目的和結果是什麼？',opts:['目的是觀察燃燒是否完全；結果是所有物質都變成CO₂','隔絕空氣加熱分解，產物有CO、H₂、焦油、醋酸、炭，證含C、H、O'],ans:1,explain:'竹筷乾餾（隔絕空氣加熱）結果：氣體─可燃（CO、CH₄、H₂）和不可燃（CO₂）；液體─焦油（黑色黏稠）和醋酸；固體─炭（黑色碳固體）。最先看到的白煙是H₂O。由此推測竹筷含有C、H、O元素，為有機物。'},
+{type:'mc',t:'u10a',era:'有機化合物・燃燒',q:'有機物完全燃燒的主要產物是什麼？',opts:['只產生CO₂，不產生任何其他物質','只產生H₂O，碳元素全部留在灰燼中','產生CO₂和H₂O（含N、S則另有NOₓ、SO₂）','產生CO和HCl，不含CO₂或H₂O'],ans:2,explain:'有機物完全燃燒：含C→CO₂；含H→H₂O；含N→NOₓ（或N₂）；含S→SO₂。例：甲烷完全燃燒：CH₄ + 2O₂ → CO₂ + 2H₂O；葡萄糖：C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O。不完全燃燒則產生CO（一氧化碳，有毒）。'},
+// ===== 單元10 烴、醇、酸、酯與聚合物 =====
+{type:'mc',t:'u10b',era:'有機物・烷類',q:'甲烷（CH₄）的特性和用途是什麼？',opts:['甲烷常溫常壓下為液態，沸點高於100℃','甲烷是最簡單的烴，為天然氣和沼氣主成分，可燃燒'],ans:1,explain:'甲烷（CH₄）：最簡單的烷類（飽和烴）；常溫常壓下為無色無味氣體；天然氣和沼氣（生質氣體）的主要成分；可完全燃燒→CO₂+H₂O，用作燃料；烷類通式CₙH₂ₙ₊₂（飽和碳氫化合物）。'},
+{type:'mc',t:'u10b',era:'有機物・醇類',q:'乙醇（C₂H₅OH，酒精）的主要用途和性質包括哪些？',opts:['乙醇不可燃，不溶於水，主要用作滅火劑','乙醇可溶於水、可燃，70～75%酒精殺菌效果最佳'],ans:1,explain:'乙醇（酒精，C₂H₅OH）：無色液體，與水互溶；可燃（C₂H₅OH+3O₂→2CO₂+3H₂O）；70～75%酒精消毒效果最好（使細菌蛋白質變性）；甲醇（CH₃OH）有毒，不可飲用；醇的通式含有-OH官能基。'},
+{type:'mc',t:'u10b',era:'有機物・酸類',q:'醋酸（CH₃COOH，乙酸）的性質和用途是什麼？',opts:['醋酸是強酸，在水中完全解離，具強腐蝕性','醋酸是弱酸，部分解離，是食醋主成分（含3-5%）'],ans:1,explain:'醋酸（乙酸，CH₃COOH）：弱酸（部分解離），弱酸強度：HNO₃ > HCl > CH₃COOH；食用醋含3-5%醋酸；純醋酸16°C以下凝固稱「冰醋酸」；官能基：-COOH（羧基）；有機酸的通式R-COOH。'},
+{type:'mc',t:'u10b',era:'有機物・酯化反應',q:'醋酸（CH₃COOH）與乙醇（C₂H₅OH）反應生成什麼？此反應稱為什麼？',opts:['生成碳酸（H₂CO₃），此反應稱為中和反應','生成乙酸乙酯（CH₃COOC₂H₅）和水，稱為酯化反應'],ans:1,explain:'酯化反應：有機酸（-COOH）+ 醇（-OH）→ 酯（-COO-）+ H₂O（脫水縮合）。例：CH₃COOH + C₂H₅OH → CH₃COOC₂H₅ + H₂O（乙酸乙酯，有果香，用作香精溶劑）。酯化反應需加熱和催化劑（濃硫酸）；逆反應是皂化反應（水解）。'},
+{type:'mc',t:'u10b',era:'有機物・聚合物',q:'聚乙烯（PE）是由許多乙烯（CH₂=CH₂）單體聚合而成的高分子聚合物，此反應稱為什麼？',opts:['酯化反應（羧基與羥基脫水結合成酯）','加成聚合反應（含雙鍵的小分子互相連接成長鏈）'],ans:1,explain:'加成聚合：含雙鍵的不飽和烴分子（單體）打開雙鍵，互相連接形成長鏈（聚合物）。例：n(CH₂=CH₂)→-(-CH₂-CH₂-)ₙ-（聚乙烯PE）。常見聚合物：聚乙烯（PE，塑膠袋）、聚丙烯（PP）、聚苯乙烯（PS，保麗龍）、聚酯纖維（PET，寶特瓶）。'},
+{type:'match',t:'u10b',era:'有機物配對',q:'請將有機化合物與其主要特徵配對：',pairs:[['甲烷（CH₄）','天然氣主成分，最簡單烷類，可燃'],['乙醇（C₂H₅OH）','酒精，70-75%可殺菌消毒，可燃'],['醋酸（CH₃COOH）','食醋主成分，弱酸，含羧基-COOH'],['聚乙烯（PE）','由乙烯加成聚合，用於製造塑膠袋']],explain:'有機物官能基：醇類含-OH（羥基）；有機酸含-COOH（羧基）；酯含-COO-（酯基）；烴只含C和H（無官能基）。聚合物：由大量小分子（單體）聚合而成的大分子，常見的有聚乙烯、聚丙烯、聚苯乙烯等。'},
+// ===== 單元11 力與壓力 =====
+{type:'mc',t:'u11a',era:'力・定義與效應',q:'「力」的定義和效應是什麼？力的單位是什麼？',opts:['力是溫度的變化量，單位是℃（攝氏度）','力是物體間的交互作用，可改變運動狀態或形狀，單位牛頓（N）'],ans:1,explain:'力：物體間的推或拉的交互作用。效應：（1）改變運動狀態（加速或減速或改向）（2）使物體形變。力的單位：牛頓（N）；重量單位：公斤重（kgw），1 kgw = 9.8 N ≈ 10 N。力的三要素：大小、方向、作用點。'},
+{type:'mc',t:'u11a',era:'力・合力',q:'兩個力方向相同時，合力如何計算？方向相反時呢？',opts:['無論方向相同或相反，合力都等於兩力相加','同方向合力等於兩力之和；反方向合力等於兩力之差'],ans:1,explain:'合力計算：（1）同方向：F合 = F₁ + F₂（大小相加，方向相同）（2）反方向：F合 = |F₁ - F₂|（取差，方向同較大的力）（3）垂直方向：F合 = √(F₁² + F₂²）。力是向量，需考慮大小和方向。'},
+{type:'mc',t:'u11a',era:'壓力・定義',q:'「壓力」與「力」的關係是什麼？壓力的公式是什麼？',opts:['壓力等於力乘以面積：P = F×A（Pa = N×m²）','壓力等於力除以面積：P = F/A（Pa = N/m²）'],ans:1,explain:'壓力（P）：單位面積受到的力。公式：P = F/A（力/面積）。單位：gw/cm²、Pa（1 Pa = 1 N/m²）。大小面積的影響：同樣的力，面積越小，壓力越大（如圖釘尖端壓力大）；面積越大，壓力越小（如雪鞋）。'},
+{type:'mc',t:'u11a',era:'壓力・液體壓力',q:'液體壓力（液壓）與哪些因素有關？公式是什麼？',opts:['液壓只與液體重量有關，與深度和密度無關','液壓與密度（ρ）和深度（h）有關；公式：P = ρgh，深度越深壓力越大'],ans:1,explain:'液體壓力公式：P = ρgh（ρ=密度、g=重力加速度、h=深度）。特點：（1）同深度各方向壓力相等（2）深度越深，壓力越大（3）液體密度越大，壓力越大（4）與容器形狀無關（連通管原理）。例：水深10 cm的壓力 = 1 g/cm³ × 10 cm ≈ 10 gw/cm²。'},
+{type:'mc',t:'u11a',era:'壓力・大氣壓力',q:'「標準大氣壓」的定義和數值是什麼？水銀氣壓計如何測量？',opts:['標準大氣壓相當於水深76 cm的壓力；用水柱測量','標準大氣壓相當於76 cm水銀柱壓力（1 atm≈1013 hPa）'],ans:1,explain:'標準大氣壓：1 atm = 76 cmHg（水銀柱76 cm）= 1013.25 hPa = 1033.6 gw/cm²。水銀氣壓計：倒置裝滿水銀的試管，大氣壓力支撐水銀柱高度；標準大氣壓下水銀柱高76 cm（若用水需1033 cm高）。海拔越高→大氣壓力越低。'},
+// ===== 單元11 浮力 =====
+{type:'mc',t:'u11b',era:'浮力・定義',q:'「浮力」的定義是什麼？浮力大小如何計算？',opts:['浮力是物體在空氣中的靜止重量（真重）','浮力是物體在流體中受到的向上推力，等於排開流體的重量'],ans:1,explain:'阿基米德原理：物體在流體中所受浮力＝物體排開流體的重量。F浮 = ρ液 × V排 × g。浮力與物體本身的密度和重量無關，只與排開液體的體積和液體密度有關。'},
+{type:'mc',t:'u11b',era:'浮力・沉浮判斷',q:'物體在液體中的沉浮條件是什麼？',opts:['物體體積越大浮力越大，越容易浮起來','物體密度>液體密度→下沉；密度<液體密度→上浮；相等→懸浮'],ans:1,explain:'沉浮判斷：（1）物體密度 > 液體密度：F浮 < 重力→下沉（2）物體密度 < 液體密度：F浮 > 重力→上浮，直到部分體積露出水面達到浮力=重力（3）物體密度 = 液體密度：F浮 = 重力→懸浮。例：鐵密度>水→沉；木材密度<水→浮。'},
+{type:'tf',t:'u11b',era:'浮力・視重',q:'物體在水中的「視重（表觀重量）」= 真實重量 - 浮力。物體沉在水中時，用彈簧測力計測到的重量會比在空氣中測到的輕。',ans:true,explain:'正確。視重（在液體中）= 真重 - 浮力。物體沉在水中，受到向上的浮力，使彈簧測力計讀數（視重）小於空氣中的真重。計算：真重 = 視重 + 浮力；浮力 = 真重 - 視重。這也是測定密度的方法之一。'},
+{type:'mc',t:'u11b',era:'浮力・計算應用',q:'一個密度為0.6 g/cm³的木塊，放入水（密度1 g/cm³）中，有多少比例的體積在水面以下？',opts:['100%（密度0.6>1，完全沉入水中）','60%（V排/V物 = ρ物/ρ液 = 0.6/1 = 60%）','40%（密度差為0.4，故露出40%）','50%（密度取平均值計算）'],ans:1,explain:'浮體（漂浮）時：浮力 = 重力，即ρ液×V排×g = ρ物×V物×g，所以V排/V物 = ρ物/ρ液 = 0.6/1 = 0.6 = 60%。木塊密度0.6 g/cm³ < 水密度1 g/cm³，所以漂浮，60%體積沉入水中，40%露出水面。'},
+{type:'mc',t:'u11b',era:'浮力・連通管',q:'連通管原理的應用是什麼？靜止時各管的液面高度有何關係？',opts:['連通管各管液面必定高低不同才能維持平衡','連通管底部相連，靜止時各管液面高度相同（同液體同壓）'],ans:1,explain:'連通管原理：相連的管中裝相同液體，靜止時各管液面等高（液壓相等）。應用：（1）水塔供水（水源與用水端液面等高）（2）量水計（水位計）（3）液面計（如汽車油量計）（4）潛水艇壓艙水調整沉浮。注意：若液體密度不同，密度小的液面較高。'}
+];
+
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.panel).classList.add('active');if(tab.dataset.panel==='wrong')renderWP();});});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+function updateGo(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);const btn=document.getElementById('goBtn');if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}else{btn.disabled=true;btn.textContent='請選擇單元與模式';}}
+document.getElementById('goBtn').addEventListener('click',startGame);
+function startGame(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;const isLong=S.mode==='normal'||S.mode==='timed';let pool=QB.filter(q=>S.topics.includes(q.t));pool=shuffle(pool);S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));S.cur=0;showScreen('game');renderQ();}
+function startWrongPractice(){const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();}
+function renderQ(){if(S.cur>=S.qs.length){showResult();return;}const q=S.qs[S.cur];S.answered=false;const total=S.qs.length;document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));else document.getElementById('gLives').textContent='';const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort'};document.getElementById('qtag').textContent=tMap[q.type]||'題目';document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;document.getElementById('qtext').textContent=q.q;document.getElementById('qsub').textContent=q.hint||'';const area=document.getElementById('ans-area');area.innerHTML='';document.getElementById('fbbox').className='fb-box';document.getElementById('nextBtn').className='next-btn';if(q.type==='mc')renderMC(q,area);else if(q.type==='tf')renderTF(q,area);else if(q.type==='fill')renderFillQ(q,area);else if(q.type==='match')renderMatch(q,area);else if(q.type==='sort')renderSort(q,area);clearInterval(S.timer);const te=document.getElementById('gTimer');if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}else te.style.display='none';}
+function renderMC(q,area){const grid=document.createElement('div');grid.className='opts';q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt';btn.textContent=o;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const ok=i===q.ans;grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});finish(ok,q);});grid.appendChild(btn);});area.appendChild(grid);}
+function renderTF(q,area){const row=document.createElement('div');row.className='tf-row';['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const userT=i===0,ok=userT===q.ans;row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});finish(ok,q);});row.appendChild(btn);});area.appendChild(row);}
+function renderFillQ(q,area){const row=document.createElement('div');row.className='fill-row';const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確答案：${q.ans}`);};btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});row.append(inp,btn);area.appendChild(row);}
+function renderMatch(q,area){const wrap=document.createElement('div');wrap.className='match-wrap';const lCol=document.createElement('div');lCol.className='match-col';const rCol=document.createElement('div');rCol.className='match-col';const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);let lPicked=null,rPicked=null,matched=0;pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});wrap.append(lCol,rCol);area.appendChild(wrap);function tryM(){if(!lPicked||!rPicked)return;const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}lPicked=null;rPicked=null;}wrap.addEventListener('click',e=>{if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}tryM();});}
+let dragEl=null;
+function renderSort(q,area){const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));const list=document.createElement('div');list.className='sort-list';shuffled.forEach(item=>{const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});el.addEventListener('dragend',()=>el.classList.remove('dragging'));el.addEventListener('dragover',e=>e.preventDefault());el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});list.appendChild(el);});area.appendChild(list);const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});area.appendChild(chk);}
+function finish(ok,q,extraMsg){const pts=calcPts(ok,q.type);if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;document.getElementById('fbmsg').textContent=msg;document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;const nb=document.getElementById('nextBtn');nb.className='next-btn show';const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};}
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+function startTimer(sec){S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';S.timer=setInterval(()=>{S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}},1000);}
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+function showResult(){clearInterval(S.timer);showScreen('result');const max=S.qs.length*6;const pct=max>0?S.score/max:0;let emoji,title,msg;if(pct>=.9){emoji='🏆';title='理化高手！';msg='第二冊化學與物理全部掌握！繼續保持！';}else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點複習！';}else if(pct>=.5){emoji='📖';title='繼續加油！';msg='去錯題複習區針對弱點加強！';}else{emoji='💪';title='不要灰心！';msg='把筆記再仔細看一遍，再來挑戰！';}document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';document.getElementById('rMsg').textContent=msg;const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}else document.getElementById('rWeak').style.display='none';const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';if(pct>=.75)confetti();}
+function renderWP(){const bank=loadWB();const panel=document.getElementById('wrongPanel');const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;pw.style.display='block';cl.style.display='block';}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#4a5ac0','#3a4ab0','#2a3aa0','#7a8adf','#c8d0f8'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

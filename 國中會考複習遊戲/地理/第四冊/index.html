@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地理闖關王 第四冊</title>
+<style>
+:root{
+  --bg:#fff8f0;--ink:#0a1a2a;--red:#c0392b;--gold:#c87830;
+  --teal:#a05020;--blue:#7a3a10;--accent:#d4874a;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(180,80,20,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(212,135,74,.09) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(180,80,20,.06) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#f5d5b0 0%,var(--bg) 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(10,26,42,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(10,26,42,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(10,26,42,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(10,26,42,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(10,26,42,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#f5d5b0;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(10,26,42,.48);margin-top:3px;line-height:1.4;}
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(10,26,42,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(10,26,42,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(10,26,42,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(10,26,42,.38);border:1px solid rgba(10,26,42,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:var(--red);animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#fbe8d0;color:#c87830;}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:var(--green);}
+.qtag.match{background:#fbe8d0;color:#a05020;}
+.qtag.sort{background:#f5d5b0;color:#7a3a10;}
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(10,26,42,.43);margin-bottom:11px;font-style:italic;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#fdf3e3;border:2px solid #e8c090;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#f5d5b0;}
+.opt.ok{background:#d4f5e2;border-color:var(--green);color:var(--green);font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #e8c090;background:#fdf3e3;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:var(--green);}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:var(--green);background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#fdf3e3;border:2px solid #e8c090;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:#e6b800;background:#f5d5b0;font-weight:700;}
+.match-item.matched{border-color:var(--green);background:#d4f5e2;color:var(--green);font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#fdf3e3;border:2px solid #e8c090;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--accent);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:var(--green);border-left:4px solid var(--green);}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+#result{background:linear-gradient(155deg,#f5d5b0 0%,var(--bg) 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(10,26,42,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(10,26,42,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(10,26,42,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#fdf3e3;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">地理闖關王</div>
+    <div class="home-badge">地理 第四冊 · 單元07–08 · 會考複習</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip" data-t="u7a">單元07・南亞自然環境</div>
+      <div class="tchip" data-t="u7b">單元07・南亞人文與產業</div>
+      <div class="tchip" data-t="u7c">單元07・西亞北非自然環境</div>
+      <div class="tchip" data-t="u7d">單元07・伊斯蘭文化與紛爭</div>
+      <div class="tchip" data-t="u7e">單元07・西亞北非石油與現代化</div>
+      <div class="tchip" data-t="u8a">單元08・漠南非洲地形氣候</div>
+      <div class="tchip" data-t="u8b">單元08・漠南非洲族群文化</div>
+      <div class="tchip" data-t="u8c">單元08・漠南非洲經濟發展</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+<div class="screen" id="game">
+  <div class="gbar">
+    <div><div class="gbar-left" id="gInfo">第 1 / 50 題</div><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;"><div class="gbar-timer" id="gTimer" style="display:none;">20</div><div><div class="gbar-score" id="gScore">0 分</div><div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox"><div class="fb-title" id="fbtitle"></div><div id="fbmsg"></div></div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div><div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div><div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div><div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+<div class="combo" id="combo"></div>
+<script>
+const SK='geo_b4_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+// ===== 單元07 南亞自然環境 =====
+{type:'mc',t:'u7a',era:'南亞・位置地形',q:'南亞被稱為「次大陸」，主要由哪三種地形組成？',opts:['火山高原、河谷平原、珊瑚礁群島','北部喜馬拉雅山脈、中部印度大平原（恆河平原）、南部德干高原'],ans:1,explain:'南亞地形三大分區：（1）北部─喜馬拉雅山脈（板塊擠壓形成，與中國、印度的天然屏障，多地震）（2）中部─印度大平原（恆河平原、印度河平原，河流共同沖積，農業發達）（3）南部─德干高原（位於印澳板塊內，地質古老，礦產豐富）。'},
+{type:'mc',t:'u7a',era:'南亞・氣候季風',q:'影響南亞氣候最重要的因素是什麼？夏季季風來自哪個方向？',opts:['緯度和洋流是最主要因素，夏季季風來自東北方','地形和季風是最重要因素；夏季盛行西南季風（帶來印度洋水氣，降水豐沛），冬季盛行東北季風（乾燥）'],ans:1,explain:'南亞氣候的影響因素：（1）地形（喜馬拉雅山阻擋冬北風）（2）季風（冬吹東北風→乾燥；夏吹西南風→帶來印度洋水氣，降水豐沛）。各地降水量差異大：東部（恆河三角洲）→多雨；西部（印度河流域）→乾燥少雨。'},
+{type:'mc',t:'u7a',era:'南亞・熱帶沙漠氣候',q:'印度河中下游地區為什麼是熱帶沙漠氣候？',opts:['緯度太高，氣溫極低，無法降雨','夏季西南季風的水氣未到達此地（被阻擋），加上熱帶高壓籠罩，氣候乾燥，易有乾旱'],ans:1,explain:'印度河中下游（巴基斯坦大部分）為熱帶沙漠氣候：（1）位於西南季風的背風面（塔爾沙漠地區）（2）夏季西南季風的水氣大部分被地形阻擋，難以到達（3）受副熱帶高壓影響，終年高壓籠罩（4）氣候極乾燥，降水稀少。'},
+{type:'tf',t:'u7a',era:'南亞・斯里蘭卡',q:'斯里蘭卡位於印度半島南端，屬於島上國家；馬爾地夫群島由珊瑚礁組成，地勢低平，因全球海平面上升面臨被淹沒的威脅。',ans:true,explain:'正確。南亞島嶼：（1）斯里蘭卡─島上國家，位於印度南端（2）馬爾地夫群島─珊瑚礁島組成，地勢極低平（平均高度僅約1.5公尺），是全球受海平面上升威脅最嚴重的國家之一，與全球氣候暖化問題密切相關。'},
+// ===== 單元07 南亞人文與產業 =====
+{type:'mc',t:'u7b',era:'南亞人文・人口',q:'南亞是全球人口最多的地區之一，其人口特點包括哪些？',opts:['人口稀少，主要因為氣候惡劣，不適合居住','南亞人口超過19億（2023年），出生率高、人口成長快速；都市人口密度大，移民至城市造成交通擁擠、貧民窟等問題'],ans:1,explain:'南亞人口問題：（1）人口眾多（全球最多）─勞動力充足，市場廣大（2）出生率高、人口成長快（3）都市移民造成：交通擁擠、資源不足、貧民窟問題（4）政治較不穩定（印巴分治、宗教衝突）。印度已成為世界人口最多的國家（2023年超越中國）。'},
+{type:'mc',t:'u7b',era:'南亞人文・種姓制度',q:'印度種姓制度的現況如何？',opts:['印度種姓制度仍是法律規定，各階層間嚴格管制通婚','印度自古實施種姓制度，強調階級分明；今日雖已立法廢除，但傳統觀念仍然影響社會流動，不同種姓間的通婚和社會互動仍受限制'],ans:1,explain:'印度種姓制度：起源─婆羅門（祭司）、剎帝利（武士）、吠舍（平民）、首陀羅（奴隸），出生即決定身份，各階層間不能通婚。現況─印度已立法廢除，但傳統觀念仍深植民心，影響婚姻、就業與社會地位，尤其在農村地區仍相當明顯。'},
+{type:'mc',t:'u7b',era:'南亞人文・宗教',q:'南亞宗教多元，下列配對何者正確？',opts:['印度─主要信奉伊斯蘭教；巴基斯坦─信奉印度教','印度─主要信奉印度教；巴基斯坦、孟加拉─信奉伊斯蘭教；斯里蘭卡─信奉佛教（不丹亦是）'],ans:1,explain:'南亞宗教分布：（1）印度教─印度（人口最多的宗教）、尼泊爾（2）伊斯蘭教─巴基斯坦、孟加拉（3）佛教─斯里蘭卡、不丹（起源於印度，但在印度本土信徒較少）（4）錫克教─印度旁遮普邦。印巴兩國因宗教差異（印度教vs伊斯蘭教）常有衝突，包括克什米爾爭端。'},
+{type:'mc',t:'u7b',era:'南亞產業・印度資訊科技',q:'印度資訊科技產業快速發展的主要原因是什麼？代表城市是哪裡？',opts:['印度靠近矽谷，直接接受美國技術轉移','科技人才多（英語能力佳）、網際網路普及、吸引歐美跨國公司前來投資，發展軟體設計、海外客服中心、高科技工業集聚；代表城市班加羅爾（有「印度矽谷」之稱）'],ans:1,explain:'印度資訊科技（IT）產業優勢：（1）大量英語科技人才（教育制度以英語為主）（2）時區優勢（當美國白天時，印度為深夜，可24小時服務）（3）薪資相對低廉（4）吸引微軟、Google、IBM等跨國公司設立研發中心（5）班加羅爾（Bangalore）為代表城市，稱「印度矽谷」。'},
+{type:'mc',t:'u7b',era:'南亞產業・孟加拉',q:'孟加拉、巴基斯坦、斯里蘭卡的主要近代產業特色是什麼？',opts:['以高科技電子業為主，出口半導體','廉價勞力充足，吸引外國投資；以成衣紡織業（孟加拉為全球最大成衣出口國之一）、紡紗業為主要產業'],ans:1,explain:'孟加拉、巴基斯坦、斯里蘭卡產業：（1）廉價勞動力充足（2）孟加拉─全球最大成衣、紡織品出口國之一（H&M、Zara等大品牌在此設廠）（3）巴基斯坦─棉紡業、棉花生產（4）斯里蘭卡─茶葉（錫蘭紅茶）種植業。共同特色：勞力密集型工業。'},
+{type:'tf',t:'u7b',era:'南亞・環境問題',q:'孟加拉因地勢低平（恆河三角洲），加上南季降水豐沛，是全球最容易發生洪水的國家之一。',ans:true,explain:'正確。孟加拉環境問題：（1）恆河三角洲地勢低窪（2）南季降水豐沛（熱帶季風氣候）（3）河流氾濫頻繁（4）加上海平面上升威脅（5）水患問題嚴重，每年洪水造成大量農田和房屋損失，民眾須遷往高地。孟加拉是全球最容易受洪水衝擊的國家之一。'},
+// ===== 單元07 西亞北非自然環境 =====
+{type:'mc',t:'u7c',era:'西亞北非・地位',q:'西亞與北非在地理上具有哪些重要的戰略位置？',opts:['位於南北極之間，是氣候研究的重要基地','位於歐、亞、非三洲交通要衝，自古為東西方往來通道；蘇伊士運河清通紅海與地中海，掌控歐亞間航路；土耳其是「歐亞陸橋」'],ans:1,explain:'西亞北非的戰略位置：（1）歐亞非三洲交通要衝（2）蘇伊士運河─連通紅海與地中海，是歐洲與亞洲、非洲之間的最短航路（3）土耳其─地跨歐亞兩洲，有「歐亞陸橋」之稱（4）霍爾木茲海峽─波斯灣石油的要道（5）北非撒哈拉沙漠以北，為伊斯蘭教文化圈。'},
+{type:'mc',t:'u7c',era:'西亞北非・地形',q:'西亞北非的地形特色是什麼？最大的沙漠是哪一個？',opts:['以低平海岸平原為主，無顯著沙漠','北非以高原為主（世界最大的撒哈拉沙漠）；西亞北部有安那托利亞高原、伊朗高原等，中部有底格里斯河與幼發拉底河沖積平原（古文明發源地）'],ans:1,explain:'西亞北非地形：（1）北非─高原為主，撒哈拉沙漠（世界最大沙漠）橫跨大部分地區（2）西亞─北部有安那托利亞高原（土耳其）、伊朗高原；中部有底格里斯河和幼發拉底河的美索不達米亞平原（西亞古文明，人口集中）（3）東非大裂谷延伸至東非（3）尼羅河三角洲：季節性泛濫，孕育埃及古文明。'},
+{type:'mc',t:'u7c',era:'西亞北非・氣候',q:'西亞與北非大部分地區是熱帶沙漠氣候，其形成原因是什麼？有哪些氣候特徵？',opts:['位於赤道附近，終年高溫多雨','終年受副熱帶高壓籠罩（沉降增溫），加上北回歸線附近缺少水氣；氣候特徵：全年乾燥少雨、年溫差小、日溫差大'],ans:1,explain:'西亞北非熱帶沙漠氣候：（1）成因─位於副熱帶高壓帶（沉降氣流增溫），地處大陸內部遠離海洋，缺乏水氣（2）特徵─全年乾燥少雨（降水極少）、年溫差小（緯度影響）、日溫差大（白天酷熱、夜晚急冷）（3）尼羅河沿岸、底格里斯幼發拉底河流域例外（綠洲農業）。'},
+{type:'mc',t:'u7c',era:'西亞北非・地中海氣候',q:'北非地中海沿岸（如摩洛哥、阿爾及利亞北部）為地中海型氣候，其特徵是什麼？農業以什麼為主？',opts:['全年高溫多雨，以熱帶作物為主','夏乾冬雨（夏季受副熱帶高壓控制，冬季行星風系移動帶來西風和降雨）；農業以耐旱作物為主，種植橄欖、葡萄'],ans:1,explain:'北非地中海沿岸的地中海型氣候：（1）成因─夏季副熱帶高壓籠罩→乾燥；冬季行星風系移動→西風帶來降水（2）特徵─夏乾冬雨、溫和宜人（3）農業─利用冬雨灌溉，種植耐旱作物：橄欖（製油）、葡萄（釀酒）、柑橘類（4）為北非人口較密集、農業較發達的地區。'},
+{type:'match',t:'u7c',era:'西亞北非農業配對',q:'請將西亞北非各農業類型與其主要特色配對：',pairs:[['綠洲農業','利用地下水源（坎兒井），在沙漠中開發人工灌溉'],['地中海型農業','夏乾冬雨，種植橄欖、葡萄等耐旱作物'],['游牧業','沙漠邊緣逐水草而居，飼養羊、馬、駱駝'],['以色列灌溉農業','回收再生水，電腦控制水管，節水並防土壤鹽化']],explain:'西亞北非農業多元：（1）綠洲農業─依賴河水或地下水（坎兒井）在沙漠開墾（2）地中海型農業─北非沿海、以色列等地（3）游牧─沙漠邊緣跟著水草移動（4）以色列─世界最先進的節水灌溉技術，發展高附加值農業（蔬菜、花卉）。'},
+// ===== 單元07 伊斯蘭文化與紛爭 =====
+{type:'mc',t:'u7d',era:'伊斯蘭文化・形成',q:'伊斯蘭教的起源、創立者與主要聖地是什麼？',opts:['起源於印度，由釋迦牟尼創立，主要聖地在瓦拉納西','起源於西亞乾燥地區，西元7世紀由穆罕默德在阿拉伯半島創立；主要聖地是麥加（沙烏地阿拉伯），信徒稱「穆斯林」'],ans:1,explain:'伊斯蘭教：（1）起源─西亞乾燥地區，資源匱乏，人民苦難（2）西元7世紀穆罕默德在阿拉伯半島創立（3）主要聖地─麥加（朝覲地點）（4）信徒─穆斯林，代表「順從真主阿拉的人」（5）教義─《古蘭經》的「五功」：念、禮（每日5次朝向麥加禱告）、齋、課、朝（一生至少一次麥加朝覲）。'},
+{type:'mc',t:'u7d',era:'伊斯蘭文化・規範',q:'伊斯蘭教對信徒日常生活的主要規範包括哪些？',opts:['禁止音樂和文學創作，強調只能閱讀宗教文本','《古蘭經》規定「五功」（念禮齋課朝）；飲食需符合清真規範（禁豬肉、禁酒）；女性戴面紗（部分地區）；禁止偶像崇拜'],ans:1,explain:'伊斯蘭教日常規範：（1）五功：念（信仰宣言）、禮（每日五次禱告向麥加）、齋（齋戒月白天禁食）、課（每年繳交收入分配給窮人）、朝（一生至少朝聖麥加一次）（2）飲食：清真食品（Halal，禁豬肉、禁酒）（3）女性著裝（不同地區規定不同，部分地區要求戴面紗）（4）禁止偶像崇拜。'},
+{type:'mc',t:'u7d',era:'西亞紛爭・以阿衝突',q:'以色列與阿拉伯國家長期衝突的主要原因有哪些？',opts:['以色列因天然資源豐富，周邊國家爭奪資源','族群（猶太人vs阿拉伯人）、宗教（猶太教vs伊斯蘭教）、聖城「耶路撒冷」（猶太教、基督教、伊斯蘭教共同聖城）爭奪，以及「巴勒斯坦」領土問題（1948年以色列建國，阿拉伯人被迫離散）'],ans:1,explain:'以阿衝突原因：（1）族群─以色列以猶太人為主，1948年建國後與阿拉伯人為主的周邊國家衝突（2）宗教─猶太教（以色列）vs伊斯蘭教（周邊阿拉伯國家）（3）聖城耶路撒冷─猶太教、基督教、伊斯蘭教共同聖城（4）巴勒斯坦問題─土地爭議至今未解（5）水資源─約旦河水源爭奪。'},
+{type:'mc',t:'u7d',era:'西亞紛爭・庫德族',q:'庫德族的問題是什麼？為什麼難以建立自己的國家？',opts:['庫德族已成功建立獨立國家「庫德斯坦」','庫德族（約3000萬人）分散居住在土耳其、伊拉克、伊朗、敘利亞四國境內，因這四個國家均反對庫德族獨立，庫德族長期追求自治與獨立，至今仍是重大問題'],ans:1,explain:'庫德族問題：庫德族是中東地區人口最多的沒有國家的民族之一（約3000萬人），分散在土耳其、伊拉克、伊朗、敘利亞等國邊境地帶。這四國政府均不願庫德族獨立或建國，造成庫德族長期缺乏政治自主權，多次爆發衝突和起義。'},
+{type:'tf',t:'u7d',era:'西亞紛爭・伊斯蘭派別',q:'伊斯蘭教內部分為「遜尼派」和「什葉派」，沙烏地阿拉伯以遜尼派為主，伊朗以什葉派為主；兩派之間的宗教差異是西亞多項衝突的重要根源之一。',ans:true,explain:'正確。伊斯蘭教兩大派別：（1）遜尼派（全球約85%穆斯林）─以沙烏地阿拉伯為代表，強調伊斯蘭教傳統（2）什葉派─以伊朗、伊拉克南部為主要分布，認為伊斯蘭領袖只能由先知穆罕默德的後裔擔任（3）兩派衝突是敘利亞內戰、葉門衝突、伊拉克動盪等多項西亞衝突的重要根源。'},
+// ===== 單元07 西亞北非石油與現代化 =====
+{type:'mc',t:'u7e',era:'西亞石油・OPEC',q:'石油輸出國家組織（OPEC）成立的背景與目的是什麼？',opts:['由美國主導建立，目的是穩定西方國家的能源供應','1960年代西亞主要產油國成立，目的是協調各國產量與國際油價，以維護石油生產國的利益，並提升產油國的國際影響力'],ans:1,explain:'OPEC（石油輸出國家組織）：（1）1960年成立（2）成員國主要包括：沙烏地阿拉伯、伊拉克、伊朗、科威特、阿拉伯聯合大公國、利比亞、阿爾及利亞等（3）目的─協調各成員國石油產量和價格（4）影響─產油國利用石油致富，提升國際政治影響力（5）1990年波灣戰爭影響石油供應，引發波斯灣戰爭。'},
+{type:'mc',t:'u7e',era:'西亞石油・影響',q:'西亞石油財富帶來的影響包括哪些？',opts:['石油財富使西亞各國均發展成高福利、民主的現代化國家','產油國因石油致富，帶動基礎建設；非產油國因管道輸油過境受惠（如約旦、黎巴嫩）；但也引進大量國際移工成為人口移入區；近年避免過度依賴石油，開發金融、觀光業（如杜拜）'],ans:1,explain:'西亞石油的影響：（1）產油國（沙烏地、科威特、卡達等）因石油致富，建設現代化城市（2）引進大量外籍勞工（移工比例極高）（3）非產油國（約旦、黎巴嫩等）受惠於管道過境費（4）近年多元發展：金融（巴林）、觀光（杜拜）、高科技（沙烏地新城市NEOM）（5）沙烏地阿拉伯近年傳統文化轉變（開放女性投票、開車）。'},
+{type:'mc',t:'u7e',era:'西亞北非・現代化',q:'西亞與北非地區傳統文化在近年有哪些轉變？',opts:['所有西亞國家均已完全廢除傳統習俗，全面西化','過去伊斯蘭戒律對女性諸多限制；近代逐步開放：沙烏地阿拉伯2015年開放女性投票權、2018年開放女性駕車、2019年開放男女同在餐廳用座'],ans:1,explain:'西亞北非傳統文化轉變：（1）過去─嚴格伊斯蘭戒律，女性不得單獨外出、不得駕車、沒有投票權（2）近代改革（以沙烏地阿拉伯為代表）─2015年女性獲得投票權、2018年開放女性駕車、2019年開放混合性別娛樂場所（3）改革動力─石油財富帶來外來文化影響、年輕人口對改變的渴望。'},
+// ===== 單元08 漠南非洲地形氣候 =====
+{type:'mc',t:'u8a',era:'漠南非洲・地形',q:'漠南非洲地形的主要特色是什麼？最重要的地形構造是哪個？',opts:['以低平海岸平原為主，沿海多良港，適合貿易','以高原為主（缺乏天然良港，對外交通不便）；內有三盆地一裂谷（剛果盆地、喀拉哈里盆地、喀拉哈里盆地、東非大裂谷）；吉力馬札羅火山是非洲最高峰'],ans:1,explain:'漠南非洲地形：（1）以高原為主（海岸陡直，缺乏天然良港）→昔日對外交通不便→礦產豐富（2）重要地形：剛果盆地（熱帶雨林）、喀拉哈里盆地、喀拉哈里盆地（3）東非大裂谷─斷層陷落形成，多火山、地震、斷層湖（4）吉力馬札羅火山─非洲最高峰，居赤道但山頂終年積雪（地勢高）。'},
+{type:'mc',t:'u8a',era:'漠南非洲・氣候分布',q:'漠南非洲的氣候以什麼為主？氣候分布有哪些規律？',opts:['以溫帶氣候為主，因為非洲大部分在中緯度','以熱帶氣候為主（大部分在赤道附近）；氣候由赤道向南北兩側呈「南北對稱」分布：赤道→熱帶雨林→熱帶草原→熱帶沙漠→地中海型氣候（南北端）'],ans:1,explain:'漠南非洲氣候分布規律：赤道附近→熱帶雨林氣候（剛果盆地）→向南北兩側依次為熱帶草原氣候（夏雨冬乾）→熱帶沙漠氣候（撒哈拉沙漠北側、卡拉哈里沙漠南側）→地中海型氣候（南非西南角），呈南北對稱分布（因太陽直射赤道±23.5°）。'},
+{type:'mc',t:'u8a',era:'漠南非洲・熱帶草原',q:'漠南非洲熱帶草原氣候的特色是什麼？為什麼適合野生動物生存？',opts:['全年高溫多雨，適合熱帶雨林生長','分布於雨林兩側；夏季太陽直射→對流旺盛→多雨，冬季副熱帶高壓→乾燥；特徵：夏雨冬乾，乾溼季分明；廣大草原（熱帶疏林草原）和季節性遷徙的野生動物（馬賽馬拉）'],ans:1,explain:'熱帶草原氣候（薩瓦納氣候）：（1）分布─熱帶雨林兩側（2）成因─夏季太陽直射帶來對流雨；冬季副熱帶高壓控制（3）特徵─夏雨冬乾、乾溼季分明（4）植被─疏林草原（稀樹草原）（5）野生動物天堂─草原廣大、食物豐富，代表：肯亞馬賽馬拉動物大遷徙（角馬、斑馬、獅子等）。'},
+{type:'tf',t:'u8a',era:'漠南非洲・東南沿海',q:'漠南非洲東南沿海（莫三比克、坦尚尼亞沿海）出現夏型溼潤熱帶氣候，主要原因是受到莫三比克暖流（阿古拉斯暖流）和東南信風的影響，帶來豐沛降水。',ans:true,explain:'正確。漠南非洲東南沿海夏型溼潤熱帶氣候：（1）莫三比克暖流（阿古拉斯暖流）沿東非海岸北上，增溫增溼（2）東南信風從印度洋帶來水氣（3）特徵─溼潤多雨，適宜農業發展（4）形成對比─西海岸受本格拉寒流影響，氣候乾燥。'},
+{type:'mc',t:'u8a',era:'漠南非洲・東非大裂谷',q:'東非大裂谷的形成原因和主要特色是什麼？',opts:['冰河侵蝕形成的細長湖泊地形','斷層陷落形成（板塊張裂）；裂谷帶有多火山（吉力馬札羅、維龍加）、地震頻繁、形成許多細長深湖（斷層湖），是人類起源的重要考古地點'],ans:1,explain:'東非大裂谷：（1）成因─非洲板塊張裂（地殼拉張，斷層陷落）（2）特色─多火山（吉力馬札羅火山，海拔5895m）、地震頻繁（3）斷層湖─坦干伊卡湖、馬拉威湖等細長深湖（4）人類起源地─考古學家在此發現大量早期人類（南方古猿）化石（5）由南延伸至約旦河谷、紅海。'},
+// ===== 單元08 漠南非洲族群文化 =====
+{type:'mc',t:'u8b',era:'漠南非洲・族群',q:'漠南非洲的族群分布有哪些特色？',opts:['非洲各族群分布與各國國界完全一致，文化十分均質','北非以阿拉伯人（伊斯蘭文化）為主；漠南非洲以黑人為主，語言、宗教、風俗複雜多元（班圖人、馬賽人等），馬達加斯加有南島語族的馬拉加西人'],ans:1,explain:'漠南非洲族群特色：（1）漠南非洲以黑人為主（語言多達數千種）（2）班圖人─廣布中南非，農業民族（3）馬賽人─東非草原，游牧文化（4）布須曼（桑族）─喀拉哈里沙漠，採獵文化（5）馬達加斯加─馬拉加西人（南島語族，文化接近東南亞）（6）南非─白人歷史上曾實施種族隔離政策（apartheid），1994年廢除。'},
+{type:'mc',t:'u8b',era:'漠南非洲・族群衝突',q:'漠南非洲獨立後為何內戰和國際衝突頻繁？',opts:['因為非洲各國擁有核武，軍事競賽激烈','歐洲殖民者強多以經緯線劃定殖民地，未考慮傳統族群分布；各國獨立後一國可能有多個族群，或同一族群分布在不同國家，引發族群矛盾、內戰與國際衝突'],ans:1,explain:'漠南非洲衝突原因：（1）歐洲殖民者以直線（經緯線）劃定殖民地邊界，完全忽略傳統族群、語言、文化分布（2）獨立後：一個國家內可能包含互相敵對的多個族群（3）代表衝突：盧安達種族屠殺（胡圖族vs圖西族）、盧安達內戰、索馬利亞與衣索比亞間的爭端（4）南非種族隔離政策─1994年曼德拉當選第一任黑人總統，廢除種族隔離。'},
+{type:'tf',t:'u8b',era:'漠南非洲・種族隔離',q:'南非曾實施種族隔離（apartheid）政策，強制將白人與黑人分隔，1994年南非第一位黑人總統曼德拉當選後，此政策被正式廢除。',ans:true,explain:'正確。南非種族隔離政策：（1）1948年起由白人政府實施（2）強制將黑人隔離在特定區域（Bantustan），不平等對待（3）國際社會施壓制裁（4）曼德拉（Nelson Mandela）長期反抗（曾入獄27年）（5）1990年代改革：1994年曼德拉當選南非首任黑人總統，種族隔離政策正式廢除。'},
+// ===== 單元08 漠南非洲經濟發展 =====
+{type:'mc',t:'u8c',era:'漠南非洲・傳統農業',q:'漠南非洲的傳統農業活動「游耕」的特色是什麼？',opts:['以機械化大規模農業為主，大量出口農產品','原住民以燒林（焚燒森林）→耕種（不施肥、不灌溉）→地力衰竭→休耕→遷移找新耕地的循環方式進行農業；游牧（逐水草而居）則是在乾燥地區的傳統生活'],ans:1,explain:'漠南非洲傳統農業：游耕（shifting cultivation）─在熱帶雨林或熱帶草原（濕熱地區）：（1）燒林清地（火耕）（2）短暫耕種（玉米、根莖類）（3）地力衰竭→休耕→遷移到新地點重複（4）特點：不施化肥、不灌溉、土地可自然恢復（5）游牧：乾燥地帶，逐水草而居，飼養牛、羊、駱駝等。'},
+{type:'mc',t:'u8c',era:'漠南非洲・熱帶栽培業',q:'殖民時代引入的熱帶栽培業（plantation）有哪些特色？對漠南非洲有什麼影響？',opts:['熱帶栽培業以糧食作物為主，解決了非洲糧食短缺問題','特色：氣候暖溼、廉價勞工、單一經濟作物（可可、咖啡、棕櫚、茶葉、蔗糖等）、出口導向；影響：破壞自然生態、糧食作物被排擠→糧食短缺、依賴單一農礦出口、資金和技術依賴外國'],ans:1,explain:'熱帶栽培業：（1）特色─氣候暖溼（熱帶地區）、廉價勞動力、出口單一經濟作物（2）代表作物─可可（迦納、象牙海岸）、咖啡（衣索比亞）、棕櫚油（西非）、茶葉（東非）（3）分布─西非亞沙河一帶、東非沿海、東南亞（4）負面影響─單一經濟、破壞生態、糧食依賴進口、受國際價格波動影響大。'},
+{type:'mc',t:'u8c',era:'漠南非洲・礦業',q:'漠南非洲礦業豐富，主要礦產分布在哪些地方？為何礦業發展面臨問題？',opts:['礦業均勻分布全非洲，各國均可平等獲益','南非─黃金、鑽石；奈及利亞、安哥拉─石油；地質古老，礦產豐富；但過度依賴農礦出口，易受國際市場價格波動，且礦業利潤主要被外國大企業獲取，形成不平等貿易制度'],ans:1,explain:'漠南非洲礦業：（1）地質古老、礦產豐富（2）主要礦產─南非：黃金（全球最大產國之一）、鑽石；奈及利亞、安哥拉：石油；剛果：銅、鈷（電動車電池）（3）問題─過度依賴礦能源出口（殖民地式經濟）→國際市場波動影響大→財富主要被跨國企業獲取→非洲本地獲益有限→不平等貿易問題。'},
+{type:'mc',t:'u8c',era:'漠南非洲・糧食問題',q:'漠南非洲的糧食短缺問題有哪些主要原因？',opts:['糧食短缺主要因為氣候乾燥，農業完全無法生產','人口成長快速（人多地少）；游耕→土地退化、耕地不足；交通基礎設施不足→糧食無法有效運輸配送；天災（乾旱、洪水）頻繁；農業技術落後'],ans:1,explain:'漠南非洲糧食問題成因：（1）人口快速成長（出生率高）（2）游耕導致土地退化（3）熱帶栽培業排擠糧食作物生產（4）交通運輸基礎設施不足，無法有效分配糧食（5）政治不穩定、內戰（6）天災（旱澇）（7）農業技術落後、灌溉設施缺乏。影響：非洲是全球營養不足人口比例最高的地區。'},
+{type:'mc',t:'u8c',era:'漠南非洲・觀光業',q:'漠南非洲觀光業發展的主要優勢和代表景點是什麼？',opts:['以城市觀光和購物中心為主要吸引力','熱帶雨林生物多樣性高，熱帶莽原野生草原動物豐富；代表景點：肯亞馬賽馬拉國家公園和坦尚尼亞塞倫蓋提國家公園的「動物大遷徙」（角馬、斑馬的季節遷徙）'],ans:1,explain:'漠南非洲觀光業優勢：（1）熱帶莽原野生動物多樣（獅、象、長頸鹿、角馬等）（2）「動物大遷徙」─肯亞馬賽馬拉與坦尚尼亞塞倫蓋提，每年150萬頭角馬遷徙（3）雨林生態旅遊（4）發展生態旅遊（eco-tourism）是近年趨勢（5）問題：觀光發展需平衡自然保育和過度開發。'},
+{type:'tf',t:'u8c',era:'漠南非洲・公平貿易',q:'「公平貿易」標章是由國際公平貿易組織發行，確保生產者（農民、勞工）獲得公平的報酬，以及環境能得到保護，消費者購買這類產品就是支持對人、社會和環境友善的貿易方式。',ans:true,explain:'正確。公平貿易（Fair Trade）：（1）目的─確保生產者（尤其是開發中國家的小農）獲得合理收入（2）保障最低收購價格（3）禁止童工（4）環境保護標準（5）常見公平貿易產品：咖啡（衣索比亞、哥倫比亞）、可可（非洲）、茶葉、香蕉（6）消費者購買公平貿易產品，是對弱勢生產者的實際支持，也鼓勵對環境友善的生產方式。'},
+{type:'match',t:'u8c',era:'漠南非洲各國特色配對',q:'請將漠南非洲各國與其最具代表性的特色配對：',pairs:[['南非','礦業發達（黃金、鑽石），曾實施種族隔離政策'],['肯亞','馬賽馬拉國家公園，動物大遷徙，農產品加工業'],['奈及利亞','非洲人口最多的國家，石油出口大國'],['衣索比亞','咖啡原產地，近年積極發展科技，建設拉薩打造非洲科技重鎮']],explain:'漠南非洲各國特色：南非（礦業/黃金鑽石/種族隔離廢除）；肯亞（觀光/動物大遷徙/農產加工）；奈及利亞（非洲人口最多/石油/尼日河三角洲）；衣索比亞（咖啡原產地/航空業/近年科技發展）。'},
+{type:'sort',t:'u8c',era:'漠南非洲氣候帶由赤道向南',q:'請將漠南非洲氣候帶依照由赤道向南的順序排列：',items:['熱帶雨林氣候（剛果盆地，赤道附近）','熱帶草原氣候（夏雨冬乾）','熱帶沙漠氣候（卡拉哈里）','地中海型氣候（南非西南角）'],correctOrder:[0,1,2,3],explain:'漠南非洲氣候帶由赤道向南（呈南北對稱）：赤道→熱帶雨林（全年多雨）→熱帶草原（夏雨冬乾）→熱帶沙漠（全年乾燥）→地中海型（南緯30-40°，夏乾冬雨）。此規律因太陽直射點季節移動而形成。'}
+];
+
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.panel).classList.add('active');if(tab.dataset.panel==='wrong')renderWP();});});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+function updateGo(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);const btn=document.getElementById('goBtn');if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}else{btn.disabled=true;btn.textContent='請選擇單元與模式';}}
+document.getElementById('goBtn').addEventListener('click',startGame);
+function startGame(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;const isLong=S.mode==='normal'||S.mode==='timed';let pool=QB.filter(q=>S.topics.includes(q.t));pool=shuffle(pool);S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));S.cur=0;showScreen('game');renderQ();}
+function startWrongPractice(){const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();}
+function renderQ(){if(S.cur>=S.qs.length){showResult();return;}const q=S.qs[S.cur];S.answered=false;const total=S.qs.length;document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));else document.getElementById('gLives').textContent='';const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort'};document.getElementById('qtag').textContent=tMap[q.type]||'題目';document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;document.getElementById('qtext').textContent=q.q;document.getElementById('qsub').textContent=q.hint||'';const area=document.getElementById('ans-area');area.innerHTML='';document.getElementById('fbbox').className='fb-box';document.getElementById('nextBtn').className='next-btn';if(q.type==='mc')renderMC(q,area);else if(q.type==='tf')renderTF(q,area);else if(q.type==='fill')renderFillQ(q,area);else if(q.type==='match')renderMatch(q,area);else if(q.type==='sort')renderSort(q,area);clearInterval(S.timer);const te=document.getElementById('gTimer');if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}else te.style.display='none';}
+function renderMC(q,area){const grid=document.createElement('div');grid.className='opts';q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt';btn.textContent=o;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const ok=i===q.ans;grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});finish(ok,q);});grid.appendChild(btn);});area.appendChild(grid);}
+function renderTF(q,area){const row=document.createElement('div');row.className='tf-row';['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const userT=i===0,ok=userT===q.ans;row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});finish(ok,q);});row.appendChild(btn);});area.appendChild(row);}
+function renderFillQ(q,area){const row=document.createElement('div');row.className='fill-row';const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確答案：${q.ans}`);};btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});row.append(inp,btn);area.appendChild(row);}
+function renderMatch(q,area){const wrap=document.createElement('div');wrap.className='match-wrap';const lCol=document.createElement('div');lCol.className='match-col';const rCol=document.createElement('div');rCol.className='match-col';const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);let lPicked=null,rPicked=null,matched=0;pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});wrap.append(lCol,rCol);area.appendChild(wrap);function tryM(){if(!lPicked||!rPicked)return;const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}lPicked=null;rPicked=null;}wrap.addEventListener('click',e=>{if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}tryM();});}
+let dragEl=null;
+function renderSort(q,area){const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));const list=document.createElement('div');list.className='sort-list';shuffled.forEach(item=>{const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});el.addEventListener('dragend',()=>el.classList.remove('dragging'));el.addEventListener('dragover',e=>e.preventDefault());el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});list.appendChild(el);});area.appendChild(list);const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});area.appendChild(chk);}
+function finish(ok,q,extraMsg){const pts=calcPts(ok,q.type);if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;document.getElementById('fbmsg').textContent=msg;document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;const nb=document.getElementById('nextBtn');nb.className='next-btn show';const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};}
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+function startTimer(sec){S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';S.timer=setInterval(()=>{S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}},1000);}
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+function showResult(){clearInterval(S.timer);showScreen('result');const max=S.qs.length*6;const pct=max>0?S.score/max:0;let emoji,title,msg;if(pct>=.9){emoji='🏆';title='地理高手！';msg='第四冊南亞、西亞北非、漠南非洲掌握得非常好！';}else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點複習一下！';}else if(pct>=.5){emoji='📖';title='繼續加油！';msg='去錯題複習區針對弱點加強！';}else{emoji='💪';title='不要灰心！';msg='把筆記再仔細看一遍，再來挑戰！';}document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';document.getElementById('rMsg').textContent=msg;const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}else document.getElementById('rWeak').style.display='none';const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';if(pct>=.75)confetti();}
+function renderWP(){const bank=loadWB();const panel=document.getElementById('wrongPanel');const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;pw.style.display='block';cl.style.display='block';}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#d4874a','#c87830','#a05020','#f5d5b0','#e8a060'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

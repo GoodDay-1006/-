@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>理化闖關王 第三冊</title>
+<style>
+:root{
+  --bg:#f5f0ff;--ink:#0a1a2a;--red:#c0392b;--gold:#6a3ab0;
+  --teal:#5a2aa0;--blue:#3a1a80;--accent:#7a4ac0;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(80,40,160,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(122,74,192,.09) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(80,40,160,.06) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#ddd0f8 0%,var(--bg) 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(10,26,42,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(10,26,42,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(10,26,42,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(10,26,42,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(10,26,42,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#ddd0f8;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(10,26,42,.48);margin-top:3px;line-height:1.4;}
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(10,26,42,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(10,26,42,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(10,26,42,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(10,26,42,.38);border:1px solid rgba(10,26,42,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:var(--red);animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#ead8f8;color:#6a3ab0;}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:var(--green);}
+.qtag.match{background:#ead8f8;color:#5a2aa0;}
+.qtag.sort{background:#ddd0f8;color:#3a1a80;}
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(10,26,42,.43);margin-bottom:11px;font-style:italic;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#f0e8fc;border:2px solid #c8a8e8;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#ddd0f8;}
+.opt.ok{background:#d4f5e2;border-color:var(--green);color:var(--green);font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #c8a8e8;background:#f0e8fc;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:var(--green);}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:var(--green);background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#f0e8fc;border:2px solid #c8a8e8;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:#e6b800;background:#ddd0f8;font-weight:700;}
+.match-item.matched{border-color:var(--green);background:#d4f5e2;color:var(--green);font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#f0e8fc;border:2px solid #c8a8e8;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--accent);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:var(--green);border-left:4px solid var(--green);}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+#result{background:linear-gradient(155deg,#ddd0f8 0%,var(--bg) 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(10,26,42,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(10,26,42,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(10,26,42,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#f0e8fc;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">理化闖關王</div>
+    <div class="home-badge">理化 第三冊 · 單元12–15 · 會考複習</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip" data-t="u12a">單元12・時間、位移與速度</div>
+      <div class="tchip" data-t="u12b">單元12・加速度運動</div>
+      <div class="tchip" data-t="u12c">單元12・自由落體與拋體</div>
+      <div class="tchip" data-t="u13a">單元13・牛頓第一定律（慣性）</div>
+      <div class="tchip" data-t="u13b">單元13・牛頓第二定律（F=ma）</div>
+      <div class="tchip" data-t="u13c">單元13・牛頓第三定律（作用力反作用力）</div>
+      <div class="tchip" data-t="u13d">單元13・萬有引力</div>
+      <div class="tchip" data-t="u14a">單元14・功與功率</div>
+      <div class="tchip" data-t="u14b">單元14・動能位能與機械能守恆</div>
+      <div class="tchip" data-t="u14c">單元14・簡單機械</div>
+      <div class="tchip" data-t="u15a">單元15・靜電與電荷</div>
+      <div class="tchip" data-t="u15b">單元15・電流電壓電阻</div>
+      <div class="tchip" data-t="u15c">單元15・串聯並聯電路</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+<div class="screen" id="game">
+  <div class="gbar">
+    <div><div class="gbar-left" id="gInfo">第 1 / 50 題</div><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;"><div class="gbar-timer" id="gTimer" style="display:none;">20</div><div><div class="gbar-score" id="gScore">0 分</div><div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox"><div class="fb-title" id="fbtitle"></div><div id="fbmsg"></div></div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div><div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div><div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div><div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+<div class="combo" id="combo"></div>
+<script>
+const SK='sci_b3_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+// ===== 單元12 時間、位移與速度 =====
+{type:'mc',t:'u12a',era:'速度・定義',q:'「速率」和「速度」有何不同？',opts:['速率和速度完全相同，可以互換使用','速率是純量（只有大小），速度是向量（有大小和方向）'],ans:1,explain:'速率（純量）vs 速度（向量）：速率只考慮大小（快慢），如50 km/h；速度必須包含大小和方向，如向東50 km/h。平均速率 = 路徑長/時間；平均速度 = 位移/時間（位移是向量）。速率 ≥ |速度|。'},
+{type:'mc',t:'u12a',era:'速度・計算',q:'一人從A點往東走100m，再往西走60m，耗時100秒，求平均速率和平均速度大小。',opts:['平均速率1.6 m/s（路徑160m÷100s），平均速度0.4 m/s','平均速率0.4 m/s（位移40m÷100s），平均速度1.6 m/s'],ans:0,explain:'路徑長=100+60=160m，位移=100-60=40m（向東）。平均速率=160/100=1.6 m/s；平均速度大小=40/100=0.4 m/s（向東）。注意：速率用路徑長，速度用位移。'},
+{type:'fill',t:'u12a',era:'速度・位移',q:'速度是向量，需同時具備大小和________兩個要素。',ans:'方向',explain:'向量需有大小和方向，例如速度：向東20 m/s；力：向下50N。純量只有大小，如速率、溫度、質量、路徑長等。'},
+{type:'mc',t:'u12a',era:'速度・位移-時間圖',q:'在位移-時間（x-t）圖中，圖線的斜率代表什麼？',opts:['加速度（Δv/Δt，單位m/s²）','速度（Δx/Δt，斜率越大速度越大）'],ans:1,explain:'x-t圖（位移-時間圖）：斜率 = Δx/Δt = 速度。斜率正→正速度（向正方向移動）；斜率負→負速度（向負方向移動）；斜率為零（水平線）→靜止。v-t圖（速度-時間圖）：斜率 = Δv/Δt = 加速度；面積 = 位移。'},
+// ===== 單元12 加速度運動 =====
+{type:'mc',t:'u12b',era:'加速度・定義',q:'「加速度」的定義是什麼？公式是什麼？',opts:['加速度是物體在某時刻的速度大小（m/s）','加速度是速度的變化率，a = Δv/Δt = (v-v₀)/t，單位m/s²'],ans:1,explain:'加速度（a）：速度的變化率。a = (v - v₀)/t。a > 0：速度增加（加速）；a < 0：速度減少（減速）；a = 0：等速度運動。注意：a和v方向相同→加速；a和v方向相反→減速。'},
+{type:'mc',t:'u12b',era:'加速度・等加速度',q:'等加速度直線運動的重要公式有哪些？',opts:['只有v = v₀ + at一個公式，其餘都可推導','v = v₀+at；x = v₀t+½at²；v² = v₀²+2ax（三大公式）'],ans:1,explain:'等加速度直線運動三大公式：（1）v = v₀ + at（求末速）（2）x = v₀t + ½at²（求位移）（3）v² = v₀² + 2ax（不含時間）。其中v=末速、v₀=初速、a=加速度、t=時間、x=位移。'},
+{type:'tf',t:'u12b',era:'加速度・速度時間圖',q:'在v-t圖（速度-時間圖）中，圖線下方的面積代表位移，斜率代表加速度。',ans:true,explain:'正確。v-t圖特性：（1）斜率=Δv/Δt=加速度（2）面積=Δx=位移（正面積→正位移，負面積→負位移）（3）水平線→等速度（a=0）（4）斜線→等加速度。例：斜率=2 m/s²表示每秒速度增加2 m/s。'},
+{type:'mc',t:'u12b',era:'加速度・計算',q:'一輛車從靜止（v₀=0）開始等加速，加速度a=2 m/s²，求5秒後的速度和位移。',opts:['速度10 m/s（v=at=2×5），位移25m（x=½at²）','速度5 m/s（v=a×t/2），位移12.5m（x=½at²/2）'],ans:0,explain:'v = v₀ + at = 0 + 2×5 = 10 m/s；x = v₀t + ½at² = 0×5 + ½×2×5² = ½×2×25 = 25m。注意：若選答案A的50m，x = ½×2×25=25m，不是50m。正確：速度10 m/s，位移25m。答案應為A（10 m/s）但位移25m，故讓學生注意計算。'},
+// ===== 單元12 自由落體 =====
+{type:'mc',t:'u12c',era:'自由落體・定義',q:'「自由落體」的特徵是什麼？重力加速度g的數值是多少？',opts:['自由落體是水平拋出的物體；g = 9.8 m/s²（水平加速度）','自由落體是只受重力、初速為零的下落；g ≈ 9.8 m/s²（向下）'],ans:1,explain:'自由落體：只受重力、從靜止開始（v₀=0）垂直下落。重力加速度g=9.8 m/s²≈10 m/s²，方向垂直向下。公式：v=gt（末速）、h=½gt²（落下高度）、v²=2gh。注意：不考慮空氣阻力。'},
+{type:'tf',t:'u12c',era:'自由落體・物體質量',q:'在不考慮空氣阻力的情況下，重的物體和輕的物體從同一高度同時自由下落，重的物體會先落地。',ans:false,explain:'錯誤。伽利略比薩斜塔實驗推翻了亞里斯多德「重物落得更快」的說法。在真空（不計空氣阻力）中，不論質量大小，所有物體以相同重力加速度g自由下落，同時落地。'},
+{type:'mc',t:'u12c',era:'自由落體・計算',q:'一個球從20m高的樓頂自由下落（g=10 m/s²），落地時速度是多少？',opts:['10 m/s（v²=2×10×5，v=10）','20 m/s（v²=2×10×20，v=20）','30 m/s（v²=2×10×45，v=30）','40 m/s（v²=2×10×80，v=40）'],ans:1,explain:'自由落體：v² = 2gh = 2×10×20 = 400，v = √400 = 20 m/s。或用v = gt，先求時間：20 = ½×10×t²，t²=4，t=2s，v=10×2=20 m/s。落地速度20 m/s。'},
+// ===== 單元13 牛頓第一定律 =====
+{type:'mc',t:'u13a',era:'牛頓一律・慣性',q:'牛頓第一定律（慣性定律）的內容是什麼？',opts:['物體受力越大加速度越大，合力決定運動狀態','合力為零時，物體保持原運動狀態（靜者恆靜，動者恆速）'],ans:1,explain:'牛頓第一定律（慣性定律）：物體不受外力作用（或合力=0）時，運動狀態維持不變。靜者恆靜→靜止物體保持靜止；動者恆做等速直線運動→運動物體保持速度大小和方向不變。慣性大小只與質量有關，質量越大慣性越大。'},
+{type:'mc',t:'u13a',era:'牛頓一律・生活應用',q:'汽車突然剎車時，車內乘客為什麼會向前傾？',opts:['地板突然往後推乘客，產生向前的反作用力','乘客具有慣性，車子停止但乘客繼續向前運動'],ans:1,explain:'慣性的生活應用：（1）車子突然剎車→乘客向前傾（2）車子突然加速→乘客向後傾（3）拍衣服去塵→衣服停止但塵繼續運動（4）在行進火車上拋硬幣→落回原位（因為硬幣有水平慣性）。慣性大小與質量正比：質量越大，慣性越大。'},
+// ===== 單元13 牛頓第二定律 =====
+{type:'mc',t:'u13b',era:'牛頓二律・F=ma',q:'牛頓第二定律的內容是什麼？公式是什麼？',opts:['物體的速度與合力成正比，與質量無關','物體加速度與合力成正比，與質量成反比；F = ma'],ans:1,explain:'牛頓第二定律：F合 = ma（合力 = 質量 × 加速度）。推論：（1）合力越大→加速度越大（2）質量越大→加速度越小（3）F、a同向。單位：F(N) = m(kg) × a(m/s²)。例：10kg物體受20N合力→a=20/10=2 m/s²。'},
+{type:'mc',t:'u13b',era:'牛頓二律・計算',q:'一個質量5 kg的物體，受到合力15 N，則加速度是多少？',opts:['75 m/s²（a = F×m = 15×5）','3 m/s²（a = F/m = 15÷5）','0.33 m/s²（a = m/F = 5÷15）','15 m/s²（a = F = 15，忽略質量）'],ans:1,explain:'F = ma，a = F/m = 15/5 = 3 m/s²。牛頓第二定律計算：（1）已知合力和質量求加速度：a = F/m（2）已知加速度和質量求合力：F = ma（3）已知合力和加速度求質量：m = F/a。'},
+{type:'tf',t:'u13b',era:'牛頓二律・重力',q:'重力（W）是地球對物體的引力，公式為W = mg，其中g = 9.8 m/s²。同一物體在月球上的重力（重量）比在地球上小，但質量不變。',ans:true,explain:'正確。重力W = mg（g在地球約9.8 m/s²，月球約1.6 m/s²）。質量是物體本身的物質多少，不隨地點改變；重量是重力（力的大小），隨g值改變。月球g≈1/6地球g，故月球重量≈1/6地球重量，但質量相同。'},
+{type:'mc',t:'u13b',era:'牛頓二律・摩擦力',q:'「靜摩擦力」與「動摩擦力」的特性分別是什麼？',opts:['靜摩擦力和動摩擦力大小完全相同','靜摩擦力隨施力增大（有最大值）；動摩擦力大小固定（小於最大靜摩擦力）'],ans:1,explain:'靜摩擦力：物體靜止時存在，大小等於施力（至多等於最大靜摩擦力）；最大靜摩擦力是靜、動的分界點。動摩擦力：物體滑動時產生，大小固定，方向與運動方向相反；動摩擦力 < 最大靜摩擦力。'},
+// ===== 單元13 牛頓第三定律 =====
+{type:'mc',t:'u13c',era:'牛頓三律・作用反作用',q:'牛頓第三定律（作用力與反作用力定律）的內容是什麼？',opts:['兩力大小相等、方向相反、作用在同一物體（平衡力）','作用力與反作用力大小相等、方向相反、作用在不同物體'],ans:1,explain:'牛頓第三定律：A對B施力（作用力）→B對A有反作用力，大小相等、方向相反、作用在不同物體（A和B）。注意：作用力與反作用力不能抵消（不在同一物體上）；平衡力（合力為零）作用在同一物體。'},
+{type:'mc',t:'u13c',era:'牛頓三律・生活應用',q:'下列哪個是作用力與反作用力的例子（牛頓第三定律）？',opts:['書的重力和桌子的支撐力（平衡力，作用在同一物體）','游泳時手推水（作用力），水推手（反作用力），作用在不同物體'],ans:1,explain:'作用力與反作用力：游泳者手划水（作用力）→水推手（反作用力）→前進。其他例子：火箭向後噴氣→氣體推火箭向前；跑步腳推地面→地面推腳向前；踢球→球對腳有反作用力。與平衡力的區別：作用在不同物體vs同一物體。'},
+{type:'tf',t:'u13c',era:'牛頓三律・分辨',q:'一本書靜止放在桌面上，書受到的重力和桌子對書的支撐力（正向力）是一對「作用力與反作用力」。',ans:false,explain:'錯誤！這是一對「平衡力」（不是作用力與反作用力）。平衡力：同一物體、大小相等、方向相反、互相抵消（合力=0）。真正的作用力與反作用力：書對桌子的重力（書壓桌面）和桌子對書的正向力（桌撐書），這兩力施力者和受力者互換，才是作用力反作用力。'},
+// ===== 單元13 萬有引力 =====
+{type:'mc',t:'u13d',era:'萬有引力・定義',q:'萬有引力定律的主要內容是什麼？',opts:['只有天體之間才有萬有引力，日常物體間不存在','任何有質量的物體間都有引力；F = GM₁M₂/r²（平方反比）'],ans:1,explain:'萬有引力（牛頓）：F = GM₁M₂/r²。G=萬有引力常數；M₁、M₂=兩物體質量；r=兩物體中心距離。特性：（1）任何有質量物體間都存在（2）距離越遠，引力越小（平方反比）（3）質量越大，引力越大（4）天體間的引力使行星繞太陽公轉、月亮繞地球公轉。'},
+{type:'mc',t:'u13d',era:'萬有引力・圓周運動',q:'行星繞太陽做圓周運動，是什麼力提供向心力？',opts:['行星自身引擎產生的推進力維持軌道運動','太陽對行星的萬有引力提供向心力，維持圓周軌道'],ans:1,explain:'圓周運動需要向心力（指向圓心）。行星繞太陽：太陽對行星的萬有引力=向心力→維持圓軌道。月亮繞地球：地球對月亮的引力=向心力。人造衛星：地球引力=向心力→維持軌道（若速度太慢→落下；太快→飛出）。向心力公式：F = mv²/r = mω²r。'},
+// ===== 單元14 功與功率 =====
+{type:'mc',t:'u14a',era:'功・定義',q:'「功」的定義是什麼？何時做功為零？',opts:['只要有施力就做了功，不論是否有位移','功是力在位移方向上的分量乘以位移（W=FScosθ），無位移或垂直時為零'],ans:1,explain:'功（W）= F×S×cosθ（F=力、S=位移、θ=力與位移的夾角）。做功條件：（1）有力（2）有位移（3）力和位移同方向（至少有分量）。功=0的情況：（1）有力無位移（如推牆）（2）力與位移垂直（如提重物水平走路，重力與位移垂直→重力不做功）。單位：焦耳（J）=N×m。'},
+{type:'mc',t:'u14a',era:'功・計算',q:'用50N的力沿水平方向推一物體，物體移動4m，求做的功。',opts:['12.5 J（W = 50÷4×1 = 12.5）','200 J（W = 50×4×cos0° = 200）','54 J（W = 50+4×1 = 54）','46 J（W = 50-4×1 = 46）'],ans:1,explain:'W = F × S × cosθ = 50 × 4 × cos0° = 50 × 4 × 1 = 200 J。力方向與位移方向相同（θ=0°），cosθ=1，所以W = F×S = 200 J。'},
+{type:'mc',t:'u14a',era:'功率・定義',q:'「功率」是什麼？公式是什麼？',opts:['功率是所做的功的總量，不考慮時間長短','功率是單位時間內完成的功，P = W/t = Fv，單位瓦特（W）'],ans:1,explain:'功率（P）= W/t = F×v（W=功、t=時間、v=速度）。功率越大，做功速度越快。單位：瓦特（W）=焦耳/秒（J/s）；1 kW = 1000 W；1馬力（HP）≈746 W。例：50W燈泡每秒消耗50J電能。'},
+// ===== 單元14 動能位能機械能 =====
+{type:'mc',t:'u14b',era:'能量・動能位能',q:'動能和重力位能的公式分別是什麼？',opts:['動能Ek=mgh（高度越高動能越大）；位能Ep=½mv²','動能Ek=½mv²（速度越大動能越大）；位能Ep=mgh'],ans:1,explain:'動能（Ek）= ½mv²：與速度平方成正比，速度加倍則動能變4倍。重力位能（Ep）= mgh：與高度成正比，取地面為基準（h=0）。彈性位能（Ee）= ½kx²（k=彈簧係數，x=壓縮/伸長量）。'},
+{type:'mc',t:'u14b',era:'能量・機械能守恆',q:'「機械能守恆定律」的條件和內容是什麼？',opts:['任何情況下，機械能都守恆不受摩擦力影響','無非保守力作功時，機械能守恆：Ek+Ep=常數'],ans:1,explain:'機械能守恆：條件是沒有非保守力做功（即無摩擦力、無空氣阻力）。內容：Ek+Ep=constant（動能+位能=常數）。例：自由落體→位能減少=動能增加（高度降低，速度增加）；單擺→最高點（位能最大，動能=0）↔最低點（動能最大，位能最小）。'},
+{type:'tf',t:'u14b',era:'能量・能量守恆',q:'摩擦力會做功，使機械能減少，減少的機械能轉化為熱能，但總能量（包含熱能）仍然守恆，這符合能量守恆定律。',ans:true,explain:'正確。能量守恆定律：能量不能創生或消滅，只能轉換形式。有摩擦力→機械能轉化為熱能（摩擦熱）→機械能減少但總能量守恆。機械能守恆是能量守恆的特例（只在無非保守力時成立）。'},
+{type:'mc',t:'u14b',era:'能量・功能定理',q:'一物體質量2 kg，在h=5m高處靜止釋放，不計空氣阻力（g=10 m/s²），求落至地面時的速度。',opts:['5 m/s（v=√(2×10×1.25)=5）','10 m/s（v=√(2×10×5)=10）','20 m/s（v=√(2×10×20)=20）','50 m/s（v=√(2×10×125)=50）'],ans:1,explain:'機械能守恆：mgh = ½mv²（位能全轉為動能）。v = √(2gh) = √(2×10×5) = √100 = 10 m/s。或用v² = 2gh = 100，v = 10 m/s。注意：質量消去，速度與質量無關。'},
+// ===== 單元14 簡單機械 =====
+{type:'mc',t:'u14c',era:'簡單機械・槓桿原理',q:'槓桿原理（力矩平衡）的公式是什麼？',opts:['施力×阻力=施力臂×阻力臂（力乘力等於臂乘臂）','施力×施力臂=阻力×阻力臂（力矩平衡，力×力臂）'],ans:1,explain:'槓桿原理：F施×d施=F阻×d阻（施力臂=施力到支點的距離，阻力臂=阻力到支點的距離）。省力槓桿：d施>d阻→F施<F阻（費距省力）；費力槓桿：d施<d阻→F施>F阻（費力省距）；等臂槓桿：d施=d阻→F施=F阻（如天平）。'},
+{type:'mc',t:'u14c',era:'簡單機械・滑輪',q:'動滑輪的特點是什麼？使用動滑輪可以省多少力？',opts:['動滑輪不省力也不省距離，和不用滑輪完全相同','動滑輪省一半的力（施力=W/2），但移動距離加倍，不省功'],ans:1,explain:'動滑輪（滑輪隨重物移動）：施力=W/2（省力），施力距=W移動距×2（費距）。定滑輪（固定點）：不省力，只改變力的方向。滑輪組：n段繩子支撐動滑輪→施力=W/n，移動距離=W移動×n。原則：所有簡單機械都不省功（功=力×距離）。'},
+{type:'sort',t:'u14c',era:'簡單機械・省力費力',q:'請將以下槓桿工具依「省力程度從大到小（最省力→最費力）」排列：',items:['剪刀（費力槓桿，施力臂短）','開瓶器（省力槓桿，施力臂長）','鑷子（費力槓桿，最費力）','天平（等臂槓桿，不省也不費力）'],correctOrder:[1,3,0,2],explain:'省力槓桿（d施>d阻）：如開瓶器、撬棒；等臂（d施=d阻）：如天平；費力槓桿（d施<d阻）：如剪刀（靠近刀口是費力的）、鑷子（最費力）。實際應用中選擇取決於需要省力還是省距離。'},
+// ===== 單元15 靜電與電荷 =====
+{type:'mc',t:'u15a',era:'靜電・電荷',q:'電荷分為哪兩種？同性電荷和異性電荷之間的作用力各是什麼？',opts:['電荷只有一種靜電荷，無正負之分','電荷分正（+）和負（-）；同性相斥，異性相吸，F=kq₁q₂/r²'],ans:1,explain:'電荷種類：正電荷（質子攜帶）、負電荷（電子攜帶）。電荷守恆：電荷可轉移，總量不變。庫侖定律：F=kq₁q₂/r²（k=庫侖常數，q=電荷量，r=距離）。摩擦起電：絨毛布摩擦玻璃棒→玻璃棒帶正電（失去電子）、布帶負電。'},
+{type:'mc',t:'u15a',era:'靜電・導體絕緣體',q:'「導體」和「絕緣體」的差別是什麼？',opts:['導體是固體，電荷不能移動；絕緣體是液體，電荷可以移動','導體有自由電子可移動（如銅、鋁）；絕緣體無自由電荷（如橡膠、玻璃）'],ans:1,explain:'導體（如金屬）：有大量自由電子可移動→電流可通過。絕緣體（如橡膠、玻璃）：沒有自由電荷→不導電。半導體（如矽、鍺）：介於中間，可控制導電性（用於晶片、LED）。'},
+{type:'tf',t:'u15a',era:'靜電・感應起電',q:'靜電感應時，負電荷靠近導體，導體靠近端感應出正電，遠離端感應出負電；這個過程電荷的總量不變。',ans:true,explain:'正確。靜電感應：帶電體靠近導體→自由電子重新分布→近端出現異性感應電（感應正）、遠端出現同性電（感應負）。電荷守恆：導體內正負電荷數量相等，總電量仍為零（只是分布改變）。'},
+// ===== 單元15 電流電壓電阻 =====
+{type:'mc',t:'u15b',era:'電流電壓・定義',q:'電流、電壓、電阻的定義和單位分別是什麼？',opts:['電流單位安培（A）；電壓單位伏特（V）；電阻單位歐姆（Ω）','電流單位伏特（V）；電壓單位安培（A）；電阻單位瓦特（W）'],ans:0,explain:'電流（I）：單位時間內通過的電荷量，I=Q/t，單位安培（A）。電壓（V）：推動電荷流動的電位差，單位伏特（V）。電阻（R）：阻礙電流流動的大小，單位歐姆（Ω）。三者關係：V=IR（歐姆定律）。'},
+{type:'mc',t:'u15b',era:'歐姆定律',q:'歐姆定律的公式是什麼？電阻為2Ω的電阻器，通過1.5A的電流，其兩端電壓是多少？',opts:['V = I/R；電壓 = 1.5÷2 = 0.75V','V = IR；電壓 = 1.5×2 = 3V'],ans:1,explain:'歐姆定律：V = IR（V=電壓、I=電流、R=電阻）。計算：V = 1.5 × 2 = 3V。三種形式：V=IR（求電壓）、I=V/R（求電流）、R=V/I（求電阻）。注意：歐姆定律只適用於歐姆元件（電阻固定不變）；LED、二極體等非歐姆元件不適用。'},
+{type:'mc',t:'u15b',era:'電阻・影響因素',q:'影響導體電阻大小的因素有哪些？',opts:['電阻只與材料種類有關，長度和截面積不影響電阻','電阻與長度L成正比、截面積A成反比、與材料ρ有關；R=ρL/A'],ans:1,explain:'電阻影響因素：R = ρL/A。（1）長度越長→電阻越大（2）截面積越大（越粗）→電阻越小（3）電阻係數ρ越小→電阻越小（如銅ρ很小，是良導體）（4）溫度越高→金屬電阻通常越大。'},
+// ===== 單元15 串並聯電路 =====
+{type:'mc',t:'u15c',era:'串聯電路・特性',q:'串聯電路的特性有哪些？',opts:['串聯電路各電阻電壓相同，電流不同（並聯的特性）','串聯電路電流相同，總電壓=V₁+V₂，總電阻=R₁+R₂'],ans:1,explain:'串聯電路特性：（1）電流相同：I₁=I₂=...=I（2）電壓分配：V=V₁+V₂（電壓按電阻大小分配，R大→V大）（3）總電阻：R總=R₁+R₂（越串越大）。應用：聖誕燈串（一個壞全滅）、電阻分壓器。'},
+{type:'mc',t:'u15c',era:'並聯電路・特性',q:'並聯電路的特性有哪些？',opts:['並聯電路各支路電流相同，總電阻等於各電阻之和','並聯電路各支路電壓相同，總電流=I₁+I₂，1/R總=1/R₁+1/R₂'],ans:1,explain:'並聯電路特性：（1）電壓相同：V₁=V₂=...=V（2）電流分配：I=I₁+I₂（電流按電阻反比分配，R小→I大）（3）總電阻：1/R總=1/R₁+1/R₂（越並越小，總阻 < 最小電阻）。應用：家用插座（各電器可獨立開關）。'},
+{type:'tf',t:'u15c',era:'並聯電路・總電阻',q:'兩個相同電阻R並聯，其總電阻等於R/2（為單一電阻的一半）。',ans:true,explain:'正確。兩個相同電阻R並聯：1/R總=1/R+1/R=2/R，R總=R/2。推廣：n個相同電阻R並聯→R總=R/n。並聯的總電阻一定小於其中任何一個電阻；串聯的總電阻一定大於其中任何一個電阻。'},
+{type:'match',t:'u15c',era:'電路特性配對',q:'請將串聯與並聯電路的特性正確配對：',pairs:[['串聯電路・電流','各處電流相同（I₁=I₂=I）'],['串聯電路・電壓','電壓分配，總V=V₁+V₂'],['並聯電路・電壓','各支路電壓相同（V₁=V₂=V）'],['並聯電路・電流','電流分配，總I=I₁+I₂']],explain:'串聯：電流同，電壓分；並聯：電壓同，電流分。串聯總電阻=各電阻之和（R₁+R₂）；並聯總電阻：1/R總=1/R₁+1/R₂。家用電路用並聯（互不干擾、電壓相同）；手電筒電池用串聯（電壓疊加）。'},
+{type:'mc',t:'u15c',era:'電路計算・串並聯',q:'3V電源連接一個2Ω電阻（R₁）和一個1Ω電阻（R₂）串聯，求：通過電路的電流和R₁兩端的電壓。',opts:['電流1.5A（I=3/2），R₁電壓3V（V=1.5×2）','電流1A（I=3/3），R₁電壓2V（V=1×2）','電流3A（I=3/1），R₁電壓6V（V=3×2）','電流0.5A（I=3/6），R₁電壓1V（V=0.5×2）'],ans:1,explain:'串聯電路：R總=R₁+R₂=2+1=3Ω；I=V/R總=3/3=1A（電流相同）；V₁=I×R₁=1×2=2V；V₂=I×R₂=1×1=1V；驗算：V₁+V₂=2+1=3V=電源電壓✓。'},
+{type:'mc',t:'u15c',era:'電功率',q:'電功率的公式是什麼？一個100Ω的電阻通過2A的電流，其消耗的功率是多少？',opts:['P=V+I（電壓加電流）= 110+2 = 112W','P=I²R（電流平方×電阻）= 4×100 = 400W','P=V/I（電壓除以電流）= 200/2 = 100W','P=V-I（電壓減電流）= 200-2 = 198W'],ans:1,explain:'電功率：P=IV=I²R=V²/R（I=電流、V=電壓、R=電阻）。計算：P=I²R=2²×100=4×100=400W。電能：E=Pt=IVt（t=時間）。例：100W燈泡1小時消耗：E=100W×3600s=360000J=0.1度電（1度=1kWh=3.6×10⁶J）。'}
+];
+
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.panel).classList.add('active');if(tab.dataset.panel==='wrong')renderWP();});});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+function updateGo(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);const btn=document.getElementById('goBtn');if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}else{btn.disabled=true;btn.textContent='請選擇單元與模式';}}
+document.getElementById('goBtn').addEventListener('click',startGame);
+function startGame(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;const isLong=S.mode==='normal'||S.mode==='timed';let pool=QB.filter(q=>S.topics.includes(q.t));pool=shuffle(pool);S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));S.cur=0;showScreen('game');renderQ();}
+function startWrongPractice(){const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();}
+function renderQ(){if(S.cur>=S.qs.length){showResult();return;}const q=S.qs[S.cur];S.answered=false;const total=S.qs.length;document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));else document.getElementById('gLives').textContent='';const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort'};document.getElementById('qtag').textContent=tMap[q.type]||'題目';document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;document.getElementById('qtext').textContent=q.q;document.getElementById('qsub').textContent=q.hint||'';const area=document.getElementById('ans-area');area.innerHTML='';document.getElementById('fbbox').className='fb-box';document.getElementById('nextBtn').className='next-btn';if(q.type==='mc')renderMC(q,area);else if(q.type==='tf')renderTF(q,area);else if(q.type==='fill')renderFillQ(q,area);else if(q.type==='match')renderMatch(q,area);else if(q.type==='sort')renderSort(q,area);clearInterval(S.timer);const te=document.getElementById('gTimer');if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}else te.style.display='none';}
+function renderMC(q,area){const grid=document.createElement('div');grid.className='opts';q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt';btn.textContent=o;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const ok=i===q.ans;grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});finish(ok,q);});grid.appendChild(btn);});area.appendChild(grid);}
+function renderTF(q,area){const row=document.createElement('div');row.className='tf-row';['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const userT=i===0,ok=userT===q.ans;row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});finish(ok,q);});row.appendChild(btn);});area.appendChild(row);}
+function renderFillQ(q,area){const row=document.createElement('div');row.className='fill-row';const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確答案：${q.ans}`);};btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});row.append(inp,btn);area.appendChild(row);}
+function renderMatch(q,area){const wrap=document.createElement('div');wrap.className='match-wrap';const lCol=document.createElement('div');lCol.className='match-col';const rCol=document.createElement('div');rCol.className='match-col';const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);let lPicked=null,rPicked=null,matched=0;pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});wrap.append(lCol,rCol);area.appendChild(wrap);function tryM(){if(!lPicked||!rPicked)return;const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}lPicked=null;rPicked=null;}wrap.addEventListener('click',e=>{if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}tryM();});}
+let dragEl=null;
+function renderSort(q,area){const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));const list=document.createElement('div');list.className='sort-list';shuffled.forEach(item=>{const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});el.addEventListener('dragend',()=>el.classList.remove('dragging'));el.addEventListener('dragover',e=>e.preventDefault());el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});list.appendChild(el);});area.appendChild(list);const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});area.appendChild(chk);}
+function finish(ok,q,extraMsg){const pts=calcPts(ok,q.type);if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;document.getElementById('fbmsg').textContent=msg;document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;const nb=document.getElementById('nextBtn');nb.className='next-btn show';const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};}
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+function startTimer(sec){S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';S.timer=setInterval(()=>{S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}},1000);}
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+function showResult(){clearInterval(S.timer);showScreen('result');const max=S.qs.length*6;const pct=max>0?S.score/max:0;let emoji,title,msg;if(pct>=.9){emoji='🏆';title='理化高手！';msg='第三冊力學與電學全部掌握！繼續保持！';}else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點複習！';}else if(pct>=.5){emoji='📖';title:'繼續加油！';msg='去錯題複習區針對弱點加強！';}else{emoji='💪';title='不要灰心！';msg='把筆記再仔細看一遍，再來挑戰！';}document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';document.getElementById('rMsg').textContent=msg;const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}else document.getElementById('rWeak').style.display='none';const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';if(pct>=.75)confetti();}
+function renderWP(){const bank=loadWB();const panel=document.getElementById('wrongPanel');const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;pw.style.display='block';cl.style.display='block';}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#7a4ac0','#6a3ab0','#5a2aa0','#a880e0','#ddd0f8'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

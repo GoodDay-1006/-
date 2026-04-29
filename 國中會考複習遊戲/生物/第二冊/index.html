@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生物闖關王 第二冊</title>
+<style>
+:root{
+  --bg:#f0fff4;--ink:#0a2010;--red:#c0392b;--gold:#27ae60;
+  --teal:#1e8449;--blue:#196f3d;--accent:#2ecc71;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(10,42,20,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(46,204,113,.10) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(26,132,73,.07) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#c8f7dc 0%,var(--bg) 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(10,42,20,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(10,42,20,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(10,42,20,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(10,42,20,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(10,42,20,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#d4f5e2;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(10,42,20,.48);margin-top:3px;line-height:1.4;}
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(10,42,20,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(10,42,20,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(10,42,20,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(10,42,20,.38);border:1px solid rgba(10,42,20,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:#ff6b6b;animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#d4f5e2;color:var(--teal);}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:var(--green);}
+.qtag.match{background:#fce8d0;color:#b06010;}
+.qtag.sort{background:#fde8d0;color:#d35400;}
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(10,42,20,.43);margin-bottom:11px;font-style:italic;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#e8f8ee;border:2px solid #a9dfbf;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#d4f5e2;}
+.opt.ok{background:#d4f5e2;border-color:var(--green);color:var(--green);font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #a9dfbf;background:#e8f8ee;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:var(--green);}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:var(--green);background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--blue);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#e8f8ee;border:2px solid #a9dfbf;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:var(--gold);background:#d4f5e2;font-weight:700;}
+.match-item.matched{border-color:var(--green);background:#d4f5e2;color:var(--green);font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#d4f5e2;border:2px solid #a9dfbf;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--teal);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:var(--green);border-left:4px solid var(--green);}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+#result{background:linear-gradient(155deg,#c8f7dc 0%,var(--bg) 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(10,42,20,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(10,42,20,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(10,42,20,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#e8f8ee;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">🌿 生物闖關王</div>
+    <div class="home-badge">國中生物 第二冊 · 單元6–9 · 會考複習</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip on" data-t="u6a">🔬 U6 生殖基本原理</div>
+      <div class="tchip on" data-t="u6b">🌱 U6 無性生殖</div>
+      <div class="tchip on" data-t="u6c">❤️ U6 有性生殖</div>
+      <div class="tchip on" data-t="u6d">🌸 U6 植物生殖</div>
+      <div class="tchip on" data-t="u7a">🧬 U7 孟德爾遺傳</div>
+      <div class="tchip on" data-t="u7b">🩸 U7 人類遺傳</div>
+      <div class="tchip on" data-t="u7c">⚡ U7 突變與疾病</div>
+      <div class="tchip on" data-t="u7d">🔧 U7 生物技術</div>
+      <div class="tchip on" data-t="u8a">🦕 U8 化石與分類</div>
+      <div class="tchip on" data-t="u8b">🦠 U8 五界分類</div>
+      <div class="tchip on" data-t="u8c">🌳 U8 植物動物界</div>
+      <div class="tchip on" data-t="u9a">🌍 U9 生態系組成</div>
+      <div class="tchip on" data-t="u9b">🔗 U9 生物交互作用</div>
+      <div class="tchip on" data-t="u9c">⚡ U9 能量流動</div>
+      <div class="tchip on" data-t="u9d">🌊 U9 環境保護</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+<div class="screen" id="game">
+  <div class="gbar">
+    <div><div class="gbar-left" id="gInfo">第 1 / 50 題</div><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;"><div class="gbar-timer" id="gTimer" style="display:none;">20</div><div><div class="gbar-score" id="gScore">0 分</div><div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox"><div class="fb-title" id="fbtitle"></div><div id="fbmsg"></div></div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div><div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div><div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div><div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+<div class="combo" id="combo"></div>
+<script>
+const SK='bio2_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+// ===== 單元6 生殖基本原理 =====
+{type:'mc',t:'u6a',era:'生殖・基本概念',q:'下列關於生殖的敘述，何者正確？',opts:['無性生殖需要配子參與','有性生殖的子代遺傳特性均與親代相同','無性生殖不需配子，由單一個體完成','有性生殖的繁殖速度比無性生殖快'],ans:2,explain:'無性生殖的特點：不需配子參與，由單一個體完成，子代與親代遺傳特性相同，繁殖速度快。有性生殖需雌雄配子結合，子代遺傳特性有差異。'},
+{type:'mc',t:'u6a',era:'生殖・染色體',q:'人類體細胞含有幾條染色體？',opts:['23條（不成對，單套）','46條（23對，雙套）','92條（46對）','4條（2對）'],ans:1,explain:'人類體細胞含有46條染色體，即23對（雙套，2n）。生殖細胞（精子、卵）則含有23條（單套，1n）。果蠅體細胞有8條（4對）。'},
+{type:'mc',t:'u6a',era:'生殖・細胞分裂',q:'細胞分裂的目的是？',opts:['產生配子','使細胞染色體加倍','促進生長、組織更新與無性生殖','使遺傳物質減半'],ans:2,explain:'細胞分裂目的：促進生物體發育成長、組織更新修補，也是有些生物（如單細胞生物）產生新個體的方式。減數分裂才是產生配子的方式。'},
+{type:'mc',t:'u6a',era:'生殖・減數分裂',q:'減數分裂的結果是？',opts:['產生2個子細胞，染色體數不變','產生4個子細胞，染色體數減半','產生2個子細胞，染色體數減半','產生4個子細胞，染色體數不變'],ans:1,explain:'減數分裂：染色體複製1次，細胞分裂2次，結果產生4個子細胞（單套，n），染色體數為母細胞的一半。目的是產生配子（精子或卵）。'},
+{type:'tf',t:'u6a',era:'生殖・細胞分裂比較',q:'細胞分裂與減數分裂相比，細胞分裂只進行1次細胞分裂，而減數分裂進行2次細胞分裂。',ans:true,explain:'正確。細胞分裂：染色體複製1次，分裂1次，產生2個子細胞（雙套）。減數分裂：染色體複製1次，分裂2次，產生4個子細胞（單套）。'},
+{type:'mc',t:'u6a',era:'生殖・染色體',q:'有關成對染色體的敘述，下列何者正確？',opts:['成對染色體形狀大小完全相同，且含相同的遺傳物質','成對染色體形狀大小相似，但遺傳資訊可能不同','成對染色體只存在於生殖細胞','成對染色體就是複製後的姊妹染色單體'],ans:1,explain:'成對染色體（同源染色體）：形狀大小相似（一條來自父方，一條來自母方），控制相同性狀的遺傳因子位置相同，但具體內容（等位基因）可能不同。'},
+{type:'sort',t:'u6a',era:'生殖・有性生殖流程',q:'請將人類有性生殖的過程排成正確順序：',items:['減數分裂產生精子','受精作用（精卵結合）','細胞分裂發育成胚胎','配子染色體數減半'],correctOrder:[0,3,1,2],explain:'有性生殖流程：先減數分裂→染色體數減半→精卵受精結合（染色體數恢復2n）→細胞分裂發育成個體。'},
+
+// ===== 單元6 無性生殖 =====
+{type:'mc',t:'u6b',era:'無性生殖・種類辨認',q:'下列何者屬於「出芽生殖」的例子？',opts:['黑黴菌','草履蟲','水螅、酵母菌','蕨類植物'],ans:2,explain:'出芽生殖：親代在個體旁長出小芽體，芽體長大後與親代分離，成為新個體。例如水螅、酵母菌。分裂生殖的代表是草履蟲、變形蟲；孢子繁殖的代表是黑黴菌、青黴菌。'},
+{type:'mc',t:'u6b',era:'無性生殖・種類辨認',q:'斷裂生殖的特點是？',opts:['由單細胞直接分裂為二','個體斷成多段，片段可再生成新個體（但有限制）','利用根莖葉等營養器官繁殖','產生微小孢子隨風散播'],ans:1,explain:'斷裂生殖：有些多細胞生物（如渦蟲、海參、水蛭、海星）個體斷成多段，各片段可再生育成新個體，但再生能力有限。'},
+{type:'match',t:'u6b',era:'無性生殖・種類配對',q:'請將無性生殖方式與代表生物配對：',pairs:[['分裂生殖','草履蟲、變形蟲'],['出芽生殖','水螅、酵母菌'],['孢子繁殖','黑黴菌、青黴菌'],['營養器官繁殖','甘藷（塊根）、草莓（走莖）']],explain:'四大無性生殖方式：分裂（單細胞）、出芽（水螅/酵母菌）、孢子（黴菌/苔蘚/蕨類）、營養器官（植物根莖葉）。'},
+{type:'mc',t:'u6b',era:'無性生殖・特性',q:'無性生殖的優點與缺點，下列敘述何者正確？',opts:['繁殖速度慢，但子代變異大，適應環境能力強','繁殖速度快，子代與親代遺傳特性相同，可保持優良品種','繁殖速度快，子代變異大，可用於品種改良','子代與親代完全不同，有利於演化'],ans:1,explain:'無性生殖：速度快、子代與親代遺傳特性相同（可保持優良品種）。缺點：特徵相同，適應環境能力弱，環境劇變可能全滅。有性生殖：後代有變異，適應能力強但速度較慢。'},
+{type:'tf',t:'u6b',era:'無性生殖・組織培養',q:'組織培養是一種無性生殖的方式，因為培育出的新個體與原植株的遺傳組成完全相同。',ans:true,explain:'正確。組織培養（人工）：取植物的一部分細胞，給予無菌培養基和植物激素，讓細胞分裂並分化，培育出完整新個體。所有細胞含相同遺傳物質，故屬無性生殖。蘭花常用此法。'},
+
+// ===== 單元6 有性生殖 =====
+{type:'mc',t:'u6c',era:'有性生殖・動物',q:'下列脊椎動物中，哪一類「多為體外受精」？',opts:['爬蟲類','鳥類','哺乳類','魚類'],ans:3,explain:'脊椎動物受精方式：魚類多為體外受精（把精卵產在水中）；兩生類多為體外受精（偽交配）；爬蟲類、鳥類、哺乳類為體內受精。'},
+{type:'mc',t:'u6c',era:'有性生殖・人類生殖',q:'人類男性生殖器官中，製造精子的場所是？',opts:['輸精管','攝護腺','睪丸','附睪'],ans:2,explain:'睪丸位於陰囊內，可分泌雄性激素，並製造精子。附睪可儲存精子。輸精管可輸送精子。精囊與攝護腺的分泌物和精子混合成精液。'},
+{type:'mc',t:'u6c',era:'有性生殖・人類生殖',q:'受精（精卵結合）通常發生在女性生殖系統的哪個部位？',opts:['子宮','卵巢','輸卵管前端','陰道'],ans:2,explain:'人類受精位置：輸卵管前端（靠近卵巢端）。卵巢排卵→卵進入輸卵管→在輸卵管前端與精子結合（受精）→受精卵移至子宮→著床發育。'},
+{type:'mc',t:'u6c',era:'有性生殖・胚胎發育',q:'下列關於人類懷孕的敘述，何者正確？',opts:['胎兒與母親血液直接混合，共享氧氣','胎兒由臍帶與胎盤從母體獲得氧氣與養分','胎兒包裹在羊膜中，羊水使胎兒體溫更高','懷孕期間每月仍會有月經'],ans:1,explain:'胎兒透過臍帶連接胎盤，由胎盤從母體獲得氧氣和養分，並排出二氧化碳和廢物。胎兒與母親血管不直接相通。羊水保護胎兒免受衝擊。懷孕期間沒有月經。'},
+{type:'tf',t:'u6c',era:'有性生殖・雙胞胎',q:'同卵雙生的兩個人，遺傳組合相同，因此性別一定相同。',ans:true,explain:'正確。同卵雙生：一個受精卵分裂成兩個胚胎，兩人遺傳組合相同，性別一定相同，性狀特徵相同。異卵雙生：兩個不同受精卵，遺傳組合不同，性別可能不同。'},
+{type:'mc',t:'u6c',era:'有性生殖・受精卵發育',q:'蛋的「小白點」（胚盤）的特性為何？',opts:['小白點含有細胞核，是卵黃的一部分','小白點是受精的標誌，未受精蛋沒有小白點','小白點含有細胞核，是卵細胞的本體','小白點是由卵黃分泌，無細胞核'],ans:2,explain:'蛋的小白點（胚盤）：含有細胞核，是卵細胞的本體。受過精的蛋（種蛋）的小白點較大，可孵化成新個體；未受精蛋的小白點較小，無法孵化。'},
+
+// ===== 單元6 植物生殖 =====
+{type:'mc',t:'u6d',era:'植物生殖・開花植物',q:'開花植物有性生殖的過程，花粉粒由雄蕊頂端花藥到達雌蕊柱頭的過程稱為？',opts:['受精','著床','授粉','萌芽'],ans:2,explain:'授粉：花粉由雄蕊的花藥（産花粉處）→藉風、昆蟲等媒介→到達雌蕊柱頭上。接著花粉萌發花粉管，精細胞藉花粉管延伸進入子房胚珠內，與卵結合（受精）。'},
+{type:'mc',t:'u6d',era:'植物生殖・風媒蟲媒',q:'下列何者是「蟲媒花」的特徵？',opts:['無香味，花粉數量多且輕盈，易隨風飄散','花色鮮艷，具香氣和蜜腺，花粉數量少且帶黏性','花粉特別大，可附著在昆蟲背上','花朵細小，位於植物頂端方便授粉'],ans:1,explain:'蟲媒花：花色鮮艷（吸引昆蟲）、有香氣、有蜜腺、花粉數量少但較重且帶黏性，可附著在昆蟲身上被攜帶傳播。風媒花：通常無香味和蜜腺，花粉數量多且輕盈，易隨風飄散。'},
+{type:'mc',t:'u6d',era:'植物生殖・結果',q:'開花植物受精後，下列何者正確？',opts:['胚珠→種子，子房→果實','子房→種子，胚珠→果實','花瓣→果實，花粉→種子','花托→果實，胚珠→種子'],ans:0,explain:'受精後的變化：胚珠→種子（內有胚，能發芽成新個體）；子房壁→果實（保護種子）。所以是「胚珠→種子，子房→果實」。'},
+{type:'match',t:'u6d',era:'植物生殖・植物繁殖方式',q:'請配對植物與其無性生殖方式：',pairs:[['甘藷','塊根（營養器官繁殖）'],['草莓','走莖（匍匐莖繁殖）'],['馬鈴薯','塊莖（地下莖繁殖）'],['蕨類','孢子繁殖']],explain:'植物常見無性生殖：甘藷用塊根；草莓用走莖（匍匐莖）；馬鈴薯用塊莖；蕨類、黑黴菌用孢子。'},
+{type:'tf',t:'u6d',era:'植物生殖・種子植物',q:'被子植物（雙子葉植物）的種子包被在果實中，而裸子植物（松、柏）的種子是裸露的，不被果實包覆。',ans:true,explain:'正確。被子植物（angiosperm）：種子被果實（子房壁）包覆，如蘋果、桃子。裸子植物（gymnosperm）：種子裸露不被果實包覆，如松、杉、柏。'},
+
+// ===== 單元7 孟德爾遺傳 =====
+{type:'mc',t:'u7a',era:'遺傳・孟德爾法則',q:'孟德爾利用何種植物進行遺傳實驗，並歸納出遺傳法則？',opts:['玉米','豌豆','蕃茄','果蠅'],ans:1,explain:'孟德爾利用豌豆（特點：有明顯的對比性狀、可人工授粉控制、生長週期短）進行實驗，最終歸納出遺傳法則，被稱為遺傳學之父。'},
+{type:'mc',t:'u7a',era:'遺傳・顯隱性',q:'豌豆高莖（T）對矮莖（t）為顯性，TT × tt 的第一代（F1）表現型為何？',opts:['全部矮莖','全部高莖','高莖：矮莖 = 1:1','高莖：矮莖 = 3:1'],ans:1,explain:'TT × tt：所有後代基因型均為Tt（雜合），由於T（高莖）對t（矮莖）為顯性，因此F1全部表現高莖。只要有T基因就會表現高莖。'},
+{type:'mc',t:'u7a',era:'遺傳・棋盤方格法',q:'Tt × Tt 交配，後代的表現型比例為？',opts:['高莖：矮莖 = 1:1','高莖：矮莖 = 3:1','全部高莖','高莖：矮莖 = 1:2:1'],ans:1,explain:'Tt × Tt 棋盤方格法：後代基因型 TT:Tt:tt = 1:2:1；表現型 高莖(TT+Tt)：矮莖(tt) = 3:1。這是典型的孟德爾比例，會考常考！'},
+{type:'mc',t:'u7a',era:'遺傳・基因型判斷',q:'某高莖豌豆（T_），與矮莖（tt）交配，後代出現高莖與矮莖各半，則該高莖豌豆的基因型為？',opts:['TT','Tt','無法判斷','tt（矛盾）'],ans:1,explain:'測交（與隱性純種交配）：若後代高莖:矮莖 = 1:1，則親本為Tt（Tt × tt → Tt:tt = 1:1）；若後代全部為高莖，則親本為TT（TT × tt → 全Tt，全高莖）。後代出現矮莖，所以親本為Tt。'},
+{type:'fill',t:'u7a',era:'遺傳・遺傳因子位置',q:'控制同一性狀的兩個遺傳因子，分別位在成對染色體的______位置上（填四個字）。',ans:'相對位置',alts:['對應位置'],explain:'遺傳因子（基因）的位置：控制同一性狀（如豌豆高矮）的兩個遺傳因子，分別位於成對染色體（同源染色體）的相對位置上。'},
+{type:'mc',t:'u7a',era:'遺傳・純品系',q:'孟德爾實驗前先培育「純品系」的目的為何？',opts:['增加後代數量方便統計','確保親代性狀穩定、遺傳因子純合，排除干擾','加快豌豆生長速度','培育新的豌豆品種'],ans:1,explain:'純品系（純合）豌豆：讓同一性狀的豌豆自交多代，直到後代性狀穩定不再分離。目的是確保遺傳因子純合（如TT或tt），使實驗結果清晰可解讀。'},
+
+// ===== 單元7 人類遺傳 =====
+{type:'mc',t:'u7b',era:'人類遺傳・ABO血型',q:'控制人類ABO血型的遺傳因子共有幾種？',opts:['2種（A和B）','3種（Iᴬ、Iᴮ和i）','4種（A、B、AB、O）','6種'],ans:1,explain:'ABO血型：控制因子有3種（Iᴬ、Iᴮ、i），其中Iᴬ和Iᴮ均為顯性，i為隱性。因為每人有兩個遺傳因子，可組合成6種基因型，但表現型只有4種血型（A、B、AB、O）。'},
+{type:'mc',t:'u7b',era:'人類遺傳・血型遺傳',q:'AB型（IᴬIᴮ）的人與O型（ii）的人結婚，後代可能的血型為？',opts:['只有AB型','A型和B型各半','A型、B型、AB型、O型都有','只有A型'],ans:1,explain:'IᴬIᴮ × ii：後代基因型為 Iᴬi（A型）和 Iᴮi（B型），比例各半。不可能出現AB型或O型。這是血型遺傳常考題。'},
+{type:'mc',t:'u7b',era:'人類遺傳・性別遺傳',q:'決定人類性別的因素是？',opts:['母親卵的染色體組合','父親精子所攜帶的性染色體（X或Y）','懷孕時的溫度','基因突變'],ans:1,explain:'人類性別決定：女性體細胞44+XX，卵均含X染色體；男性體細胞44+XY，精子含X（→生女）或Y（→生男）。因此孩子性別由父親精子決定。男：女 = 1:1。'},
+{type:'tf',t:'u7b',era:'人類遺傳・性別',q:'帶Y染色體的精子不含X染色體。',ans:true,explain:'正確。男性（XY）進行減數分裂產生精子：含X染色體的精子（22+X）和含Y染色體的精子（22+Y）各約一半。含Y的精子不含X，含X的精子不含Y。'},
+{type:'mc',t:'u7b',era:'人類遺傳・血型推算',q:'若父親為A型（Iᴬi），母親為B型（Iᴮi），後代中可能出現哪些血型？',opts:['只有A型和B型','A型、B型、AB型','A型、B型、AB型、O型','只有AB型'],ans:2,explain:'Iᴬi × Iᴮi：棋盤法後代 IᴬIᴮ(AB)：Iᴬi(A)：Iᴮi(B)：ii(O) = 1:1:1:1，四種血型都有可能出現。'},
+{type:'mc',t:'u7b',era:'人類遺傳・性狀顯隱性',q:'人類性狀中，下列何者為「顯性」性狀？',opts:['不能捲舌','單眼皮','無美人尖','能搭舌（舌尖上捲）'],ans:3,explain:'常見人類顯性性狀：能捲舌、有美人尖、有酒窩、雙眼皮（有些地區不同）。隱性性狀：不能捲舌、無美人尖。注意：每個人的性狀由遺傳因子決定，顯隱性要看族群統計。'},
+
+// ===== 單元7 突變與疾病 =====
+{type:'mc',t:'u7c',era:'突變・定義',q:'「突變」的定義是？',opts:['生物體遭受外力傷害後的現象','遺傳物質（DNA或染色體）發生變異的情形','生物體在環境中適應的過程','基因轉殖到另一個生物體的技術'],ans:1,explain:'突變：遺傳物質（基因或染色體）發生變異，使生物體的性狀也可能改變。突變可能自然發生，也可能由誘變因素（輻射、化學物質、病毒）引起。'},
+{type:'mc',t:'u7c',era:'突變・發生場所',q:'突變在哪種細胞發生，才有機會遺傳給後代？',opts:['體細胞','神經細胞','生殖細胞','任何細胞都可以'],ans:2,explain:'突變雖然在任何細胞都可能發生，但只有在「生殖細胞」中發生的突變，才有機會傳遞給後代。體細胞的突變只影響個體本身，不會遺傳。'},
+{type:'mc',t:'u7c',era:'突變・遺傳疾病',q:'下列何種遺傳疾病是由「染色體數目異常」引起的？',opts:['白化症','色盲','鐮刀型貧血症','唐氏症'],ans:3,explain:'唐氏症：第21對染色體有3條（正常應為2條），共有47條染色體。症狀：智能障礙、肌肉張力低、特殊面容。好發於高齡產婦。色盲、白化症、鐮刀型貧血症均為基因突變引起。'},
+{type:'tf',t:'u7c',era:'突變・色盲遺傳',q:'色盲為隱性性聯遺傳，因此女性患色盲的機率比男性低，但女性可以是色盲基因的帶因者。',ans:true,explain:'正確。色盲基因位於X染色體上（隱性）。男性只有一條X，X\'Y即患色盲；女性需XX\'（兩條X都帶色盲基因）才患病，故女性患色盲機率較低。女性XX\'表現正常但為帶因者。'},
+{type:'mc',t:'u7c',era:'突變・遺傳諮詢',q:'遺傳諮詢的主要目的是？',opts:['決定生男或生女','控制突變的發生','降低遺傳疾病的發生率、早期發現並治療','改造人類的遺傳基因'],ans:2,explain:'遺傳諮詢：利用大型醫院諮詢中心，為有家族遺傳病史的民眾提供參考，降低遺傳疾病發生率（如婚前健康檢查）；也可透過新生兒篩檢早期發現、治療，將疾病影響降到最低。'},
+{type:'mc',t:'u7c',era:'突變・誘變因素',q:'下列何者不是引起基因突變的因素？',opts:['X光（游離輻射）','紫外線','亞硝酸鹽（化學物質）','保鮮膜'],ans:3,explain:'誘發突變的因素：物理因素（X光、紫外線、各種輻射）、化學因素（亞硝酸鹽、防腐劑、漂白粉、黃麴毒素等）、生物因素（某些病毒，如HPV）。保鮮膜本身不是誘變因素。'},
+
+// ===== 單元7 生物技術 =====
+{type:'mc',t:'u7d',era:'生物技術・基因轉殖',q:'基因轉殖的方法是？',opts:['將某種生物的基因片段直接剪除','將外來基因轉殖入另一生物細胞內，使其表現該基因的性狀','讓兩種生物在自然環境下交配','利用輻射促進生物突變以獲得新品種'],ans:1,explain:'基因轉殖（基因工程）：以人為方法，將外來基因片段嵌入目標生物的細胞中，使該生物表現外來基因的性狀，從而製造有用物質或改良性狀。'},
+{type:'mc',t:'u7d',era:'生物技術・應用',q:'利用基因轉殖讓細菌製造「人類生長激素」，是利用生物技術的哪種應用？',opts:['農業上（增加作物產量）','商業上（製造螢光魚）','醫療上（製造人體所需蛋白質）','環境上（清潔污染）'],ans:2,explain:'基因轉殖醫療應用：將人類合成胰島素的基因轉殖入細菌細胞，大量繁殖細菌以獲得人類所需的胰島素，用於治療糖尿病。人類生長激素也可類似製造。'},
+{type:'mc',t:'u7d',era:'生物技術・複製技術',q:'複製羊「桃莉」的誕生，採用了哪種技術？',opts:['基因轉殖技術','複製技術（取出體細胞核與去核卵母細胞融合）','人工授精技術','組織培養技術'],ans:1,explain:'複製技術（Dolly羊，1996年英國）：取甲羊（提供細胞核，2n）的乳腺細胞核→植入去核的乙羊卵細胞→電擊融合→植入丙羊子宮→生出丁羊（甲羊的複製羊）。不需受精，屬無性生殖。'},
+{type:'tf',t:'u7d',era:'生物技術・GMO',q:'基因改造食品（GMO）一旦進入自然環境，可能對生態造成影響，例如影響野生物種的生存。',ans:true,explain:'正確。基因改造生物的風險：競爭能力可能強於野生種，使野生種受威脅甚至滅絕；有些改造性狀可能藉由花粉傳播，改變野生生物的基因，破壞生態平衡。'},
+
+// ===== 單元8 化石與分類 =====
+{type:'mc',t:'u8a',era:'生物分類・化石',q:'下列何者屬於「化石」？',opts:['在岩層中發現的古生物遺體或活動痕跡','冰河中保存的動物遺骸（如猛獁象）','博物館展示的動物骨骼標本','書籍中的生物圖片'],ans:0,explain:'化石：保存在岩層中的古生物遺體（如骨骼、貝殼）或活動痕跡（如足跡、糞化石）。不是保存在博物館的標本，也不是冰凍的遺體（那稱為冰凍標本）。'},
+{type:'mc',t:'u8a',era:'生物分類・活化石',q:'「活化石」的特點是？',opts:['已完全滅絕的遠古生物','現存生物與古代化石種身體構造差異很大','現存生物與其祖先化石差異不大，生活環境改變不大','在現代被人工復育的絕種生物'],ans:2,explain:'活化石：現存生物與其祖先（古代化石種）身體構造差異很小，說明生活環境改變不大，演化速度慢。例如：銀杏、腔棘魚、鱟（馬蹄蟹）、大貓熊等。'},
+{type:'mc',t:'u8a',era:'生物分類・分類階層',q:'生物分類階層由大到小排列，哪個選項正確？',opts:['界→門→綱→目→科→屬→種','種→屬→科→目→綱→門→界','界→綱→門→目→科→屬→種','門→界→綱→目→科→屬→種'],ans:0,explain:'生物分類7階層（由大到小）：界→門→綱→目→科→屬→種。口訣：「界門綱目科屬種」。分類越低的階層，生物間親緣關係越近，共同特徵越多。'},
+{type:'mc',t:'u8a',era:'生物分類・學名',q:'下列關於「學名」的敘述，何者正確？',opts:['學名由一個字組成，代表生物的屬名','學名由兩個字組成，前者為屬名（大寫），後者為種小名（小寫）','學名為各國自行制定，不同國家不同','學名以英文書寫'],ans:1,explain:'學名（二名法，林奈創）：屬名（第一個字大寫）+ 種小名（全小寫），用拉丁文書寫，書寫時用斜體或加底線。全球統一通用，不同學者看同一學名能知道是同一種生物。'},
+{type:'match',t:'u8a',era:'生物分類・親緣關係',q:'同一分類階層越低，親緣關係越近。請配對：',pairs:[['同屬不同種','親緣較近，外表可能相似'],['同目不同科','親緣較遠，差異較大'],['同種','可交配繁殖，後代具生殖能力'],['同界不同門','親緣最遠，差異最大']],explain:'分類階層越低（種<屬<科<目<綱<門<界），共同特徵越多，親緣越近。同種生物才能互相交配產生有生殖能力的後代。'},
+
+// ===== 單元8 五界分類 =====
+{type:'mc',t:'u8b',era:'五界分類・原核生物',q:'下列何者屬於「原核生物界」？',opts:['變形蟲','酵母菌','大腸桿菌（細菌）','矽藻'],ans:2,explain:'原核生物界：包括細菌、藍綠菌（藍綠藻）。特徵：無核膜（遺傳物質無核膜包覆）、無膜狀胞器，但有細胞膜和細胞壁。變形蟲、矽藻屬於原生生物界；酵母菌屬於真菌界。'},
+{type:'mc',t:'u8b',era:'五界分類・原生生物',q:'下列何者屬於「原生生物界」中的藻類（有葉綠體，可行光合作用的生產者）？',opts:['變形蟲','黏菌','眼蟲','海帶（褐藻）'],ans:3,explain:'原生生物界分三大類：藻類（有葉綠體，生產者）、原生菌類（黏菌，分解者）、原生動物（無葉綠體，消費者）。海帶是褐藻，屬於藻類（生產者）。眼蟲雖有葉綠體，但也是原生動物；變形蟲和黏菌無葉綠體。'},
+{type:'mc',t:'u8b',era:'五界分類・真菌',q:'真菌界的主要特徵是？',opts:['有葉綠體，可行光合作用','無細胞壁，以吞食方式獲取養分','有細胞壁，無葉綠體，體外分解食物','行分裂生殖，無核膜'],ans:2,explain:'真菌界特徵：有細胞壁（幾丁質）、無葉綠體、無法行光合作用，將酵素分泌到體外分解大分子後再吸收（體外消化）。大多由菌絲構成，可形成孢子。扮演分解者角色。'},
+{type:'mc',t:'u8b',era:'五界分類・病毒',q:'病毒不屬於五界中的任何一界，原因是？',opts:['病毒太小，科學家無法分類','病毒是非細胞生物，介於生物與非生物之間','病毒是植物，但沒有細胞壁','病毒屬於原核生物'],ans:1,explain:'病毒特性：非常小（需電子顯微鏡觀察）、非細胞結構（只有蛋白質外殼+遺傳物質DNA或RNA）、必須在活細胞內才能繁殖、不屬於五界（介於生物與非生物之間）。'},
+{type:'tf',t:'u8b',era:'五界分類・真菌',q:'酵母菌是多細胞真菌，而蕈類（如香菇）則是單細胞真菌。',ans:false,explain:'錯誤。相反：酵母菌是「單細胞」真菌，能行出芽生殖；蕈類（香菇、木耳等）是「多細胞」真菌，由菌絲構成。青黴菌、黑黴菌也是多細胞真菌。'},
+{type:'mc',t:'u8b',era:'五界分類・五界比較',q:'下列關於五界生物的比較，何者正確？',opts:['植物界無細胞壁','動物界有細胞壁','真菌界無法行出芽生殖','原核生物界無核膜，真核生物界有核膜'],ans:3,explain:'關鍵分類特徵：原核生物（細菌、藍綠菌）無核膜；其餘四界（原生生物、真菌、植物、動物）均有核膜（真核生物）。植物界有細胞壁；動物界無細胞壁；真菌（酵母菌）可行出芽生殖。'},
+
+// ===== 單元8 植物動物界 =====
+{type:'mc',t:'u8c',era:'植物界・分類',q:'下列植物中，何者屬於「蕨類植物」？',opts:['松樹','蒲公英','腎蕨（山蘇）','苔蘚'],ans:2,explain:'蕨類植物：有根莖葉和維管束，以孢子繁殖，生長於潮濕地方，幼葉捲旋狀，葉背有孢子囊堆。腎蕨、山蘇屬蕨類。苔蘚無維管束；松樹是裸子植物；蒲公英是雙子葉被子植物。'},
+{type:'mc',t:'u8c',era:'植物界・單雙子葉',q:'下列何者是「單子葉植物」的特徵？',opts:['種子有兩片子葉、葉脈為網狀、根系為軸根','種子有一片子葉、葉脈為平行脈、根系為鬚根','有花、有種子、子房包覆種子','以孢子繁殖、生長於潮濕地方'],ans:1,explain:'單子葉植物：子葉1枚、葉脈平行、莖內維管束散狀、根系為鬚根、花瓣3或3倍數。例：玉米、水稻、百合、蘭花、甘蔗。雙子葉：子葉2枚、葉脈網狀、維管束環狀、軸根、花瓣4.5或其倍數。'},
+{type:'mc',t:'u8c',era:'動物界・無脊椎動物',q:'節肢動物門的主要特徵是？',opts:['身體柔軟，有些具有硬殼','身體分節，有外骨骼保護，需蛻皮','身體呈輻射對稱，有刺絲胞','利用管足移動，體表有棘'],ans:1,explain:'節肢動物門特徵：身體和附肢（足、觸角、口器等）分節、有外骨骼（幾丁質）保護但限制生長需蛻皮，種類和數量最多。包括：昆蟲（蝴蝶、蜻蜓等）、蝦蟹、蜘蛛、蜈蚣等。'},
+{type:'mc',t:'u8c',era:'動物界・脊椎動物',q:'下列脊椎動物中，哪一類是「內溫動物（恆溫動物）」且為胎生？',opts:['爬蟲類','兩生類','哺乳類','魚類'],ans:2,explain:'哺乳類特徵：體表有毛、分泌乳汁哺育幼兒、體內受精、胎生（少數例外如鴨嘴獸、針鼴卵生）、內溫（恆溫）。例：人、牛、狗、老鼠、蝙蝠等。'},
+{type:'sort',t:'u8c',era:'動物界・脊椎動物演化',q:'請依照脊椎動物「從水中到陸地」的演化順序排列（由最早到最晚）：',items:['哺乳類','兩生類','爬蟲類','魚類'],correctOrder:[3,1,2,0],explain:'脊椎動物演化順序（由水到陸）：魚類（完全水中）→兩生類（幼時水中、成時陸地）→爬蟲類（完全陸生）→鳥類、哺乳類（進一步發展）。'},
+{type:'match',t:'u8c',era:'動物界・分門配對',q:'請配對動物門與代表生物：',pairs:[['刺絲胞動物門','水母、海葵、珊瑚'],['軟體動物門','蝸牛、蛤蜊、章魚'],['節肢動物門','蝦、蟹、昆蟲、蜘蛛'],['棘皮動物門','海星、海膽、海參']],explain:'動物分門：刺絲胞（水母等）、扁形（渦蟲等）、線形（蛔蟲等）、軟體（蝸牛、蛤蜊等）、環節（蚯蚓等）、節肢（蟲蝦蟹等）、棘皮（海星等）、脊索（脊椎動物等）。'},
+
+// ===== 單元9 生態系組成 =====
+{type:'mc',t:'u9a',era:'生態・生態系組成',q:'下列何者屬於生態系的「非生物部分」？',opts:['藍綠菌','蕈類','土壤中的細菌','陽光、溫度、雨量'],ans:3,explain:'生態系由生物部分（生產者、消費者、分解者）和非生物部分（陽光、溫度、雨量、土壤、濕度、含氧量等）組成。陽光、溫度、雨量都是非生物的環境因子。'},
+{type:'mc',t:'u9a',era:'生態・生物角色',q:'生態系中的「分解者」主要是指？',opts:['植物（自行製造養分）','草食動物（吃植物）','腐生細菌和腐生真菌','寄生蟲（寄生於其他生物）'],ans:2,explain:'分解者：腐生細菌和腐生真菌（真菌界），以分解生物死後的遺骸或排泄物為食，將有機物分解為小分子無機物，歸還自然環境，使物質可被再利用。'},
+{type:'mc',t:'u9a',era:'生態・族群',q:'「族群」的定義是？',opts:['同一時期、同一地點的所有生物','同一時期、同一地點的同一物種個體集合','特定區域內的生物與自然環境','地球上所有生物與生存環境'],ans:1,explain:'生態層次：族群（同種+同時同地）→群集（同時同地的所有族群）→生態系（群集+非生物環境）→生物圈（地球上所有生物+生存環境）。'},
+{type:'mc',t:'u9a',era:'生態・族群數量',q:'影響族群大小的因素主要有哪些？',opts:['溫度、濕度、光照','出生、死亡、遷入、遷出','食物、水分、空間','天敵數量、疾病、人類活動'],ans:1,explain:'影響族群大小的四個直接因素：出生（增加）、死亡（減少）、遷入（增加）、遷出（減少）。環境負荷量：一個生態系能供養某一族群的最大數量。'},
+{type:'tf',t:'u9a',era:'生態・樣區法',q:'樣區法適合用來估算「移動能力小或不移動」的生物族群大小。',ans:true,explain:'正確。估計族群大小的方法：放流法（標放法）適合移動能力大的動物（如草原野牛）；樣區法適合移動能力小或不移動的生物（如植物、花豆）；直接計數法適合分布在較小區域且移動慢的生物。'},
+{type:'fill',t:'u9a',era:'生態・生態系層次',q:'由小到大的生態層次：族群→群集→生態系→______（填兩個字）。',ans:'生物圈',explain:'生態層次（由小到大）：個體→族群（同種）→群集（所有族群）→生態系（群集+非生物環境）→生物圈（地球上所有生物+生存環境）。'},
+
+// ===== 單元9 生物交互作用 =====
+{type:'mc',t:'u9b',era:'交互作用・種類辨認',q:'「松鼠與橡樹果實」的關係屬於何種交互作用？',opts:['寄生','互利共生','片利共生','掠食'],ans:3,explain:'掠食：一方（掠食者）獲益（+），另一方（獵物）受害（-）。松鼠吃橡樹果實，對橡樹有害，屬掠食關係。注意：蛇捕食青蛙、獵豹捕羚羊都是掠食。'},
+{type:'mc',t:'u9b',era:'交互作用・種類辨認',q:'「海葵與寄居蟹」的關係，海葵附著在寄居蟹殼上獲得移動和食物機會（獲益），寄居蟹則受海葵棘刺保護（獲益）。此關係屬於？',opts:['掠食','寄生','競爭','互利共生'],ans:3,explain:'互利共生：兩種生物都獲益（+/+）。海葵與寄居蟹互相獲益，屬互利共生。其他例子：根瘤菌與豆科植物、清潔蝦與魚、蜂鳥與花（蜂鳥得花蜜，花得傳粉）。'},
+{type:'mc',t:'u9b',era:'交互作用・寄生',q:'下列何者屬於「寄生」關係？',opts:['鯊魚與牠旁邊游的鮫（鮫附在鯊魚上，對鯊魚無影響）','冬蟲夏草（真菌寄生在昆蟲幼蟲體內）','大樹與附生植物（附生植物附在大樹上，大樹未受損）','水草與水蛭（水蛭以水草為家）'],ans:1,explain:'寄生：一方獲益（+），另一方受害（-）。冬蟲夏草是真菌寄生在蝙蝠蛾幼蟲體內，真菌獲益、幼蟲死亡。鯊魚與鮫屬片利共生；大樹與附生植物也是片利共生。'},
+{type:'match',t:'u9b',era:'交互作用・例子配對',q:'請配對交互作用類型與例子：',pairs:[['掠食','蛇吃青蛙'],['互利共生','根瘤菌與豆科植物'],['片利共生','鯊魚與鮫'],['競爭','五色鳥與小啄木競爭樹洞']],explain:'生物交互作用：掠食（+/−）、寄生（+/−）、互利共生（+/+）、片利共生（+/0）、競爭（−/−）。'},
+{type:'tf',t:'u9b',era:'交互作用・競爭',q:'競爭關係通常發生在「不同物種」之間，因為相同物種的需求完全不同，不會搶奪相同資源。',ans:false,explain:'錯誤。競爭可發生在「同種」或「不同種」生物之間。同種生物（族群內）的競爭往往更激烈，因為需求幾乎完全相同。不同物種間的競爭，也因爭奪相同食物或棲地而發生（如五色鳥vs小啄木搶樹洞）。'},
+{type:'mc',t:'u9b',era:'交互作用・食物鏈',q:'某地食物鏈：草→蝗蟲→青蛙→蛇→老鷹。蝗蟲在食物鏈中的角色是？',opts:['生產者','初級（一級）消費者','次級消費者','分解者'],ans:1,explain:'食物鏈中的消費者層級：生產者（草）→初級消費者（蝗蟲）→次級消費者（青蛙）→三級消費者（蛇）→四級消費者（老鷹）。蝗蟲直接取食生產者（草），為初級消費者。'},
+
+// ===== 單元9 能量流動與物質循環 =====
+{type:'mc',t:'u9c',era:'能量流動・能量金字塔',q:'在能量金字塔中，食物鏈相鄰兩個消費層級間，能量傳遞效率大約為多少？',opts:['約50%','約10%','約90%','約1%'],ans:1,explain:'能量傳遞效率約10%（能量金字塔）：每個消費層級所獲得的能量約為前一層的10%，其餘90%以熱能散失。因此越高級的消費者，個體數和能量越少，呈金字塔形狀。'},
+{type:'mc',t:'u9c',era:'能量流動・碳循環',q:'碳在生態系中循環，主要透過哪兩個過程在大氣與生物體之間流動？',opts:['蒸散作用與滲透作用','光合作用（固碳）與呼吸作用（釋碳）','蒸發作用與凝結作用','氮固定與氨化作用'],ans:1,explain:'碳循環：大氣中的CO₂→生產者行光合作用→固定為有機物（糖、蛋白質等）；生物行呼吸作用→CO₂釋放回大氣。燃燒化石燃料也釋放大量CO₂，是溫室效應加劇的原因。'},
+{type:'mc',t:'u9c',era:'能量流動・生態系類型',q:'下列關於陸域生態系的敘述，何者正確？',opts:['草原生態系：年雨量多於森林，夏冬溫差大','沙漠生態系：年雨量少於250mm，溫差大，常見耐旱植物','森林生態系：年雨量少於250mm，分布於高緯度','苔原生態系：年雨量豐富，有大型哺乳動物'],ans:1,explain:'陸域生態系依雨量：森林（>750mm）→草原（250-750mm）→沙漠（<250mm）→苔原（高緯度/高海拔，永久冰雪覆蓋）。沙漠：乾旱、溫差大，生物有特殊耐旱構造（如仙人掌、葉針狀）。'},
+{type:'mc',t:'u9c',era:'能量流動・物質循環',q:'生態系中「物質循環」的特點是？',opts:['物質不斷從生態系中散失，需外部補充','物質在生物與環境間不斷循環流通，不會消失','物質只能由生產者流向消費者，不能反向','物質循環依賴陽光作為能量來源'],ans:1,explain:'物質循環vs能量流動：能量單向流動（不可循環，逐漸以熱散失）；物質（如碳、氮、水）在生物體與環境之間循環流通，不會消失（物質不滅）。分解者在物質循環中扮演關鍵角色。'},
+{type:'sort',t:'u9c',era:'能量流動・食物鏈能量',q:'下列生物在食物鏈「草→蝗蟲→青蛙→蛇→老鷹」中，請依「個體數量」由多到少排列：',items:['老鷹','青蛙','草','蝗蟲'],correctOrder:[2,3,1,0],explain:'能量金字塔：越低階（越靠近生產者），個體數越多、能量越多。草>蝗蟲>青蛙>老鷹，呈金字塔形。高級消費者個體數最少。'},
+
+// ===== 單元9 環境保護 =====
+{type:'mc',t:'u9d',era:'環境保護・生物多樣性',q:'「物種多樣性」的定義是？',opts:['同一物種個體間遺傳特性的差異','一個區域中生物種類的多寡','一個區域中所能提供給生物棲息的環境種類','地球上所有生物種類的總和'],ans:1,explain:'生物多樣性三個層次：遺傳多樣性（同種個體間基因差異）、物種多樣性（一個區域的物種種類多寡）、生態系多樣性（一個區域內生態系的種類豐富度）。'},
+{type:'mc',t:'u9d',era:'環境保護・環境問題',q:'「溫室效應」加劇的主要原因是？',opts:['臭氧層破壞導致紫外線增加','二氧化碳等溫室氣體增加，使地球表面溫度上升','酸雨腐蝕土壤，使植物死亡','生物放大作用使毒物累積'],ans:1,explain:'溫室效應：二氧化碳（CO₂）及甲烷等溫室氣體增加（主因：燃燒化石燃料、砍伐森林）→吸收更多地面輻射→地球表面溫度上升→全球暖化。會導致海平面上升、氣候異常等。'},
+{type:'mc',t:'u9d',era:'環境保護・環境問題',q:'「優養化」（水域優養化）發生的原因與後果，下列敘述何者正確？',opts:['工廠廢水含重金屬流入，使魚類死亡','家庭汙水含磷氮化合物流入，藻類大量繁殖，水中溶氧下降，生物死亡','颱風帶入大量泥沙，使水體混濁','農藥殘留，使水中生物毒素累積'],ans:1,explain:'優養化：家庭汙水（含磷、氮）→藻類、藍綠菌大量繁殖→水面被遮蔽使水草死亡→藻類和水草死亡→分解者大量分解消耗溶氧→水中缺氧→生物死亡→水變臭，成死水。'},
+{type:'mc',t:'u9d',era:'環境保護・國際公約',q:'下列哪個國際公約的目的是維護「生物多樣性」，在全球各國的力量下，在保存生物多樣性與經濟發展間取得平衡？',opts:['拉姆薩公約（保護溼地）','生物多樣性公約','華盛頓公約（限制野生動植物交易）','蒙特婁議定書（保護臭氧層）'],ans:1,explain:'重要國際公約：生物多樣性公約（保護物種多樣性）、拉姆薩公約（保護溼地）、華盛頓公約（限制不當貿易）、蒙特婁議定書（減少氟氯化物，保護臭氧層）、聯合國氣候變化綱要公約（溫室氣體）。'},
+{type:'tf',t:'u9d',era:'環境保護・臭氧層',q:'臭氧層遭破壞，會導致到達地表的紫外線增加，進而引發皮膚癌及基因突變的機率增高。',ans:true,explain:'正確。臭氧層：位於平流層，能吸收大部分紫外線。使用氟氯化物（如噴霧劑）會破壞臭氧層→紫外線增加→皮膚癌、白內障風險上升、基因突變機率增高、影響植物和水中生物。蒙特婁議定書就是要保護臭氧層。'},
+{type:'mc',t:'u9d',era:'環境保護・生物放大',q:'「生物放大作用」是指？',opts:['生物體隨年齡增長，身體不斷放大','有毒污染物質隨著食物鏈層次累積，高級消費者體內毒素濃度最高','生物透過演化使個體變得更大','環境污染使生物體型縮小'],ans:1,explain:'生物放大作用：有毒物質（如農藥DDT、重金屬汞）進入生物體後不易排出，隨食物鏈傳遞逐漸累積，越高級的消費者體內毒素濃度越高，危害越大。例：DDT在老鷹體內濃度遠高於植物。'},
+{type:'mc',t:'u9d',era:'環境保護・保育現況',q:'臺灣目前設置的「國家公園」主要有幾個？',opts:['5個','9個','13個','22個'],ans:1,explain:'臺灣目前有9個國家公園（墾丁、玉山、太魯閣、陽明山、雪霸、金門、東沙環礁、台江、澎湖南方四島）和1個國家自然公園（壽山）。22個自然保留區是另一個類別。'},
+{type:'sort',t:'u9d',era:'環境保護・雨量與生態',q:'請依「年雨量由多到少」排列陸域生態系：',items:['沙漠生態系','苔原生態系','森林生態系','草原生態系'],correctOrder:[2,3,1,0],explain:'依年雨量多寡（由多到少）：森林（>750mm）> 草原（250-750mm）> 苔原（高緯度，雨量少且低溫）> 沙漠（<250mm）。'}
+];
+
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.panel).classList.add('active');if(tab.dataset.panel==='wrong')renderWP();});});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+
+function updateGo(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);const btn=document.getElementById('goBtn');if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}else{btn.disabled=true;btn.textContent='請選擇單元與模式';}}
+
+document.getElementById('goBtn').addEventListener('click',startGame);
+
+function startGame(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;const isLong=S.mode==='normal'||S.mode==='timed';let pool=QB.filter(q=>S.topics.includes(q.t));pool=shuffle(pool);S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));S.cur=0;showScreen('game');renderQ();}
+
+function startWrongPractice(){const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();}
+
+function renderQ(){if(S.cur>=S.qs.length){showResult();return;}const q=S.qs[S.cur];S.answered=false;const total=S.qs.length;document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));else document.getElementById('gLives').textContent='';const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};document.getElementById('qtag').textContent=tMap[q.type]||'題目';document.getElementById('qtag').className=`qtag ${q.type||'mc'}`;document.getElementById('qtext').textContent=q.q;document.getElementById('qsub').textContent=q.hint||'';const area=document.getElementById('ans-area');area.innerHTML='';document.getElementById('fbbox').className='fb-box';document.getElementById('nextBtn').className='next-btn';if(q.type==='mc')renderMC(q,area);else if(q.type==='tf')renderTF(q,area);else if(q.type==='fill')renderFillQ(q,area);else if(q.type==='match')renderMatch(q,area);else if(q.type==='sort')renderSort(q,area);clearInterval(S.timer);const te=document.getElementById('gTimer');if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}else te.style.display='none';}
+
+function renderMC(q,area){const grid=document.createElement('div');grid.className='opts';q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt';btn.textContent=o;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const ok=i===q.ans;grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});finish(ok,q);});grid.appendChild(btn);});area.appendChild(grid);}
+
+function renderTF(q,area){const row=document.createElement('div');row.className='tf-row';['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const userT=i===0,ok=userT===q.ans;row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});finish(ok,q);});row.appendChild(btn);});area.appendChild(row);}
+
+function renderFillQ(q,area){const row=document.createElement('div');row.className='fill-row';const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確：${q.ans}`);};btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});row.append(inp,btn);area.appendChild(row);}
+
+function renderMatch(q,area){const wrap=document.createElement('div');wrap.className='match-wrap';const lCol=document.createElement('div');lCol.className='match-col';const rCol=document.createElement('div');rCol.className='match-col';const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);let lPicked=null,rPicked=null,matched=0;pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});wrap.append(lCol,rCol);area.appendChild(wrap);function tryM(){if(!lPicked||!rPicked)return;const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}lPicked=null;rPicked=null;}wrap.addEventListener('click',e=>{if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}tryM();});}
+
+let dragEl=null;
+function renderSort(q,area){const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));const list=document.createElement('div');list.className='sort-list';shuffled.forEach(item=>{const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});el.addEventListener('dragend',()=>el.classList.remove('dragging'));el.addEventListener('dragover',e=>e.preventDefault());el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});list.appendChild(el);});area.appendChild(list);const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});area.appendChild(chk);}
+
+function finish(ok,q,extraMsg){const pts=calcPts(ok,q.type);if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;document.getElementById('fbmsg').textContent=msg;document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;const nb=document.getElementById('nextBtn');nb.className='next-btn show';const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};}
+
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+
+function startTimer(sec){S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';S.timer=setInterval(()=>{S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}},1000);}
+
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+
+function showResult(){clearInterval(S.timer);showScreen('result');const max=S.qs.length*6;const pct=max>0?S.score/max:0;let emoji,title,msg;if(pct>=.9){emoji='🏆';title='生物達人！';msg='第二冊掌握得非常好！距離會考滿分不遠了！';}else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點加強！';}else if(pct>=.5){emoji='📖';title='繼續加油！';msg='去錯題複習區，重點加強弱點！';}else{emoji='💪';title='不要灰心！';msg='把筆記再仔細看一遍，繼續挑戰！';}document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';document.getElementById('rMsg').textContent=msg;const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}else document.getElementById('rWeak').style.display='none';const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';if(pct>=.75)confetti();}
+
+function renderWP(){const bank=loadWB();const panel=document.getElementById('wrongPanel');const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;pw.style.display='block';cl.style.display='block';}
+
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#2ecc71','#27ae60','#1e8449','#196f3d','#c8f7dc'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

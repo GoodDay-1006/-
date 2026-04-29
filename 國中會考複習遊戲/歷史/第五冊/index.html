@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>歷史闖關王 第五冊</title>
+<style>
+:root{
+  --bg:#fff8f0;--ink:#0a1a2a;--red:#c0392b;--gold:#a0622a;
+  --teal:#6b4a1e;--blue:#4a2e0e;--accent:#8e6b3e;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(80,40,10,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(142,107,62,.09) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(160,98,42,.06) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#f5deb3 0%,var(--bg) 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(10,26,42,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(10,26,42,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(10,26,42,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(10,26,42,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(10,26,42,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#f5deb3;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(10,26,42,.48);margin-top:3px;line-height:1.4;}
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(10,26,42,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(10,26,42,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(10,26,42,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(10,26,42,.38);border:1px solid rgba(10,26,42,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:var(--red);animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#f5e6d0;color:#8e6b3e;}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:var(--green);}
+.qtag.match{background:#fce8d0;color:#b06010;}
+.qtag.sort{background:#fde8d0;color:#d35400;}
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(10,26,42,.43);margin-bottom:11px;font-style:italic;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#fdf3e3;border:2px solid #e8c98a;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#f5deb3;}
+.opt.ok{background:#d4f5e2;border-color:var(--green);color:var(--green);font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #e8c98a;background:#fdf3e3;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:var(--green);}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:var(--green);background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#fdf3e3;border:2px solid #e8c98a;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:var(--gold);background:#f5deb3;font-weight:700;}
+.match-item.matched{border-color:var(--green);background:#d4f5e2;color:var(--green);font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#fdf3e3;border:2px solid #e8c98a;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--accent);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:var(--green);border-left:4px solid var(--green);}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+#result{background:linear-gradient(155deg,#f5deb3 0%,var(--bg) 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(10,26,42,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(10,26,42,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(10,26,42,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#fdf3e3;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">歷史闖關王</div>
+    <div class="home-badge">歷史 第五冊 · 單元9–10 · 會考複習</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip" data-t="u9a">單元9・西亞古文明</div>
+      <div class="tchip" data-t="u9b">單元9・埃及古文明</div>
+      <div class="tchip" data-t="u9c">單元9・印度古文明</div>
+      <div class="tchip" data-t="u9d">單元9・希臘古文明</div>
+      <div class="tchip" data-t="u9e">單元9・羅馬與普世宗教</div>
+      <div class="tchip" data-t="u10a">單元10・文藝復興</div>
+      <div class="tchip" data-t="u10b">單元10・宗教改革</div>
+      <div class="tchip" data-t="u10c">單元10・海外擴張</div>
+      <div class="tchip" data-t="u10d">單元10・科學革命與啟蒙</div>
+      <div class="tchip" data-t="u10e">單元10・工業革命</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+<div class="screen" id="game">
+  <div class="gbar">
+    <div><div class="gbar-left" id="gInfo">第 1 / 50 題</div><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;"><div class="gbar-timer" id="gTimer" style="display:none;">20</div><div><div class="gbar-score" id="gScore">0 分</div><div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox"><div class="fb-title" id="fbtitle"></div><div id="fbmsg"></div></div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div><div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div><div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div><div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+<div class="combo" id="combo"></div>
+<script>
+const SK='hist_b5_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+// ===== 單元9 西亞古文明 =====
+{type:'mc',t:'u9a',era:'西亞古文明・民族與地理',q:'兩河流域古文明又稱為「美索不達米亞」，其地理位置在哪兩條河流之間？',opts:['尼羅河與剛果河','底格里斯河與幼發拉底河','印度河與恆河','長江與黃河'],ans:1,explain:'美索不達米亞（Mesopotamia）在希臘文意為「兩河之間的土地」，指底格里斯河與幼發拉底河之間的地區，是西亞古文明的發源地。'},
+{type:'mc',t:'u9a',era:'西亞古文明・文化成就',q:'下列何者是蘇美人最重要的文化貢獻？',opts:['發明象形文字','創立六十進位法與楔形文字','制定種姓制度','建立雅典民主政治'],ans:1,explain:'蘇美人在約西元前3500年率先創立楔形文字，並發明六十進位法（影響現代時間計算），以及依月亮運行制定曆法。'},
+{type:'mc',t:'u9a',era:'西亞古文明・法律',q:'《漢摩拉比法典》的核心精神為何？',opts:['以德報怨，寬恕罪人','以牙還牙，以眼還眼的報復原則','人人生而平等，廢除奴隸制','強調神權高於王權'],ans:1,explain:'《漢摩拉比法典》由巴比倫國王漢摩拉比制定，核心精神是「以牙還牙，以眼還眼」的報復原則，是世界最早成文法典之一。'},
+{type:'mc',t:'u9a',era:'西亞古文明・民族辨別',q:'下列關於波斯人的敘述，何者正確？',opts:['定居地中海東岸，創立猶太教','位於伊朗高原，建立跨越亞歐非的大帝國','發明楔形文字，制定漢摩拉比法典','居於兩河流域，征服周邊地區'],ans:1,explain:'波斯人位於伊朗高原，西元前6世紀在居魯士領導下崛起，建立橫跨西亞、北非、中亞的波斯帝國，勢力遠及埃及和印度。'},
+{type:'tf',t:'u9a',era:'西亞古文明・腓尼基人',q:'腓尼基人擅長航海與貿易，他們所創立的字母文字成為後來西方拼音文字的基礎。',ans:true,explain:'正確。腓尼基人位於地中海東岸（今黎巴嫩一帶），以航海貿易著名，其簡化的字母文字傳入希臘後，成為西方拼音文字的根源。'},
+{type:'mc',t:'u9a',era:'西亞古文明・猶太教',q:'希伯來人創立的猶太教最大特色為何？',opts:['多神崇拜，以太陽神為主','一神信仰，信奉上帝耶和華為唯一真神','輪迴轉世，追求解脫','崇拜火與光，主張善惡二元論'],ans:1,explain:'猶太教是一神信仰的宗教，希伯來人相信上帝耶和華是唯一真神，自己是「上帝的選民」。此信仰深深影響後來的基督教和伊斯蘭教。'},
+// ===== 單元9 埃及古文明 =====
+{type:'mc',t:'u9b',era:'埃及古文明・地理環境',q:'古希臘歷史學家希羅多德說「埃及是尼羅河的禮物」，這句話的含義是？',opts:['埃及的財富全靠掠奪尼羅河流域的金礦','尼羅河每年氾濫帶來肥沃淤泥，提供農業灌溉水源','尼羅河阻止了外來政權入侵，保護埃及安全','埃及人利用尼羅河進行長途貿易累積財富'],ans:1,explain:'尼羅河每年定期氾濫，退水後留下豐沃的淤泥，使埃及沿岸成為肥沃農田。四周高山、沙漠屏障也讓外來政權難以入侵，孕育出獨特的古埃及文明。'},
+{type:'mc',t:'u9b',era:'埃及古文明・文化成就',q:'下列哪一項不是埃及古文明的文化成就？',opts:['發明象形文字','制定太陽曆','木乃伊製作技術','發明六十進位法'],ans:3,explain:'六十進位法是兩河流域蘇美人的發明，不是埃及的文化成就。埃及古文明的成就包括象形文字、太陽曆、木乃伊製作技術、金字塔與巨型神廟等。'},
+{type:'tf',t:'u9b',era:'埃及古文明・宗教',q:'埃及人相信法老王死後可以復活，因此他們將遺體製成木乃伊，以便靈魂回來後能與身體相結合。',ans:true,explain:'正確。埃及人有「復活戰」的概念，相信人死後靈魂會接受末日審判，通過審判者才能復活。為此他們將遺體做成木乃伊保存，並建造金字塔作為法老王的陵墓。'},
+{type:'mc',t:'u9b',era:'埃及古文明・政治',q:'埃及古文明的政治特色為何？',opts:['民主政治，公民直接參與政治','法老王擁有絕對權力，政教合一','貴族組成元老院掌握政治實權','多個城邦各自獨立，互相競爭'],ans:1,explain:'埃及的法老王擁有絕對的神聖權威，被視為太陽神之子，以太陽神之子的身分統治人間，是政教合一的體制。'},
+// ===== 單元9 印度古文明 =====
+{type:'mc',t:'u9c',era:'印度古文明・種姓制度',q:'雅利安人建立種姓制度的主要目的是什麼？',opts:['促進各民族文化交流融合','維持雅利安人的統治地位','推動印度的民主政治發展','保護低階層人民的基本權利'],ans:1,explain:'雅利安人約西元前1500年入侵印度，為維持統治地位，建立種姓制度，將人分為婆羅門（祭司）、剎帝利（武士）、吠舍（平民）、首陀羅（奴隸）四個等級，各階級不能通婚。'},
+{type:'mc',t:'u9c',era:'印度古文明・佛教',q:'下列關於佛教的敘述，何者正確？',opts:['由婆羅門創立，強調種姓制度','由釋迦牟尼創立，主張眾生平等','由耶穌創立，強調博愛與寬恕','由穆罕默德創立，信奉阿拉為唯一真神'],ans:1,explain:'佛教由釋迦牟尼（悉達多·喬達摩）於西元前6世紀創立，打破婆羅門教的階級觀念，主張眾生平等，人們可藉修行脫離生死輪迴。'},
+{type:'tf',t:'u9c',era:'印度古文明・佛教傳播',q:'佛教在阿育王時代（西元前3世紀）得到整理基本教義，之後派遣使者向外宣揚，使佛教在東亞、東南亞廣泛流傳。',ans:true,explain:'正確。阿育王在位時整理佛教基本教義與戒律，並派遣使者向外傳教，佛教因此傳播到中亞、東南亞、中國等地，成為東亞文化圈的重要宗教。'},
+{type:'fill',t:'u9c',era:'印度古文明・種姓制度',q:'雅利安人建立的種姓制度中，身分最高的階層是負責宗教祭祀的________。',ans:'婆羅門',alts:['婆羅門教'],explain:'種姓制度中，婆羅門（祭司）地位最高，負責宗教祭祀儀式；其次是剎帝利（武士貴族）、吠舍（平民商人）、首陀羅（奴隸）。'},
+// ===== 單元9 希臘古文明 =====
+{type:'mc',t:'u9d',era:'希臘古文明・城邦政治',q:'希臘古典時代的雅典民主政治最主要的特色是什麼？',opts:['由國王一人獨裁統治','男性公民直接參與政治，以公民大會為最高決策機關','由貴族組成元老院代為決策','所有居民不分貴賤均享有投票權'],ans:1,explain:'雅典民主政治實施直接民主，成年男性公民可親自參與公民大會（Ekklesia），直接對政策進行討論與表決，是民主政治的起源。注意：女性、外來移民、奴隸沒有公民權。'},
+{type:'mc',t:'u9d',era:'希臘古文明・文化成就',q:'希臘文化中，「希臘化文化」是指什麼？',opts:['純粹的希臘本土文化，拒絕外來影響','亞歷山大大帝東征後，希臘文化與波斯、埃及等地文化融合形成的新文化','希臘城邦之間互相交流融合所形成的共同文化','希臘文化傳入羅馬後，與羅馬文化結合的產物'],ans:1,explain:'希臘化文化（Hellenism）是亞歷山大東征後形成的跨文化產物。亞歷山大征服波斯、埃及、印度等地，透過各種民族融合與文化交流，形成融合希臘、波斯、埃及等地文化的希臘化文化。'},
+{type:'mc',t:'u9d',era:'希臘古文明・斯巴達',q:'下列關於斯巴達城邦的敘述，何者正確？',opts:['以民主政治著稱，重視公民直接參與','重視商業貿易，建立海上霸權','強調軍事訓練，男性公民須接受嚴格軍事教育','以哲學、藝術和文學著稱，是學術重鎮'],ans:2,explain:'斯巴達是軍事城邦，實行軍國主義，男性公民從幼年起就接受嚴格的軍事訓練，全體男性公民均為軍人。斯巴達以陸軍強大著稱，與重視海軍和民主的雅典形成對比。'},
+{type:'match',t:'u9d',era:'希臘古文明・人物配對',q:'請將下列希臘相關人物或地名與其正確描述配對：',pairs:[['荷馬','撰寫《伊利亞德》與《奧德賽》等史詩'],['亞里斯多德','集哲學、科學之大成的古希臘學者'],['亞歷山大大帝','征服波斯帝國，推廣希臘文化'],['雅典','實施直接民主，城邦的代表']],explain:'荷馬是古希臘著名詩人，其史詩是希臘文學的基礎；亞里斯多德是柏拉圖的學生、亞歷山大的老師；亞歷山大大帝建立橫跨歐亞非的大帝國；雅典是民主政治的發源地。'},
+{type:'sort',t:'u9d',era:'希臘古文明・羅馬歷史順序',q:'請將羅馬歷史各時期依照時間先後排列（最早到最晚）：',items:['王政時期（西元前753年）','共和時期（西元前509年）','帝國時期（西元前27年）','西羅馬帝國滅亡（476年）'],correctOrder:[0,1,2,3],explain:'羅馬依序經歷：王政→共和→帝國的政治演變。西元前753年建城，前509年推翻王政建立共和，前27年屋大維成為皇帝進入帝國，476年西羅馬帝國滅亡，歐洲進入中世紀。'},
+// ===== 單元9 羅馬與普世宗教 =====
+{type:'mc',t:'u9e',era:'羅馬・政治發展',q:'羅馬從共和時期轉變為帝國的關鍵人物是誰？',opts:['凱薩','屋大維','漢尼拔','龐培'],ans:1,explain:'屋大維（Augustus）在西元前27年獲元老院贈「奧古斯都」尊號，實際上掌握最高權力，標誌羅馬進入帝國時期。凱薩雖是屋大維的養父，但他是催化帝制出現的關鍵人物，正式建立帝制的是屋大維。'},
+{type:'mc',t:'u9e',era:'羅馬・文化成就',q:'下列哪一項不是羅馬的文化成就？',opts:['制定《十二銅表法》，是後來歐洲各國制定法律的重要參考','使用拉丁文，後來成為中世紀西歐通用的文字','建造競技場、公路、引水道等公共建設','發明字母文字，成為西方拼音文字的起源'],ans:3,explain:'字母文字是腓尼基人的發明，不是羅馬的成就。羅馬的文化成就包括：法律（十二銅表法、羅馬法律成為近代歐洲法律基礎）、語言（拉丁文）、建築（競技場、公路、引水道、凱旋門）等。'},
+{type:'tf',t:'u9e',era:'羅馬・帝國分裂',q:'羅馬帝國於西元395年分裂為東、西兩部分，西羅馬帝國於476年被日耳曼人所滅，東羅馬帝國（拜占庭帝國）則一直延續到1453年。',ans:true,explain:'正確。西元395年羅馬正式分裂，476年西羅馬滅亡，標誌歐洲進入中世紀。東羅馬帝國（拜占庭帝國）首都在君士坦丁堡，持續到1453年被鄂圖曼土耳其人所滅。'},
+{type:'mc',t:'u9e',era:'普世宗教・基督教',q:'下列關於基督教起源與發展的敘述，何者正確？',opts:['由穆罕默德在阿拉伯半島創立','由猶太人耶穌在羅馬帝國初期（1世紀）的巴勒斯坦地區創立','西元4世紀初即成為羅馬帝國的國教','創立後立刻受到羅馬帝國的保護與推廣'],ans:1,explain:'基督教由猶太人耶穌約在1世紀創立於巴勒斯坦（羅馬帝國統治下），早期受到迫害。西元4世紀初君士坦丁宣布合法，西元4世紀末狄奧多西才定為國教。'},
+{type:'mc',t:'u9e',era:'普世宗教・伊斯蘭教',q:'伊斯蘭教由何人在何時何地創立？',opts:['耶穌，西元1世紀，巴勒斯坦','釋迦牟尼，西元前6世紀，印度','穆罕默德，西元7世紀，阿拉伯半島','孔子，西元前6世紀，中國'],ans:2,explain:'伊斯蘭教由穆罕默德於西元7世紀在阿拉伯半島創立，以《古蘭經》為經典，信奉阿拉為唯一真神，教義包括信仰阿拉、順從伊斯蘭教義等，傳播後建立了廣大的伊斯蘭帝國。'},
+{type:'mc',t:'u9e',era:'普世宗教・中世紀教會',q:'中世紀歐洲（約5～15世紀）教會具有哪些功能？',opts:['主持宗教儀式，並負責教育和保存古典文化','控制各國軍事，主導十字軍東征','直接統治各地方政府，掌握所有行政權','負責貿易管理，提供商人貸款'],ans:0,explain:'中世紀教會功能多元：（1）主持宗教儀式（2）負責教育，教會設立學校培育教士（3）教士抄寫古籍，保存希臘、羅馬古典文化。教會擁有龐大影響力，與君主間常發生政教衝突。'},
+{type:'match',t:'u9e',era:'普世宗教・三大宗教比較',q:'請將三大普世宗教與其對應特徵配對：',pairs:[['基督教','以耶穌為創始者，以《聖經》為經典'],['伊斯蘭教','以穆罕默德為創始者，信奉《古蘭經》'],['佛教','由釋迦牟尼創立，主張眾生平等輪迴'],['猶太教','希伯來人一神信仰，影響基督教與伊斯蘭教']],explain:'三大普世宗教各有其創始者與經典：基督教（耶穌/《聖經》）、伊斯蘭教（穆罕默德/《古蘭經》）、佛教（釋迦牟尼/佛經）；猶太教則是希伯來人的民族宗教，深刻影響另外兩大宗教。'},
+// ===== 單元10 文藝復興 =====
+{type:'mc',t:'u10a',era:'文藝復興・概念',q:'文藝復興（14～16世紀）的核心精神「人文主義」主張什麼？',opts:['神權至上，人應無條件服從上帝旨意','以人為本，重視人的尊嚴與價值，肯定追求現世幸福','以君主為中心，強調君主的神聖權威','以道德修養為本，強調仁義禮智信'],ans:1,explain:'文藝復興的人文主義（Humanism）強調「以人為本」，與中世紀「以神為本」形成對比，肯定人在現世的價值與追求現世幸福，影響後來的歐洲發展。'},
+{type:'mc',t:'u10a',era:'文藝復興・起源',q:'文藝復興為何首先在義大利北部興起？',opts:['因為義大利是羅馬天主教廷所在地，教宗提供大力支持','義大利城市商業繁盛，市民階層興起，銀行家、富商等資助藝術活動，加上接受阿拉伯人傳回的古希臘、羅馬典籍','義大利在海外殖民地獲得龐大財富，有餘力發展藝術','義大利因戰爭頻繁，人民用藝術表達對和平的渴望'],ans:1,explain:'義大利北部商業城市（如佛羅倫斯）繁榮，市民階層崛起，銀行家和富商（如麥迪奇家族）大力資助藝術家。加上十字軍東征後，透過拜占庭帝國和伊斯蘭世界，古希臘、羅馬典籍傳回西歐，成為文藝復興的重要養分。'},
+{type:'mc',t:'u10a',era:'文藝復興・藝術家',q:'下列哪一組藝術家的配對正確？',opts:['達文西─《大衛像》、米開朗基羅─《蒙娜麗莎》','達文西─《蒙娜麗莎》、米開朗基羅─《大衛像》','拉斐爾─《蒙娜麗莎》、達文西─《最後的晚餐》','達文西─《神曲》、但丁─《最後的晚餐》'],ans:1,explain:'文藝復興三傑：達文西（Leonardo da Vinci）─《蒙娜麗莎》《最後的晚餐》；米開朗基羅─《大衛像》《聖母像》（西斯汀禮拜堂天頂壁畫）；拉斐爾─《雅典學派》聖母像系列。'},
+{type:'mc',t:'u10a',era:'文藝復興・文學成就',q:'文藝復興時期文學的重要特色是以方言寫作而非拉丁文，下列哪位作者是以地方方言寫作的代表？',opts:['蘇格拉底','但丁、薄伽丘、喬叟','馬丁路德、喀爾文','哥倫布、麥哲倫'],ans:1,explain:'文藝復興時期文學成就包括：但丁（義大利語《神曲》）、薄伽丘（義大利語《十日談》）、喬叟（英語《坎特伯里故事集》）、莎士比亞（英語戲劇）。以方言寫作強化了各地區的民族認同感。'},
+{type:'tf',t:'u10a',era:'文藝復興・影響',q:'文藝復興的人文主義思想只影響藝術與文學，對政治、宗教與科學發展並無顯著影響。',ans:false,explain:'錯誤。文藝復興的人文主義思想影響十分深遠：（1）促成宗教改革，批判教會腐敗（2）影響科學革命，以理性研究自然（3）推動啟蒙運動，強調理性與自由（4）促進民族意識覺醒，有助近代國家形成。'},
+// ===== 單元10 宗教改革 =====
+{type:'mc',t:'u10b',era:'宗教改革・馬丁路德',q:'1517年馬丁路德張貼《九十五條論綱》，引發宗教改革的主要背景是什麼？',opts:['教皇宣布增加新的信仰條款，引起民眾反彈','教會腐敗，神職人員生活奢靡，教會販賣贖罪券以斂財','教會強制推行拉丁文聖經，禁止地方語言崇拜','教皇宣布與法國開戰，引起德國諸侯反對'],ans:1,explain:'宗教改革的背景：教會腐敗（神職人員奢靡）、教會販賣贖罪券。馬丁路德強調「因信得救」（靠信仰，不靠購買贖罪券）、《聖經》是唯一的信仰依據，人人可以直接閱讀聖經，不需透過神職人員。'},
+{type:'mc',t:'u10b',era:'宗教改革・各派別',q:'英國國教（聖公會）成立的主要原因為何？',opts:['國王認同馬丁路德因信得救的主張','英王亨利八世因婚姻問題（離婚請求被拒）而脫離羅馬教廷，自立為英國教會首腦','喀爾文教義傳入英國，引發宗教革命','英國商人為了促進貿易，要求宗教改革'],ans:1,explain:'英國國教（聖公會/Anglican Church）的成立是政治因素主導：亨利八世要求教皇批准離婚，但被拒絕，遂頒布《國王至尊法》，宣布自己為英國教會首腦，脫離羅馬天主教廷，而非基於神學信仰的轉變。'},
+{type:'mc',t:'u10b',era:'宗教改革・喀爾文',q:'喀爾文教派（喀爾文主義）的主要特色是什麼？',opts:['強調因信得救，鼓勵信徒閱讀聖經','主張「預選說」，認為得救與否已由上帝預先決定，信徒須努力工作榮耀上帝','強調教皇權威，要求服從羅馬教廷','主張政教合一，以神權統治國家'],ans:1,explain:'喀爾文（法國人，在瑞士活動）主張「預選說」（得救由上帝預先決定）；信徒須努力工作以榮耀上帝；受工商業者歡迎，因其肯定勤勞工作與累積財富的正當性，促進了資本主義精神。'},
+{type:'tf',t:'u10b',era:'宗教改革・影響',q:'宗教改革的影響包括：基督教世界第二次分裂、各國宗教戰爭（如三十年戰爭）、促進教育發展與識字率提升，以及君主權力的提升。',ans:true,explain:'正確。宗教改革的影響多面向：（1）宗教：天主教（羅馬公教）與新教（基督教）分裂（2）政治：君主藉機擺脫教會控制，權力提升（3）社會：宗教戰爭頻繁（4）文化：鼓勵信徒直接讀聖經，促進教育普及與識字率提升。'},
+{type:'match',t:'u10b',era:'宗教改革・各教派配對',q:'請將宗教改革各教派與其創始人配對：',pairs:[['路德教派','馬丁路德（德國）'],['喀爾文教派','喀爾文（法國人，在瑞士活動）'],['英國國教','亨利八世（英國）'],['耶穌會','羅耀拉（天主教舊教改革組織）']],explain:'宗教改革各派別：路德（馬丁路德/德國）、喀爾文（喀爾文/瑞士）、英國國教（亨利八世，非神學主因）；耶穌會是天主教對新教改革的回應，積極海外傳教重振聲威。'},
+// ===== 單元10 海外擴張 =====
+{type:'mc',t:'u10c',era:'海外擴張・背景',q:'15～16世紀歐洲大航海時代興起的主要原因，下列何者不正確？',opts:['歐洲對東方香料、絲綢等商品需求日益增加','東方貿易路線被義大利和鄂圖曼土耳其商人控制','歐洲已有足夠的資金與技術（羅盤、航海技術）的支持','伊斯蘭教義鼓勵穆斯林積極向外探索新航路'],ans:3,explain:'大航海時代的背景：（1）對東方商品（香料等）需求高（2）東地中海貿易路線被義大利、鄂圖曼控制（3）航海技術進步（羅盤、航海圖、新型帆船）（4）各國王室的資助。與伊斯蘭教義無直接關係。'},
+{type:'mc',t:'u10c',era:'海外擴張・探險家',q:'下列關於哥倫布的敘述，何者正確？',opts:['哥倫布是葡萄牙人，1488年到達非洲南端好望角','哥倫布受西班牙王室資助，1492年向西橫渡大西洋，抵達美洲','哥倫布是義大利人，率先完成環繞世界一周的壯舉','哥倫布開闢了通往印度的海上航路，直抵印度本土'],ans:1,explain:'哥倫布（Christopher Columbus）是義大利人（熱那亞），受西班牙王室資助，1492年向西橫渡大西洋，抵達加勒比海（他誤以為是亞洲）。麥哲倫才是完成環球航行的人；達伽馬才是首次抵達印度的歐洲人。'},
+{type:'mc',t:'u10c',era:'海外擴張・影響',q:'大航海時代最重要的歷史影響是什麼？',opts:['使歐洲恢復了與東方陸上絲綢之路的貿易往來','歐洲歷史的發展重心從地中海逐漸轉移至大西洋地區，促進了全球化貿易與殖民統治','促使歐洲各國放棄了海外擴張，轉而發展本國工業','使東西方文化完全融合，消弭了文化差異'],ans:1,explain:'大航海時代的影響：（1）歐洲重心從地中海轉至大西洋（2）美洲、非洲、亞洲的殖民統治開始（3）全球貿易網絡建立（4）農作物傳播（馬鈴薯、玉米、番薯等傳至歐亞）（5）白銀大量流入歐洲，促進商業革命。'},
+{type:'mc',t:'u10c',era:'海外擴張・殖民統治',q:'下列關於歐洲殖民統治對美洲的影響，何者正確？',opts:['殖民者保護當地原住民，促進了文化交流','殖民者屠殺原住民並帶來傳染病，導致當地人口大量銳減','殖民統治促進了美洲原住民的民主政治發展','歐洲殖民統治讓美洲原住民的傳統文化得以保存並發揚'],ans:1,explain:'歐洲殖民美洲的負面影響：（1）殖民者屠殺原住民（2）帶來天花等傳染病，造成原住民人口驟減（3）白銀貿易興盛，美洲銀礦被大量開採（4）原住民社會、文化、生活方式遭受破壞（5）黑奴貿易興盛。'},
+{type:'tf',t:'u10c',era:'海外擴張・荷蘭東印度公司',q:'17世紀荷蘭聯合東印度公司以印尼巴達維亞為亞洲營運總部，並在台灣南部（今台南一帶）設立據點。',ans:true,explain:'正確。17世紀荷蘭東印度公司（VOC）在亞洲貿易中扮演重要角色，以印尼巴達維亞（今雅加達）為總部，並於1624年在台灣南部（今台南）設置據點，統治台灣長達38年。'},
+{type:'sort',t:'u10c',era:'海外擴張・探險順序',q:'請將以下歐洲大航海時代的重要事件依時間先後排列：',items:['迪亞士到達非洲好望角（1487年）','哥倫布抵達美洲（1492年）','達伽馬抵達印度（15世紀末）','麥哲倫艦隊完成環球航行（1519-22年）'],correctOrder:[0,1,2,3],explain:'大航海時代重要探險按時序：（1）迪亞士1487-88年到好望角（2）哥倫布1492年抵達美洲（3）達伽馬1498年抵達印度（4）麥哲倫1519-1522年完成環球航行。'},
+// ===== 單元10 科學革命與啟蒙 =====
+{type:'mc',t:'u10d',era:'科學革命・天文學',q:'「日心說」主張太陽是宇宙的中心，推翻了中世紀「地心說」，此學說由哪位科學家提出？',opts:['伽利略','哥白尼','牛頓','開普勒'],ans:1,explain:'哥白尼（Copernicus，波蘭，16世紀）提出「日心說」（太陽中心說），以科學觀測挑戰教會支持的「地心說」（地球中心說），被視為科學革命的序幕。伽利略後來用望遠鏡觀測證實了日心說，遭教會審判。'},
+{type:'mc',t:'u10d',era:'科學革命・牛頓',q:'牛頓最重要的科學貢獻是什麼？',opts:['提出日心說，挑戰地心說','發現萬有引力定律，奠定近代物理學基礎','發明蒸汽機，推動工業革命','提出演化論，解釋物種起源'],ans:1,explain:'牛頓（Isaac Newton，英國，17世紀）提出萬有引力定律與牛頓三大運動定律，奠定近代物理學（古典力學）的基礎。他的成就是17世紀科學革命的頂峰，改變人類對宇宙的認識。'},
+{type:'mc',t:'u10d',era:'啟蒙運動・思想家',q:'洛克（John Locke）的政治思想主要主張為何？',opts:['君主擁有神聖不可侵犯的「君權神授」','人民天賦生命、自由、財產的自然權利；若政府侵犯人民權利，人民有革命推翻政府的權利','政府應掌控所有商業活動，以國家利益為最高原則','宗教自由最重要，政府不得干涉任何宗教信仰'],ans:1,explain:'洛克（英國啟蒙思想家）主張天賦人權（生命、自由、財產），政府依社會契約而建立，若統治者侵犯人民天賦權利，人民有權推翻政府。其思想深刻影響美國獨立宣言與法國大革命。'},
+{type:'mc',t:'u10d',era:'啟蒙運動・思想家比較',q:'孟德斯鳩（Montesquieu）的《法意》最重要的政治主張是什麼？',opts:['主張社會契約論，人民主權最高','主張三權分立（行政、立法、司法）以防止濫權','主張自由放任經濟，反對政府干預','主張知識應系統整理，編輯百科全書'],ans:1,explain:'孟德斯鳩在《法意》（The Spirit of Laws）中主張三權分立，將政府分為行政、立法、司法三部分，互相制衡以防止獨裁。此思想對現代民主憲政制度影響深遠。'},
+{type:'tf',t:'u10d',era:'啟蒙運動・影響',q:'啟蒙運動的理性主義思潮促進了美國獨立運動和法國大革命的爆發，對近代政治發展影響深遠。',ans:true,explain:'正確。啟蒙思想家（洛克、盧梭、孟德斯鳩等）的天賦人權、社會契約、三權分立等觀念，直接影響了1776年美國獨立宣言和1789年法國大革命，奠定近代民主憲政的理論基礎。'},
+{type:'fill',t:'u10d',era:'啟蒙運動・亞當斯密',q:'英國啟蒙經濟學家亞當斯密（Adam Smith）在《國富論》中提出「________」學說，反對政府過度干預經濟。',ans:'自由放任',alts:['自由放任主義','laissez-faire'],explain:'亞當斯密主張市場應以「一隻看不見的手」自然調節供需，政府不應過度干預經濟（自由放任），此思想成為近代資本主義自由市場經濟的理論基礎。'},
+{type:'mc',t:'u10d',era:'科學革命・背景',q:'17世紀科學革命興起的重要背景條件包括哪些？',opts:['教會積極支持科學研究，主動資助科學家','文藝復興的人文主義影響、印刷術普及、望遠鏡等新工具發明、歸納演繹法等新研究方法','黑死病大流行，迫使人們以科學方式尋找解決方案','大航海時代帶來的財富使各國政府大力資助科學研究'],ans:1,explain:'科學革命的背景：（1）文藝復興人文主義—重視理性研究（2）印刷術普及—知識廣泛傳播（3）新工具（望遠鏡、顯微鏡、溫度計）（4）培根的歸納法、笛卡兒的演繹法等新研究方法（5）17世紀英、法等國建立科學研究機構。'},
+// ===== 單元10 工業革命 =====
+{type:'mc',t:'u10e',era:'工業革命・起源英國',q:'工業革命為何首先在英國發生（18世紀中期）？',opts:['英國是歐洲人口最多的國家，有充足的勞動力','英國政治較穩定、有豐富的煤礦資源、有充足的海外貿易及資金、從事農業改良的農民轉為工業勞工','英國擁有世界最先進的科學研究機構','英國率先完成文藝復興，累積了豐富的藝術資本'],ans:1,explain:'工業革命在英國率先發生的原因：（1）政治穩定（2）豐富的煤礦與棉花原料（3）海外貿易帶來的資金（4）龐大的殖民地市場（5）農業改良後農民轉入城市提供勞動力（6）技術發明（蒸汽機、紡紗機等）。'},
+{type:'mc',t:'u10e',era:'工業革命・蒸汽機',q:'蒸汽機的廣泛應用對工業革命最重要的影響是什麼？',opts:['使人類能夠自由飛行，大幅縮短交通時間','蒸汽機提供了穩定的動力來源，使工廠不再需要依靠水力或人力，推動了紡織業與交通革新','蒸汽機直接解決了勞工的薪資問題，改善了工人生活條件','蒸汽機使農業生產效率提升，減少了對工業的需求'],ans:1,explain:'英人瓦特改良蒸汽機（18世紀）提供了穩定動力，不受地理環境限制（不像水力需靠河流），使工廠可設於任何地方；蒸汽機也推動了蒸汽船、火車的發展，大幅改變交通運輸方式。'},
+{type:'mc',t:'u10e',era:'工業革命・社會影響',q:'工業革命帶來的社會問題包括哪些？',opts:['農村人口增加，農業生產大幅提升','城市化（都市化）、工人貧困、工廠童工、環境污染、貧富差距擴大等社會問題'],ans:1,explain:'工業革命的負面影響：（1）城市化─工人大量湧入城市，住宅不足、衛生惡劣（2）工人剝削─長工時、低薪、惡劣工作環境（3）童工問題（4）環境污染（5）貧富差距擴大，形成「勞資對立」問題，促使社會主義思想興起。'},
+{type:'tf',t:'u10e',era:'工業革命・社會主義',q:'馬克思是工業革命後社會主義的代表人物，主張廢除私有財產，建立共產社會以解決勞資對立問題。',ans:true,explain:'正確。馬克思（Karl Marx，德國）是工業革命後資本主義批評的最重要思想家，他認為資本主義造成貧富懸殊，主張廢除私有財產、建立共產主義社會，著有《共產黨宣言》，成為20世紀共產主義運動的理論基礎。'},
+{type:'mc',t:'u10e',era:'工業革命・殖民競爭',q:'工業革命完成後，歐洲強國加速向外殖民的主要動機是什麼？',opts:['為了傳播基督教，使全球人民信仰天主教','工業國家需要原料產地、商品市場和資本輸出的目的地，促使列強積極爭奪殖民地'],ans:1,explain:'工業革命後，歐洲列強加速殖民的動機：（1）需要大量原料（棉花、橡膠、礦產等）（2）需要銷售工業產品的市場（3）需要投資資本的出路。這促成了19世紀帝國主義的擴張，也引發了各地反殖民運動。'},
+{type:'sort',t:'u10e',era:'工業革命・紡織業順序',q:'英國紡織業工業革命的動力技術演進，請依時間先後排列：',items:['傳統手工紡織（家庭工業）','飛梭發明提高織布速度','紡紗機（珍妮機）發明解決紗線不足','蒸汽機應用於工廠，改變動力來源'],correctOrder:[0,1,2,3],explain:'英國棉紡工業革命發展順序：手工→1733年飛梭加速織布→1764年哈格里夫斯發明珍妮紡紗機→瓦特蒸汽機廣泛應用（18世紀末），最終推動大規模工廠生產制度的建立。'},
+{type:'mc',t:'u10e',era:'工業革命・工廠制度',q:'工廠制度（Factory System）的出現帶來什麼重大改變？',opts:['工人可以在家中工作，生活更加自由彈性','生產集中於工廠進行，出現專業分工，以機器取代人力，提升生產量，但也使工人受到嚴格管理約束'],ans:1,explain:'工廠制度的特點：（1）生產集中於工廠（不再是家庭工業）（2）機器取代手工（3）工人受僱於資本家，出賣勞動力（4）嚴格的工時管理（5）大量生產、降低成本。工廠制度改變了傳統農業社會，推動了都市化。'},
+// ===== 跨主題比較題 =====
+{type:'mc',t:'u9d',era:'古文明比較・文字系統',q:'下列古文明文字的配對，何者正確？',opts:['蘇美人─象形文字；埃及人─楔形文字','蘇美人─楔形文字；埃及人─象形文字；腓尼基人─字母文字；羅馬人─拉丁文','希臘人─楔形文字；羅馬人─象形文字','印度人─楔形文字；波斯人─象形文字'],ans:1,explain:'各文明文字對照：蘇美人（楔形文字）→腓尼基人改良為字母文字→希臘人採用改良→羅馬人發展為拉丁文；埃及人使用象形文字刻在莎草紙上；印度人使用梵文。'},
+{type:'mc',t:'u9e',era:'普世宗教・基督教分裂',q:'基督教11世紀中期（1054年）分裂為哪兩個教會？',opts:['天主教（西方）與伊斯蘭教（東方）','羅馬公教（天主教）與東正教（拜占庭帝國）','路德教派與喀爾文教派','耶穌會與英國國教'],ans:1,explain:'1054年基督教大分裂：西方的羅馬公教（天主教，以羅馬教宗為領袖）與東方的希臘正教（東正教，以拜占庭帝國皇帝為領袖）正式分裂。16世紀宗教改革後又出現新教各派別。'},
+{type:'fill',t:'u9d',era:'希臘古文明・希臘化文化',q:'亞歷山大大帝東征後，希臘文化與各地文化融合，形成所謂「________化文化」，成為西方文明的重要源頭。',ans:'希臘',alts:['希臘化'],explain:'希臘化文化（Hellenistic Culture）是亞歷山大帝國時代形成的跨文化產物，融合了希臘、波斯、埃及、印度等地的文化元素，在科學、哲學、藝術等方面均有重要成就。'},
+{type:'mc',t:'u10a',era:'文藝復興・印刷術影響',q:'15世紀古騰堡（Gutenberg）發明活字印刷術對文藝復興和宗教改革的最重要影響是什麼？',opts:['使繪畫作品可以大量複製，促進了藝術普及','使書籍和知識廣泛傳播，促進識字率提升，有助宗教改革思想（如路德的新教）迅速傳播','使政府能更有效地管理人民，加強中央集權','使天主教的影響力增強，有助反宗教改革'],ans:1,explain:'活字印刷術（Gutenberg，約1450年）的重要性：（1）大幅降低書籍成本（2）知識與思想迅速廣泛傳播（3）馬丁路德的《九十五條論綱》能在短時間內傳遍全歐（4）促進識字率和教育普及，加速文藝復興與宗教改革。'},
+{type:'match',t:'u10d',era:'啟蒙思想家配對',q:'請將啟蒙時代思想家與其主要主張配對：',pairs:[['洛克','天賦人權（生命、自由、財產），人民有革命權'],['孟德斯鳩','三權分立（行政、立法、司法），防止專制'],['盧梭','人民主權，強調社會契約與人民意志'],['亞當斯密','自由放任，市場自然調節，反對政府干預']],explain:'啟蒙思想家各有代表主張：洛克（英）天賦人權→影響美國獨立；孟德斯鳩（法）三權分立→影響現代憲政；盧梭（法）人民主權→影響法國大革命；亞當斯密（英）自由放任→資本主義理論基礎。'},
+{type:'mc',t:'u10c',era:'海外擴張・近代東南亞',q:'17世紀荷蘭在東南亞取得支配地位的主要工具是什麼？',opts:['依靠強大陸軍征服各地','成立東印度公司（VOC），從事海外擴張並壟斷貿易','與伊斯蘭帝國結盟，共同控制貿易路線','以傳教為名，建立天主教殖民地'],ans:1,explain:'荷蘭東印度公司（VOC，Vereenigde Oostindische Compagnie，1602年成立）是荷蘭在東南亞擴張的主要工具，取得印尼、台灣等地的控制，以巴達維亞（今雅加達）為亞洲總部，壟斷香料等貿易。'},
+{type:'tf',t:'u10b',era:'宗教改革・天主教改革',q:'宗教改革後天主教也進行自我改革，耶穌會（由羅耀拉創立）積極向海外傳教，並以西學為媒介在亞洲（包括中國、日本）進行傳教活動。',ans:true,explain:'正確。舊教改革（對抗改革）包括：（1）1545年天特會議重申天主教義（2）創立耶穌會（Jesuit），由伊格那修・羅耀拉創立，紀律嚴格（3）積極海外傳教（利瑪竇在中國、方濟各在日本），以西學（數學、天文）為媒介傳播天主教。'}
+];
+
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.panel).classList.add('active');if(tab.dataset.panel==='wrong')renderWP();});});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+function updateGo(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);const btn=document.getElementById('goBtn');if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}else{btn.disabled=true;btn.textContent='請選擇單元與模式';}}
+document.getElementById('goBtn').addEventListener('click',startGame);
+function startGame(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;const isLong=S.mode==='normal'||S.mode==='timed';let pool=QB.filter(q=>S.topics.includes(q.t));pool=shuffle(pool);S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));S.cur=0;showScreen('game');renderQ();}
+function startWrongPractice(){const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();}
+function renderQ(){if(S.cur>=S.qs.length){showResult();return;}const q=S.qs[S.cur];S.answered=false;const total=S.qs.length;document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));else document.getElementById('gLives').textContent='';const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort'};document.getElementById('qtag').textContent=tMap[q.type]||'題目';document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;document.getElementById('qtext').textContent=q.q;document.getElementById('qsub').textContent=q.hint||'';const area=document.getElementById('ans-area');area.innerHTML='';document.getElementById('fbbox').className='fb-box';document.getElementById('nextBtn').className='next-btn';if(q.type==='mc')renderMC(q,area);else if(q.type==='tf')renderTF(q,area);else if(q.type==='fill')renderFillQ(q,area);else if(q.type==='match')renderMatch(q,area);else if(q.type==='sort')renderSort(q,area);clearInterval(S.timer);const te=document.getElementById('gTimer');if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}else te.style.display='none';}
+function renderMC(q,area){const grid=document.createElement('div');grid.className='opts';q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt';btn.textContent=o;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const ok=i===q.ans;grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});finish(ok,q);});grid.appendChild(btn);});area.appendChild(grid);}
+function renderTF(q,area){const row=document.createElement('div');row.className='tf-row';['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const userT=i===0,ok=userT===q.ans;row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});finish(ok,q);});row.appendChild(btn);});area.appendChild(row);}
+function renderFillQ(q,area){const row=document.createElement('div');row.className='fill-row';const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確答案：${q.ans}`);};btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});row.append(inp,btn);area.appendChild(row);}
+function renderMatch(q,area){const wrap=document.createElement('div');wrap.className='match-wrap';const lCol=document.createElement('div');lCol.className='match-col';const rCol=document.createElement('div');rCol.className='match-col';const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);let lPicked=null,rPicked=null,matched=0;pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});wrap.append(lCol,rCol);area.appendChild(wrap);function tryM(){if(!lPicked||!rPicked)return;const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}lPicked=null;rPicked=null;}wrap.addEventListener('click',e=>{if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}tryM();});}
+let dragEl=null;
+function renderSort(q,area){const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));const list=document.createElement('div');list.className='sort-list';shuffled.forEach(item=>{const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});el.addEventListener('dragend',()=>el.classList.remove('dragging'));el.addEventListener('dragover',e=>e.preventDefault());el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});list.appendChild(el);});area.appendChild(list);const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});area.appendChild(chk);}
+function finish(ok,q,extraMsg){const pts=calcPts(ok,q.type);if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;document.getElementById('fbmsg').textContent=msg;document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;const nb=document.getElementById('nextBtn');nb.className='next-btn show';const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};}
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+function startTimer(sec){S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';S.timer=setInterval(()=>{S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}},1000);}
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+function showResult(){clearInterval(S.timer);showScreen('result');const max=S.qs.length*6;const pct=max>0?S.score/max:0;let emoji,title,msg;if(pct>=.9){emoji='🏆';title='歷史高手！';msg='第五冊古文明與近代歐洲掌握得非常好！繼續保持！';}else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點複習一下！';}else if(pct>=.5){emoji='📖';title='繼續加油！';msg='去錯題複習區針對弱點加強！';}else{emoji='💪';title='不要灰心！';msg='把筆記再仔細看一遍，再來挑戰！';}document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';document.getElementById('rMsg').textContent=msg;const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}else document.getElementById('rWeak').style.display='none';const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';if(pct>=.75)confetti();}
+function renderWP(){const bank=loadWB();const panel=document.getElementById('wrongPanel');const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;pw.style.display='block';cl.style.display='block';}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#8e6b3e','#a0622a','#6b4a1e','#c8a06a','#f5deb3'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

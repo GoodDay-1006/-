@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生物闖關王 第一冊</title>
+<style>
+:root{
+  --bg:#f0fff4;--ink:#0d2b1a;--red:#c0392b;--gold:#27ae60;
+  --teal:#1a7a3a;--blue:#145a32;--accent:#2ecc71;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(13,43,26,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(46,204,113,.10) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(26,122,58,.07) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#c8f7d8 0%,var(--bg) 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(13,43,26,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(13,43,26,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(13,43,26,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(13,43,26,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(13,43,26,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#d4f5e2;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(13,43,26,.48);margin-top:3px;line-height:1.4;}
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(13,43,26,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(13,43,26,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(13,43,26,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(13,43,26,.38);border:1px solid rgba(13,43,26,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:#ff6b6b;animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#d4f5e2;color:var(--teal);}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:var(--green);}
+.qtag.match{background:#fce8d0;color:#b06010;}
+.qtag.sort{background:#fde8d0;color:#d35400;}
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(13,43,26,.43);margin-bottom:11px;font-style:italic;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#e8f8ee;border:2px solid #a9dfbf;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#d4f5e2;}
+.opt.ok{background:#d4f5e2;border-color:var(--green);color:var(--green);font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #a9dfbf;background:#e8f8ee;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:var(--green);}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:var(--green);background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--blue);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#e8f8ee;border:2px solid #a9dfbf;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:var(--gold);background:#d4f5e2;font-weight:700;}
+.match-item.matched{border-color:var(--green);background:#d4f5e2;color:var(--green);font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#d4f5e2;border:2px solid #a9dfbf;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--teal);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:var(--green);border-left:4px solid var(--green);}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+#result{background:linear-gradient(155deg,#c8f7d8 0%,var(--bg) 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(13,43,26,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(13,43,26,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(13,43,26,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#e8f8ee;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">生物闖關王</div>
+    <div class="home-badge">生物 第一冊 · 單元1–5 · 會考複習</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip" data-t="u1">單元1 科學方法與生命世界</div>
+      <div class="tchip" data-t="u2">單元2 生物體的營養</div>
+      <div class="tchip" data-t="u3">單元3 運輸與防禦</div>
+      <div class="tchip" data-t="u4">單元4 協調作用</div>
+      <div class="tchip" data-t="u5">單元5 生物體的恆定</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+<div class="screen" id="game">
+  <div class="gbar">
+    <div><div class="gbar-left" id="gInfo">第 1 / 50 題</div><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;"><div class="gbar-timer" id="gTimer" style="display:none;">20</div><div><div class="gbar-score" id="gScore">0 分</div><div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox"><div class="fb-title" id="fbtitle"></div><div id="fbmsg"></div></div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div><div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div><div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div><div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+<div class="combo" id="combo"></div>
+<script>
+const SK='bio_v1_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+// ===== 單元1：科學方法與生命世界 =====
+{type:'mc',t:'u1',era:'科學方法・變因辨別',q:'某實驗要探討「低溫下黴菌的生長速率」，實驗組放在4°C冰箱，對照組放在25°C室溫。下列何者為操作變因？',opts:['吐司麵包的種類','溫度（4°C或25°C）','麵包的水分含量','觀察的時間長短'],ans:1,explain:'操作變因是實驗組與對照組「唯一不同」的因素，此實驗目的在探討溫度對黴菌生長的影響，因此操作變因是溫度。麵包種類、水分等需保持一致，屬控制變因。'},
+{type:'mc',t:'u1',era:'科學方法・科學流程',q:'科學方法的正確流程為何？',opts:['假設→觀察→提問→實驗→結論','觀察→提問→假設→實驗→結論','提問→觀察→實驗→假設→結論','實驗→觀察→提問→假設→結論'],ans:1,explain:'科學方法標準流程：觀察→提問→查資料→假設→實驗→分析→結論→學說。若結論不符假設，需修正假設重新實驗。'},
+{type:'tf',t:'u1',era:'科學方法・操作變因',q:'一個實驗中可以有多個操作變因，這樣才能測試多種因素的影響。',ans:false,explain:'錯誤！一個實驗「只能有一個操作變因」，才能確保結果的差異是由該因素造成。若有多個操作變因，就無法判斷哪個因素影響了結果。'},
+{type:'mc',t:'u1',era:'細胞・動植物細胞比較',q:'下列哪個構造是植物細胞有，但動物細胞沒有的？',opts:['細胞核','細胞膜','細胞壁','粒線體'],ans:2,explain:'細胞壁、葉綠體、大型液泡是植物細胞特有的構造。細胞核、細胞膜、粒線體、細胞質則是動植物細胞都有。'},
+{type:'mc',t:'u1',era:'細胞・構造功能',q:'細胞中負責「控制物質進出」的構造是？',opts:['細胞壁','細胞膜','細胞核','細胞質'],ans:1,explain:'細胞膜（又稱質膜）是半透膜，能選擇性地控制物質進出細胞。細胞壁只有植物有，主要功能是支撐保護，並非控制進出。'},
+{type:'mc',t:'u1',era:'細胞・構造功能',q:'下列關於粒線體功能的敘述，何者正確？',opts:['進行光合作用製造葡萄糖','儲存遺傳物質DNA','進行細胞呼吸產生能量','控制物質進出細胞'],ans:2,explain:'粒線體是細胞的「能量工廠」，進行細胞呼吸，分解葡萄糖產生能量（ATP）。光合作用在葉綠體進行，DNA儲存在細胞核。'},
+{type:'mc',t:'u1',era:'滲透作用・細胞變化',q:'將動物細胞放入蒸餾水（純水）中，細胞會發生什麼變化？',opts:['細胞縮小（皺縮）','細胞不變','細胞脹大甚至破裂','細胞直接死亡'],ans:2,explain:'蒸餾水濃度低於細胞內液，水分子由低濃度（蒸餾水）往高濃度（細胞內）滲透進入細胞，使細胞脹大。動物細胞無細胞壁保護，可能會脹破。'},
+{type:'mc',t:'u1',era:'滲透作用・細胞變化',q:'將植物細胞放入濃食鹽水中，細胞膜和細胞壁會產生什麼現象？',opts:['細胞膜和細胞壁都縮小','細胞膜縮小，細胞壁不變','細胞膜和細胞壁都脹大','細胞壁縮小，細胞膜不變'],ans:1,explain:'在濃鹽水中，細胞失水，細胞膜（質膜）會收縮，但細胞壁較堅硬不易改變形狀，因此發生「質壁分離」現象。'},
+{type:'fill',t:'u1',era:'顯微鏡・放大倍率計算',q:'複式顯微鏡的目鏡倍率為10×，物鏡倍率為40×，則放大倍率為多少倍？',ans:'400',alts:['400倍'],explain:'複式顯微鏡放大倍率＝目鏡倍率×物鏡倍率＝10×40＝400倍。'},
+{type:'mc',t:'u1',era:'顯微鏡・高低倍比較',q:'使用複式顯微鏡時，從低倍鏡換成高倍鏡，下列何者正確？',opts:['視野變暗、細胞變大、細胞數目變多','視野變亮、細胞變小、細胞數目變多','視野變暗、細胞變大、細胞數目變少','視野變亮、細胞變大、細胞數目變少'],ans:2,explain:'換高倍鏡後：視野範圍變小→較暗；觀察到的細胞影像變大；但視野內看到的細胞數目變少。切記：高倍鏡只能用細調節輪調整焦距。'},
+{type:'mc',t:'u1',era:'顯微鏡・影像特性',q:'用複式顯微鏡觀察玻片上的「F」字，在視野中看到的影像為何？',opts:['正像F','上下顛倒的F','左右相反的F','上下顛倒且左右相反的F'],ans:3,explain:'複式顯微鏡的影像是「上下顛倒、左右相反」的平面反像，所以「F」在視野中會呈現上下左右都顛倒的影像。解剖顯微鏡才是立體正像。'},
+{type:'mc',t:'u1',era:'組成層次・動物',q:'下列動物組成層次，由簡單到複雜的排列何者正確？',opts:['細胞→器官→組織→器官系統→個體','細胞→組織→器官→器官系統→個體','組織→細胞→器官→個體→器官系統','細胞→器官系統→組織→器官→個體'],ans:1,explain:'動物組成層次：細胞→組織→器官→器官系統→個體。植物沒有「器官系統」這層，是：細胞→組織→器官→個體。'},
+{type:'tf',t:'u1',era:'組成層次・單多細胞',q:'水母屬於多細胞生物，各細胞具有分工合作的現象。',ans:true,explain:'正確！水母是多細胞生物，體內細胞有分化，彼此分工合作完成生命現象。相較之下，單細胞生物（如草履蟲、矽藻）則由一個細胞完成所有生命現象。'},
+{type:'match',t:'u1',era:'細胞構造・功能配對',q:'請將細胞構造與其功能配對：',pairs:[['葉綠體','進行光合作用'],['細胞核','含遺傳物質DNA'],['液泡','儲存水分和養分'],['粒線體','進行細胞呼吸產生能量'],['細胞膜','控制物質進出']],explain:'葉綠體：光合作用；細胞核：遺傳訊息中心；液泡：儲存功能；粒線體：能量產生；細胞膜：選擇性通透。'},
+{type:'mc',t:'u1',era:'生物圈・生命現象',q:'下列何者「不屬於」生命現象？',opts:['蚯蚓受刺激後縮回','酵母菌分裂增殖','火山爆發噴出熔岩','貓捕捉老鼠'],ans:2,explain:'生命現象包括：生長與發育、生殖、代謝、感應、運動等。火山爆發是自然物理現象，不是由生物體執行的，因此不屬於生命現象。'},
+
+// ===== 單元2：生物體的營養 =====
+{type:'mc',t:'u2',era:'營養素・功能辨別',q:'用碘液測試食物後，溶液變成藍黑色，表示該食物含有？',opts:['葡萄糖','蛋白質','澱粉','脂質'],ans:2,explain:'碘液（碘-碘化鉀溶液）遇澱粉呈藍黑色反應，是澱粉的專一性檢測試劑。葡萄糖用本氏液（加熱後變磚紅色）檢測；蛋白質用沙帶（Biuret）試劑。'},
+{type:'mc',t:'u2',era:'營養素・功能辨別',q:'下列關於脂質的敘述，何者正確？',opts:['每公克產生4大卡能量','由胺基酸組成','可儲存在皮下，有保溫效果','是細胞膜的主要成分'],ans:2,explain:'脂質：每公克產9大卡（最高）；由脂肪酸和甘油組成；分布在皮下，有保溫效果；構成細胞膜的成分之一。（注意：細胞膜「主要」成分是磷脂質，蛋白質也很重要）'},
+{type:'mc',t:'u2',era:'酵素・特性',q:'關於酵素的敘述，下列何者正確？',opts:['每種酵素可以催化各種化學反應','酵素是脂質','酵素具有專一性，只與特定受質結合','酵素在反應後就被分解消耗'],ans:2,explain:'酵素的重要特性：①專一性：每種酵素只與特定受質結合；②可重複使用：反應後酵素不被消耗，可繼續使用；③成分是蛋白質。'},
+{type:'mc',t:'u2',era:'酵素・影響因素',q:'下列何種情況，酵素活性最可能完全消失？',opts:['溫度降至0°C','在最適溫度下作用','溫度升高至100°C（沸水）','pH值稍微改變'],ans:2,explain:'高溫（如100°C）會使酵素（蛋白質）的立體結構改變（變性），導致酵素永久失去活性。低溫只會使活性降低，並非完全消失，回到適溫後仍可恢復。'},
+{type:'tf',t:'u2',era:'酵素・可重複使用',q:'酵素在催化一次反應後就會被消耗，需要重新合成。',ans:false,explain:'錯誤！酵素可「重複使用」，在反應前後本身不改變，不會被消耗。這是酵素與反應物的重要區別。'},
+{type:'mc',t:'u2',era:'光合作用・原料產物',q:'光合作用的反應式：水＋二氧化碳→葡萄糖＋氧氣＋水，其中產生的氧氣(O₂)來源為何？',opts:['來自空氣中的氧氣','來自水(H₂O)的分解','來自二氧化碳(CO₂)的分解','來自葡萄糖的分解'],ans:1,explain:'光合作用產生的氧氣(O₂)來自原料水(H₂O)的分解，不是來自CO₂。這是重要的考點，學生常誤以為O₂來自CO₂。'},
+{type:'mc',t:'u2',era:'光合作用・進行場所',q:'光合作用在細胞的哪個構造中進行？',opts:['粒線體','細胞核','葉綠體','細胞膜'],ans:2,explain:'光合作用在葉綠體進行，葉綠體含有葉綠素，能吸收光能並用於光合作用。細胞呼吸則在粒線體進行。'},
+{type:'mc',t:'u2',era:'光合作用・需要條件',q:'下列何者「不是」光合作用所需的條件？',opts:['光（光能）','水','二氧化碳','氧氣'],ans:3,explain:'光合作用的原料是水和二氧化碳，需要光能，在葉綠體進行。氧氣是光合作用的「產物」，不是需要的原料。'},
+{type:'mc',t:'u2',era:'消化系統・消化腺',q:'下列消化液中，哪個消化液「不含」消化酵素？',opts:['胃液','膽汁','胰液','唾液'],ans:1,explain:'膽汁由肝臟分泌、儲存在膽囊，不含消化酵素，主要功能是「乳化脂肪」（將大塊脂肪分散成小油滴，增加接觸面積，協助消化）。'},
+{type:'mc',t:'u2',era:'消化系統・消化部位',q:'蛋白質最初開始被消化的器官是？',opts:['口腔','食道','胃','小腸'],ans:2,explain:'蛋白質消化從「胃」開始，胃液中含有胃蛋白酶，在酸性（pH約2）環境下可分解蛋白質。澱粉消化從口腔開始（唾液澱粉酶）；脂質在小腸消化。'},
+{type:'sort',t:'u2',era:'消化系統・消化路徑',q:'食物經過消化系統的正確路徑順序為何？請由上至下排列：',items:['口腔','食道','胃','小腸','大腸','肛門'],correctOrder:[0,1,2,3,4,5],explain:'消化系統路徑：口腔→食道→胃→小腸→大腸→肛門。小腸是消化吸收的主要場所，大腸主要吸收水分。'},
+{type:'mc',t:'u2',era:'消化系統・吸收部位',q:'養分（葡萄糖、胺基酸等）被吸收的主要部位是？',opts:['胃','小腸','大腸','食道'],ans:1,explain:'小腸是消化和「吸收」的主要場所。小腸內有絨毛和微絨毛，增加吸收面積；大腸主要吸收水分。脂肪被吸收後進入淋巴管，其他養分直接進入微血管。'},
+{type:'fill',t:'u2',era:'營養素・能量計算',q:'醣類和蛋白質每公克可產生____大卡熱量，脂質每公克可產生9大卡。',ans:'4',alts:['4大卡'],explain:'醣類（碳水化合物）和蛋白質：每公克產生4大卡；脂質：每公克產生9大卡。因此脂質是熱量最高的營養素。'},
+
+// ===== 單元3：運輸與防禦 =====
+{type:'mc',t:'u3',era:'植物運輸・木質部韌皮部',q:'植物體內負責「由下往上」運輸水分和礦物質的構造是？',opts:['韌皮部','木質部','形成層','表皮'],ans:1,explain:'木質部：運輸水分和礦物質，方向由根往上（由下往上），主要動力是蒸散作用；韌皮部：運輸有機養分（光合作用產物），可雙向運輸，由製造處往儲存處。'},
+{type:'mc',t:'u3',era:'植物運輸・蒸散作用',q:'蒸散作用的主要功能為何？',opts:['製造有機養分','傳遞遺傳訊息','提供水分上升的主要動力','提供光合作用所需的二氧化碳'],ans:2,explain:'蒸散作用（水分從葉片氣孔蒸發）是植物體內水分上升的主要動力。水分蒸散後在木質部管柱產生拉力，將水分由根部向上拉升。同時也有調節植物體溫的功能。'},
+{type:'tf',t:'u3',era:'植物運輸・氣孔',q:'氣孔在白天打開，是為了讓水分蒸散；夜晚關閉，是為了減少水分散失。',ans:true,explain:'正確！氣孔白天（有光時）打開，供光合作用所需CO₂進入；夜晚（無光）大多數關閉，減少水分散失。但若白天天氣過熱乾燥，氣孔也可能關閉以保存水分。'},
+{type:'mc',t:'u3',era:'人體循環・心臟結構',q:'關於人體心臟的敘述，下列何者正確？',opts:['心臟共有兩個腔室','左心室的肌肉壁比右心室薄','左心室負責將血液送到全身','右心室負責將血液送到全身'],ans:2,explain:'心臟有四個腔室：左心房、左心室、右心房、右心室。左心室將血液送往全身（體循環），壓力最大，肌肉壁最厚；右心室只需將血液送到肺部（肺循環），肌肉壁較薄。'},
+{type:'mc',t:'u3',era:'人體循環・血液循環路徑',q:'肺循環的正確路徑為何？',opts:['左心室→肺→右心房','右心室→肺→左心房','左心房→肺→右心房','右心房→肺→左心室'],ans:1,explain:'肺循環：右心室→肺動脈→肺部微血管（進行氣體交換）→肺靜脈→左心房。體循環：左心室→主動脈→全身→靜脈→右心房。記憶技巧：動脈離心、靜脈回心。'},
+{type:'match',t:'u3',era:'血管・三種血管比較',q:'請將血管種類與其特徵配對：',pairs:[['動脈','管壁最厚、彈性最大'],['靜脈','管腔最大、有瓣膜'],['微血管','管壁最薄（一層細胞）'],['肺動脈','含缺氧血（靜脈血）']],explain:'動脈：離心臟，管壁厚彈性大；靜脈：回心臟，有瓣膜防止血液逆流，管腔較大；微血管：物質交換場所，管壁僅一層細胞。特例：肺動脈雖是動脈但含缺氧血；肺靜脈含充氧血。'},
+{type:'mc',t:'u3',era:'血液・成分功能',q:'下列關於紅血球的敘述，何者正確？',opts:['含細胞核','負責產生抗體','含血紅素，負責攜帶氧氣','可穿過微血管壁吞噬細菌'],ans:2,explain:'人類成熟紅血球：①無細胞核（成熟後消失）；②雙凹圓盤形（增加表面積）；③含血紅素，負責攜帶O₂。白血球：有細胞核、可變形穿越微血管、吞噬細菌或產生抗體。'},
+{type:'mc',t:'u3',era:'血液・貧血',q:'缺鐵性貧血的原因是什麼？',opts:['血液中白血球過少','血液中缺乏凝血因子','血液中血紅素不足或紅血球數目過少','血液中血小板過多'],ans:2,explain:'貧血的主要原因是血紅素不足（缺鐵或缺乏蛋白質、維生素B₁₂等）或紅血球數目過少（長期失血或造血功能異常）。缺乏凝血因子是血友病；白血球異常增生是白血病。'},
+{type:'mc',t:'u3',era:'防禦・三道防線',q:'打疫苗屬於人體防禦的第幾道防線？',opts:['第一道防線','第二道防線','第三道防線','不屬於任何防線'],ans:2,explain:'疫苗是利用第三道防線（專一性免疫）的「記憶效應」。注射疫苗後，淋巴球會記住病原體，當真正的病原體再次入侵時，能快速大量產生抗體，比第一次反應更快更強。'},
+{type:'tf',t:'u3',era:'防禦・專一性免疫',q:'抗體對各種病原體都有效，所以注射一種疫苗可以預防多種疾病。',ans:false,explain:'錯誤！抗體具有「專一性」，每種抗體只對特定的抗原（病原體）有效。因此感冒疫苗無法預防流感，流感疫苗也無法預防新冠病毒。每種疾病需要各自的疫苗。'},
+{type:'mc',t:'u3',era:'淋巴系統・功能',q:'下列關於淋巴系統的敘述，何者正確？',opts:['淋巴液最後流入動脈','淋巴管中有紅血球','淋巴結含有大量白血球，可過濾淋巴液','大淋巴管將淋巴導入小腸'],ans:2,explain:'淋巴系統組成：淋巴液（來自組織液）→淋巴管→淋巴結（含白血球，可過濾病原體）→大淋巴管→靜脈（回到血液循環）。淋巴管中無紅血球。'},
+
+// ===== 單元4：協調作用 =====
+{type:'mc',t:'u4',era:'神經系統・神經元',q:'神經元的細胞體伸出的長突起稱為「神經纖維」，其功能是？',opts:['接受刺激','傳遞訊息（神經衝動）','分泌激素','進行光合作用'],ans:1,explain:'神經元由細胞本體和突起（樹突、軸突）組成。細胞本體維持神經元生長代謝；神經纖維（軸突等）負責傳遞神經衝動（電訊號）；樹突負責接受刺激或其他神經元的訊息。'},
+{type:'mc',t:'u4',era:'神經系統・中樞部位',q:'控制心跳、呼吸、血壓的中樞位於？',opts:['大腦','小腦','腦幹','脊髓'],ans:2,explain:'腦幹是「生命中樞」，控制心跳、呼吸、血壓等維持生命的基本功能，腦幹受損可能致命。大腦控制意識行為；小腦維持平衡協調；脊髓傳遞訊息並控制部分反射。'},
+{type:'mc',t:'u4',era:'神經系統・反射',q:'用手不小心碰到燙的東西，手立刻縮回，這個反射動作的控制中樞為？',opts:['大腦','小腦','腦幹','脊髓'],ans:3,explain:'四肢的反射（如縮手反射）控制中樞是脊髓。反射弧：手（受器）→感覺神經元→脊髓→運動神經元→手（動器）。感到痛（意識）是之後訊息傳到大腦的結果。'},
+{type:'tf',t:'u4',era:'神經系統・意識與反射',q:'反射作用產生時不涉及大腦命令，所以人不會感覺到痛。',ans:false,explain:'錯誤！反射動作（如縮手）確實不需經過大腦命令就能完成，但之後訊息仍會傳遞至大腦，讓人「感覺到」痛。所以反射不涉及大腦「命令」，但大腦仍會「感知」。'},
+{type:'mc',t:'u4',era:'神經系統・周圍神經',q:'腦神經共有幾對，主要分布在頭部、頸部？',opts:['12對','31對','23對','7對'],ans:0,explain:'周圍神經分為：腦神經12對（分布頭頸部）和脊神經31對（分布軀幹、四肢及內臟）。記憶口訣：腦12脊31。'},
+{type:'mc',t:'u4',era:'內分泌・激素功能',q:'下列關於甲狀腺素的敘述，何者正確？',opts:['由腦垂腺分泌','促進骨骼和肌肉的收縮','幼年時分泌不足會導致侏儒症','促進細胞代謝速率，與生長發育有關'],ans:3,explain:'甲狀腺素由甲狀腺分泌，位於喉部氣管兩旁：①促進細胞代謝；②與生長發育有關；③過多→甲亢（心跳加速、體重減輕）；④過少→行動遲緩。幼年不足→呆小症（非侏儒症）。'},
+{type:'mc',t:'u4',era:'內分泌・激素功能',q:'血糖濃度降低時，哪種激素會增加分泌，使血糖升高？',opts:['胰島素','升糖素','生長激素','甲狀腺素'],ans:1,explain:'血糖調節：血糖高→胰島（胰臟）分泌「胰島素」→血糖降低；血糖低→胰島分泌「升糖素」→血糖升高。腎上腺也可在緊急時分泌激素使血糖升高。'},
+{type:'match',t:'u4',era:'內分泌腺・位置配對',q:'請將內分泌腺與其主要分泌物配對：',pairs:[['腦垂腺','生長激素'],['甲狀腺','甲狀腺素'],['腎上腺','腎上腺素'],['胰島（胰臟）','胰島素']],explain:'腦垂腺分泌多種激素，是內分泌系統的「主控台」；甲狀腺在喉部；腎上腺在腎臟上方；胰島是胰臟中的內分泌組織。'},
+{type:'mc',t:'u4',era:'感覺疲勞・感覺器官',q:'關於感覺疲勞的敘述，下列何者正確？',opts:['感覺疲勞是神經元死亡造成的','感覺疲勞是受器連續受相同刺激後，降低對刺激的敏感度','感覺疲勞發生後，感覺永久消失','感覺疲勞只發生在視覺'],ans:1,explain:'感覺疲勞：受器連續接受相同刺激→降低敏感度。例子：入芝蘭之室久而不聞其香；吃甜食後再吃西瓜覺得不甜。疲勞消除後敏感度可恢復，並非永久消失。'},
+{type:'mc',t:'u4',era:'植物感應・向性',q:'植物的莖朝向光源方向彎曲生長，稱為？',opts:['正向地性','負向光性','正向光性','負向地性'],ans:2,explain:'向性是植物朝向或遠離某刺激而彎曲生長的現象：莖朝向光生長→正向光性；根向下生長→正向地性；根的生長方向遠離地面→負向地性（此說法有誤，根是正向地性）。'},
+{type:'sort',t:'u4',era:'神經傳導・路徑排序',q:'手碰到燙的東西「縮手反射」的神經傳導路徑，請由先到後排序：',items:['受器（皮膚）','感覺神經元','脊髓','運動神經元','動器（手部肌肉）'],correctOrder:[0,1,2,3,4],explain:'反射弧：受器→感覺神經元→脊髓（整合中樞）→運動神經元→動器。反射不需經過大腦，反應速度快，可在短時間內完成保護動作。'},
+
+// ===== 單元5：生物體的恆定 =====
+{type:'mc',t:'u5',era:'呼吸作用・與光合作用比較',q:'下列關於呼吸作用與光合作用的比較，何者正確？',opts:['兩者都在葉綠體進行','兩者都在粒線體進行','呼吸作用釋放能量，光合作用儲存能量','光合作用釋放能量，呼吸作用儲存能量'],ans:2,explain:'呼吸作用（粒線體）：分解葡萄糖「釋放」能量；光合作用（葉綠體）：利用光能將CO₂和水合成葡萄糖，將光能「儲存」為化學能。兩者是相反的過程。'},
+{type:'mc',t:'u5',era:'呼吸作用・反應式',q:'細胞呼吸作用的反應式為：葡萄糖＋氧氣→？',opts:['澱粉＋水','二氧化碳＋水＋能量','氨＋水＋能量','葡萄糖＋氧氣'],ans:1,explain:'呼吸作用方程式：葡萄糖（C₆H₁₂O₆）＋氧氣（O₂）→二氧化碳（CO₂）＋水（H₂O）＋能量（ATP）。在粒線體進行，隨時隨地（白天晚上）都在進行。'},
+{type:'tf',t:'u5',era:'呼吸作用・進行時機',q:'植物只有在白天才進行呼吸作用，因為呼吸作用需要光。',ans:false,explain:'錯誤！呼吸作用「不需要光」，白天和晚上都會進行。需要光的是「光合作用」。植物白天同時進行光合作用和呼吸作用；晚上只進行呼吸作用。'},
+{type:'mc',t:'u5',era:'呼吸作用・呼吸構造',q:'魚類進行氣體交換的構造是？',opts:['肺','鰓','氣管','皮膚'],ans:1,explain:'不同生物的呼吸構造：魚類→鰓；蚯蚓→濕潤皮膚；昆蟲→氣管；兩生類（蛙）幼體用鰓、成體用肺和皮膚；鳥類、哺乳類→肺；植物→氣孔、皮孔、表皮細胞。'},
+{type:'mc',t:'u5',era:'體溫恆定・內外溫動物',q:'下列哪種動物屬於「內溫動物（恆溫動物）」？',opts:['蛇','青蛙','鱷魚','麻雀'],ans:3,explain:'內溫動物（恆溫）：可自行產熱維持體溫，如鳥類和哺乳類。外溫動物（變溫）：體溫隨環境改變，如魚類、兩生類、爬蟲類。蛇、青蛙、鱷魚都是外溫動物；麻雀是鳥類，是內溫動物。'},
+{type:'mc',t:'u5',era:'血糖恆定・胰島素',q:'糖尿病患者長期血糖偏高的主要原因是？',opts:['升糖素分泌過多','胰島素長期分泌不足或作用不佳','腎上腺素分泌不足','甲狀腺素過少'],ans:1,explain:'糖尿病：胰島素長期分泌不足或細胞對胰島素反應下降→細胞無法有效利用葡萄糖→血糖升高→多尿（糖隨尿液排出）。症狀：「三多一少」（吃多、喝多、尿多、體重減少）。'},
+{type:'mc',t:'u5',era:'廢物排泄・含氮廢物',q:'哺乳類動物排除含氮廢物的主要形式是？',opts:['氨（直接排入水中）','尿素（隨尿液排出）','尿酸（隨糞便排出）','蛋白質（直接排出）'],ans:1,explain:'含氮廢物毒性：氨（最毒）>尿素（次之）>尿酸（最小）。哺乳類：蛋白質→氨→肝臟轉變為尿素→腎臟排出（尿液）。水中生物多直接排氨；昆蟲、鳥類排尿酸（省水）。'},
+{type:'mc',t:'u5',era:'廢物排泄・腎臟功能',q:'腎臟的主要功能是？',opts:['分解蛋白質','產生尿液，排除含氮廢物','儲存肝糖調節血糖','分泌消化液'],ans:1,explain:'腎臟功能：①過濾血液中的尿素、多餘水分和礦物質→形成尿液；②血液中有用物質（葡萄糖等）會被再吸收回血液。肝臟分解胺基酸產生氨再轉為尿素，胰臟分泌消化液。'},
+{type:'fill',t:'u5',era:'廢物排泄・泌尿路徑',q:'人體泌尿系統的路徑：腎臟→輸尿管→____→尿道',ans:'膀胱',alts:['膀胱'],explain:'泌尿系統：腎臟（產生尿液）→輸尿管（輸送）→膀胱（暫時儲存）→尿道（排出）。腎臟是核心器官，過濾血液產生尿液。'},
+{type:'mc',t:'u5',era:'水分恆定・調節',q:'人體缺水時，身體會如何調節以維持水分恆定？',opts:['腎臟增加排尿量','感覺口渴、減少排尿量','增加排汗量','停止呼吸作用'],ans:1,explain:'體內水分不足時：血液濃度升高→刺激腦部（下視丘）→感覺口渴（促使喝水）＋腎臟減少排尿→水分恆定。反之，水分過多時：腎臟增加排尿，不感到口渴。'},
+{type:'mc',t:'u5',era:'呼吸作用・呼吸運動',q:'人體吸氣時，肋骨和橫膈的運動方向為何？',opts:['肋骨下降、橫膈上升','肋骨上升、橫膈下降','肋骨上升、橫膈上升','肋骨下降、橫膈下降'],ans:1,explain:'吸氣：肋骨「上升」（肋間肌收縮）＋橫膈「下降」（橫膈肌收縮）→胸腔擴大→肺容積增大→肺內壓力變小→空氣進入肺部。呼氣相反：肋骨下降、橫膈上升。'},
+{type:'sort',t:'u5',era:'廢物排泄・含氮廢物毒性',q:'請將含氮廢物依「毒性由大到小」排列：',items:['氨（氨氣）','尿酸','尿素'],correctOrder:[0,2,1],explain:'毒性大小：氨（最大，直接排入水中）>尿素（中等，哺乳類主要排泄形式）>尿酸（最小，昆蟲和鳥類的排泄形式）。毒性越小溶水性越低，越省水。'},
+{type:'mc',t:'u5',era:'體溫恆定・調節機制',q:'人體在天氣炎熱時，會透過下列何種方式散熱？',opts:['肌肉顫抖','皮膚血管收縮','排汗增加','食慾增加'],ans:2,explain:'天熱散熱方式：排汗增加（汗液蒸發帶走熱量）、皮膚血管「擴張」（增加散熱）、食慾「減退」。天冷保溫方式：皮膚血管收縮（減少散熱）、肌肉顫抖（產熱）、食慾增加。'},
+{type:'match',t:'u5',era:'生物・呼吸構造配對',q:'請將生物與其主要氣體交換構造配對：',pairs:[['魚類','鰓'],['昆蟲','氣管'],['蚯蚓','濕潤皮膚'],['人類','肺']],explain:'不同生物演化出不同的呼吸構造：水中生物多用鰓；陸生動物多用肺；昆蟲用氣管系統；蚯蚓靠濕潤皮膚。共同特點：呼吸面積大、濕潤、有豐富血管。'},
+{type:'tf',t:'u5',era:'血糖恆定・肝臟功能',q:'肝臟可以將血糖轉換為肝糖儲存，以維持血糖恆定。',ans:true,explain:'正確！肝臟在維持血糖恆定中扮演重要角色：血糖高時，胰島素促使肝臟將葡萄糖轉為肝糖儲存→血糖下降；血糖低時，升糖素促使肝臟分解肝糖釋放葡萄糖→血糖上升。'},
+{type:'mc',t:'u5',era:'呼吸系統・呼吸調節',q:'劇烈運動後呼吸加快，主要是因為血液中哪種物質濃度升高，刺激呼吸中樞？',opts:['氧氣','葡萄糖','二氧化碳','血紅素'],ans:2,explain:'運動時細胞呼吸加強，產生大量CO₂→血液中CO₂濃度升高→刺激腦幹的呼吸中樞→呼吸加快加深，以排出CO₂並吸入更多O₂。所以是CO₂升高（非O₂降低）觸發呼吸加速。'},
+];
+
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.panel).classList.add('active');if(tab.dataset.panel==='wrong')renderWP();});});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+function updateGo(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);const btn=document.getElementById('goBtn');if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}else{btn.disabled=true;btn.textContent='請選擇單元與模式';}}
+document.getElementById('goBtn').addEventListener('click',startGame);
+function startGame(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;const isLong=S.mode==='normal'||S.mode==='timed';let pool=QB.filter(q=>S.topics.includes(q.t));pool=shuffle(pool);S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));S.cur=0;showScreen('game');renderQ();}
+function startWrongPractice(){const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();}
+function renderQ(){if(S.cur>=S.qs.length){showResult();return;}const q=S.qs[S.cur];S.answered=false;const total=S.qs.length;document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));else document.getElementById('gLives').textContent='';const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort'};document.getElementById('qtag').textContent=tMap[q.type]||'題目';document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;document.getElementById('qtext').textContent=q.q;document.getElementById('qsub').textContent=q.hint||'';const area=document.getElementById('ans-area');area.innerHTML='';document.getElementById('fbbox').className='fb-box';document.getElementById('nextBtn').className='next-btn';if(q.type==='mc')renderMC(q,area);else if(q.type==='tf')renderTF(q,area);else if(q.type==='fill')renderFillQ(q,area);else if(q.type==='match')renderMatch(q,area);else if(q.type==='sort')renderSort(q,area);clearInterval(S.timer);const te=document.getElementById('gTimer');if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}else te.style.display='none';}
+function renderMC(q,area){const grid=document.createElement('div');grid.className='opts';q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt';btn.textContent=o;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const ok=i===q.ans;grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});finish(ok,q);});grid.appendChild(btn);});area.appendChild(grid);}
+function renderTF(q,area){const row=document.createElement('div');row.className='tf-row';['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const userT=i===0,ok=userT===q.ans;row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});finish(ok,q);});row.appendChild(btn);});area.appendChild(row);}
+function renderFillQ(q,area){const row=document.createElement('div');row.className='fill-row';const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確：${q.ans}`);};btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});row.append(inp,btn);area.appendChild(row);}
+function renderMatch(q,area){const wrap=document.createElement('div');wrap.className='match-wrap';const lCol=document.createElement('div');lCol.className='match-col';const rCol=document.createElement('div');rCol.className='match-col';const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);let lPicked=null,rPicked=null,matched=0;pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});wrap.append(lCol,rCol);area.appendChild(wrap);function tryM(){if(!lPicked||!rPicked)return;const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}lPicked=null;rPicked=null;}wrap.addEventListener('click',e=>{if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}tryM();});}
+let dragEl=null;
+function renderSort(q,area){const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));const list=document.createElement('div');list.className='sort-list';shuffled.forEach(item=>{const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});el.addEventListener('dragend',()=>el.classList.remove('dragging'));el.addEventListener('dragover',e=>e.preventDefault());el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});list.appendChild(el);});area.appendChild(list);const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});area.appendChild(chk);}
+function finish(ok,q,extraMsg){const pts=calcPts(ok,q.type);if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;document.getElementById('fbmsg').textContent=msg;document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;const nb=document.getElementById('nextBtn');nb.className='next-btn show';const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};}
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+function startTimer(sec){S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';S.timer=setInterval(()=>{S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}},1000);}
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+function showResult(){clearInterval(S.timer);showScreen('result');const max=S.qs.length*6;const pct=max>0?S.score/max:0;let emoji,title,msg;if(pct>=.9){emoji='🏆';title='生物達人！';msg='生物第一冊掌握得非常好！繼續保持！';}else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點複習！';}else if(pct>=.5){emoji='📖';title='繼續加油！';msg='去錯題複習區針對弱點加強！';}else{emoji='💪';title='不要灰心！';msg='把課本筆記再仔細看一遍，再來挑戰！';}document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';document.getElementById('rMsg').textContent=msg;const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}else document.getElementById('rWeak').style.display='none';const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';if(pct>=.75)confetti();}
+function renderWP(){const bank=loadWB();const panel=document.getElementById('wrongPanel');const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;pw.style.display='block';cl.style.display='block';}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#2ecc71','#27ae60','#1a7a3a','#d4f5e2','#a9dfbf'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

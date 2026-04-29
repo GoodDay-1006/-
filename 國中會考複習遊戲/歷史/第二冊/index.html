@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>歷史闖關王 第二冊</title>
+<style>
+:root{
+  --bg:#f0f4ff;--ink:#0a1a3a;--red:#c0392b;--gold:#1a3a8e;
+  --teal:#15337a;--blue:#0f2860;--accent:#2c5282;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(10,26,58,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(44,82,130,.08) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(26,58,142,.06) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#c3d4f0 0%,#f0f4ff 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(10,26,58,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(10,26,58,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(10,26,58,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(10,26,58,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(10,26,58,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#c3d4f0;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(10,26,58,.48);margin-top:3px;line-height:1.4;}
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(10,26,58,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(10,26,58,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(10,26,58,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(10,26,58,.38);border:1px solid rgba(10,26,58,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:var(--red);animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#c3d4f0;color:var(--teal);}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:var(--green);}
+.qtag.match{background:#fce8d0;color:#b06010;}
+.qtag.sort{background:#fde8d0;color:#d35400;}
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(10,26,58,.43);margin-bottom:11px;font-style:italic;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#e8f0fb;border:2px solid #b8ccee;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#c3d4f0;}
+.opt.ok{background:#d4f5e2;border-color:var(--green);color:var(--green);font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #b8ccee;background:#e8f0fb;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:var(--green);}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:var(--green);background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--blue);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#e8f0fb;border:2px solid #b8ccee;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:var(--gold);background:#c3d4f0;font-weight:700;}
+.match-item.matched{border-color:var(--green);background:#d4f5e2;color:var(--green);font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#c3d4f0;border:2px solid #b8ccee;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--teal);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:var(--green);border-left:4px solid var(--green);}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+#result{background:linear-gradient(155deg,#c3d4f0 0%,#f0f4ff 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(10,26,58,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(10,26,58,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(10,26,58,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#e8f0fb;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">歷史闖關王</div>
+    <div class="home-badge">歷史 第二冊 · 單元3-4 · 會考複習</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip on" data-t="u3a">🏯 日治殖民體制建立</div>
+      <div class="tchip on" data-t="u3b">💹 日治經濟建設</div>
+      <div class="tchip on" data-t="u3c">📚 差別教育與文化運動</div>
+      <div class="tchip on" data-t="u3d">🌆 日治社會變遷</div>
+      <div class="tchip on" data-t="u4a">😢 二二八與戒嚴</div>
+      <div class="tchip on" data-t="u4b">🗳️ 政治民主化歷程</div>
+      <div class="tchip on" data-t="u4c">🌐 外交發展與兩岸</div>
+      <div class="tchip on" data-t="u4d">💼 戰後經濟與社會文化</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+<div class="screen" id="game">
+  <div class="gbar">
+    <div><div class="gbar-left" id="gInfo">第 1 / 50 題</div><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;"><div class="gbar-timer" id="gTimer" style="display:none;">20</div><div><div class="gbar-score" id="gScore">0 分</div><div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox"><div class="fb-title" id="fbtitle"></div><div id="fbmsg"></div></div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div><div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div><div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div><div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+<div class="combo" id="combo"></div>
+<script>
+const SK='hist2_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+
+// ══ 單元3a：日治殖民體制建立 ══
+{t:'u3a',era:'日治・馬關條約',type:'mc',
+ q:'《馬關條約》（1895年）對台灣最重要的影響是？',
+ opts:[
+   'A 台灣成為英國殖民地',
+   'B 清帝國被迫將台灣、澎湖割讓給日本，台灣從此進入日本統治時期',
+   'C 台灣獲得自治地位',
+   'D 台灣加入日本聯邦'
+ ],ans:1,
+ explain:'甲午戰爭（光緒20年，1894年）→清帝國戰敗→隔年與日本簽訂《馬關條約》→清帝國被迫割讓台灣、澎湖給日本。台灣民主國短暫抵抗（唐景崧、劉永福等人），但日本仍完成接收，台灣進入50年日治時期。'},
+
+{t:'u3a',era:'日治・台灣民主國',type:'tf',
+ q:'台灣民主國成立後，成功阻止日本軍隊接管台灣，保護了台灣的主權。',
+ ans:false,
+ explain:'台灣民主國雖成立（唐景崧為總統），但抵抗失敗，領導人紛紛離台。1895年日本軍隊完成接收台灣。台灣民主國是歷史上第一個以「民主」為名的共和國，但存續時間極短（約150天）。'},
+
+{t:'u3a',era:'日治・殖民體制',type:'mc',
+ q:'日治時期台灣最高統治機構是？其最高行政官員稱為？',
+ opts:[
+   'A 台灣總督府，最高行政官員稱台灣總督',
+   'B 台灣行政院，最高行政官員稱台灣省長',
+   'C 台灣軍政府，最高行政官員稱軍事長官',
+   'D 台灣省政府，最高行政官員稱省主席'
+ ],ans:0,
+ explain:'台灣總督府（1895年設立）：日本在台灣的最高統治機構，以台灣總督為首長。1896年日本頒布「法律六十三號」（六三法），授予總督可頒布具法律效力命令的權力，使總督集軍事、行政、立法、司法大權於一身。'},
+
+{t:'u3a',era:'日治・三時期分期',type:'sort',
+ q:'請將日治時期三個分期依時間先後排列：',
+ items:['皇民化運動（1937年中日戰爭爆發～1945年）','內地延長主義（1919年第一次世界大戰結束～1937年）','殖民地特殊統治（1895年～1919年第一次世界大戰結束）'],
+ correctOrder:[2,1,0],
+ explain:'日治三時期：①殖民地特殊統治（1895-1919，武官總督，六三法）→②內地延長主義（1919-1937，文官總督，民族自決思潮）→③皇民化運動（1937-1945，中日戰爭後，全面同化）。'},
+
+{t:'u3a',era:'日治・警察制度',type:'mc',
+ q:'日治時期「保甲制度」的功能是？',
+ opts:[
+   'A 提供台灣人基本的自治管理',
+   'B 以十戶為甲、十甲為保，協助警察控制社會，保甲連坐，若有人犯罪其他人也受罰',
+   'C 管理農業生產和分配',
+   'D 負責修建道路和水利設施'
+ ],ans:1,
+ explain:'保甲制度：清代保甲制度的延伸。日治時期，以十戶為一甲、十甲為一保，保甲長協助警察維持地方秩序。採連坐法，保甲內有人犯罪，其他民眾也受連帶責罰。配合警察制度，嚴密控制台灣人的生活。'},
+
+{t:'u3a',era:'日治・理蕃政策',type:'mc',
+ q:'1930年「霧社事件」發生的背景與結果是？',
+ opts:[
+   'A 漢人農民反抗土地徵收，遭到鎮壓',
+   'B 賽德克族在莫那魯道領導下發動武裝抗日，日軍武力鎮壓，傷亡慘重，事後總督府重新檢討原住民政策',
+   'C 原住民爭取教育機會，遭到警察彈壓',
+   'D 原住民不滿強制種植的政策，發動農業罷工'
+ ],ans:1,
+ explain:'霧社事件（1930年）：背景→日本大力控制高山原住民社會。賽德克族在莫那魯道率領下，在霧社（今南投縣仁愛鄉）發動武裝起事。日方出動軍警、現代化武器，造成原住民傷亡慘重。結果：引發國內外輿論譴責，總督府重新檢討原住民政策。'},
+
+// ══ 單元3b：日治經濟建設 ══
+{t:'u3b',era:'日治經濟・基礎建設',type:'mc',
+ q:'日治時期「專賣制度」的目的是？主要專賣品有哪些？',
+ opts:[
+   'A 保護台灣本地企業，防止日本企業壟斷',
+   'B 增加財政收入、免於仰賴日本國庫補助；主要專賣品為鴉片、樟腦等物資',
+   'C 讓台灣人可以合法自行生產物品',
+   'D 管理台灣進出口貿易'
+ ],ans:1,
+ explain:'專賣制度：對鴉片、樟腦等物資實施專賣，由政府獨占經營。目的：增加財政收入，免於仰賴日本國庫補助。成效：藉由專賣獲得豐厚利潤，得以支持基礎建設。台灣於20世紀初已財政獨立，不須日本政府補助。'},
+
+{t:'u3b',era:'日治經濟・基礎建設',type:'mc',
+ q:'日治時期台灣最重要的鐵路建設是？完成時間是？',
+ opts:[
+   'A 阿里山鐵路（1908年完成）',
+   'B 基隆到高雄的縱貫鐵路（1908年完成），解決南北往來不便問題',
+   'C 台北到淡水的鐵路（1901年完成）',
+   'D 台東線鐵路（1926年完成）'
+ ],ans:1,
+ explain:'縱貫鐵路（基隆到高雄）：1908年完工，是日治時期最重要的交通建設，解決台灣南北往來不便問題，促進全島人員和物資的流通。此外還有修建現代化公路系統、整建基隆港和高雄港，以及普及設立郵政、電報、電話等通訊設施。'},
+
+{t:'u3b',era:'日治經濟・農業台灣',type:'mc',
+ q:'「工業日本，農業台灣」政策的意思是？',
+ opts:[
+   'A 台灣發展工業，日本發展農業',
+   'B 日治初期政策偏重稻米、糖業，以台灣的農業生產滿足日本國內工業化後的民生需求',
+   'C 日本提供工業技術，台灣提供農業勞動力',
+   'D 台灣農業和日本工業互不影響'
+ ],ans:1,
+ explain:'「工業日本、農業台灣」：日治初期的農業政策，台灣的農業生產（尤其稻米、蔗糖）主要為了滿足日本國內工業化後的民生需求。措施：引進新式耕作技術、改良品種、確立成功種植蓬萊米、設立新式製糖廠、興建嘉南大圳等。'},
+
+{t:'u3b',era:'日治經濟・嘉南大圳',type:'mc',
+ q:'嘉南大圳的興建時間和意義是？',
+ opts:[
+   'A 1920年完工，是台灣清代最大水利工程',
+   'B 1930年完工，灌溉嘉南平原，為日治時期規模最大的水利工程，增加稻米和甘蔗產量',
+   'C 1910年完工，主要供應台北地區灌溉',
+   'D 1940年完工，解決台灣南部缺水問題'
+ ],ans:1,
+ explain:'嘉南大圳（1930年由八田與一設計完工）：灌溉嘉南平原（水源來自烏山頭水庫），為日治時期規模最大的水利工程。成效：增加平原灌溉面積，提高稻米和甘蔗產量，成為日治時期農業台灣的重要基礎。'},
+
+{t:'u3b',era:'日治經濟・工業台灣農業南洋',type:'mc',
+ q:'1930年代日本推行「工業台灣，農業南洋」政策的背景和措施是？',
+ opts:[
+   'A 為了讓台灣完全農業化',
+   'B 配合日本南進政策，以台灣作為南進基地；1934年日月潭發電所完工提供穩定電力，並發展機械、造船、石化等重工業',
+   'C 為了讓台灣出口農產品到東南亞',
+   'D 為了引進東南亞農業技術'
+ ],ans:1,
+ explain:'1930年代工業台灣農業南洋：配合日本南進政策（以東南亞為侵略目標），以台灣作為南進基地。措施：①1934年日月潭發電所完工，提供台灣西半部穩定電力；②發展機械、造船、石化等國防重工業。奠定台灣日後工業化基礎。'},
+
+// ══ 單元3c：差別教育與文化運動 ══
+{t:'u3c',era:'日治教育・差別待遇',type:'mc',
+ q:'日治時期教育制度實行「差別待遇、隔離原則」，對台灣人和日本人的學校有何不同？',
+ opts:[
+   'A 兩者完全相同，享有平等的教育機會',
+   'B 台灣人就讀公學校（設備較差）、日本人就讀小學校（設備較佳），以均用日語教學；中學以上多以為原住民不宜就讀為由，台灣人升學比例少',
+   'C 台灣人的學校教育品質優於日本人',
+   'D 日治時期完全禁止台灣人接受教育'
+ ],ans:1,
+ explain:'日治教育差別待遇：初等教育→日本人讀小學校、台灣人讀公學校（設備多不如小學校）、原住民讀蕃童教育所；均用日語教學。中等教育→中學校以實用為原則，偏重農工業教育。高等教育→1928年設台北帝國大學（今台大），為日治時期最高學府，大多保留給日本人就讀。'},
+
+{t:'u3c',era:'日治教育・蓬萊米',type:'tf',
+ q:'日治時期的台灣農業改良研究所成功培育出「蓬萊米」，這是台灣稻米品種的一大突破。',
+ ans:true,
+ explain:'蓬萊米（Ponlai rice）：日治時期由農業研究機構培育成功，是可適應台灣氣候的日本稻米品種，口感近似日本米，產量大增，成功行銷日本。農業改良讓台灣成為日本的重要糧食供應地。'},
+
+{t:'u3c',era:'日治文化・台灣文化協會',type:'mc',
+ q:'台灣文化協會（1921年）的成立目標和主要活動是？',
+ opts:[
+   'A 協助日本推廣日語教育',
+   'B 宗旨「謀台灣文化之向上」，以啟迪民智、喚醒台灣人的民族意識及改良社會風氣為目標；發行台灣民報、舉辦演講會等',
+   'C 推廣台灣傳統戲曲',
+   'D 對抗日本的武裝組織'
+ ],ans:1,
+ explain:'台灣文化協會（1921-1931年）：林獻堂、蔣渭水等人成立，宗旨是「謀台灣文化之向上」，以啟迪民智、喚醒台灣人民族意識及改良社會風氣為目標。主要活動：發行《台灣民報》、舉辦各地演講會、設立讀報社、舉辦夏季學校等。'},
+
+{t:'u3c',era:'日治文化・台灣議會設置請願',type:'mc',
+ q:'台灣議會設置請願運動（1921-1934年）的目標是？',
+ opts:[
+   'A 要求台灣脫離日本統治獨立',
+   'B 要求設立台灣議會，爭取台灣人的參政權，以對抗總督的專制統治',
+   'C 要求日本完全開放台灣的言論自由',
+   'D 要求廢除保甲制度'
+ ],ans:1,
+ explain:'台灣議會設置請願運動（1921-1934年）：林獻堂、蔣渭水等人領導，向日本帝國議會請願要求設立台灣議會，目標是爭取台灣人的參政權，以對抗總督的專制統治。這是日治時期規模最大、持續最久的政治社會運動。'},
+
+{t:'u3c',era:'日治文化・台灣民眾黨',type:'mc',
+ q:'台灣民眾黨（1927年）是台灣歷史上第一個什麼？',
+ opts:[
+   'A 第一個武裝抗日組織',
+   'B 台灣成立的第一個政黨',
+   'C 第一個女性參政組織',
+   'D 第一個工人勞動組織'
+ ],ans:1,
+ explain:'台灣民眾黨（1927年林獻堂等成立）：台灣歷史上第一個政黨。內容：宣傳民族主義、地方自治觀念，積極鼓動工運、爭取相關權益。意義：台灣民眾黨的成立，代表台灣政治社會運動更加組織化。1931年遭總督府強制解散。'},
+
+// ══ 單元3d：日治社會變遷 ══
+{t:'u3d',era:'日治社會・皇民化運動',type:'mc',
+ q:'日治後期（1937年後）「皇民化運動」的主要措施是？',
+ opts:[
+   'A 推廣台灣傳統民俗文化',
+   'B 推動日語普及（說日語）、改日本姓氏、廢除傳統民俗、鼓勵台灣人參拜神社，全面推動皇民化，培養對日本天皇的忠誠心',
+   'C 廢除日語教育，恢復漢語教學',
+   'D 讓台灣人參與日本帝國議會選舉'
+ ],ans:1,
+ explain:'皇民化運動（1937年中日戰爭後）：目的是將台灣改造成效忠日本天皇的子民，培養對日本的愛國心。措施：①說日語②改日本姓氏（改姓名）③廢除傳統信仰、禁止媽祖等傳統活動④鼓勵參拜日本神社⑤部分台灣男子被徵召南洋或充軍服役。'},
+
+{t:'u3d',era:'日治社會・現代化影響',type:'mc',
+ q:'日治時期引進的「現代衛生觀念」對台灣最大的影響是？',
+ opts:[
+   'A 台灣人口大幅減少',
+   'B 建立西式醫院和防疫機制，引進近代公共衛生觀念，使台灣死亡率降低，人口大幅增加',
+   'C 禁止台灣傳統醫療',
+   'D 台灣人的平均壽命反而降低'
+ ],ans:1,
+ explain:'日治時期現代衛生觀念的影響：建立西式醫院、衛生所等醫療設施；引進近代公共衛生觀念，推動防疫（如鼠疫、霍亂等）。成效：台灣死亡率降低，人口大幅增加（從20世紀初的200多萬，增至日治末期的600多萬）。'},
+
+{t:'u3d',era:'日治社會・都市文化',type:'mc',
+ q:'日治時期台灣都市文化的特色是？',
+ opts:[
+   'A 完全保留清代傳統生活方式',
+   'B 1920年代後，人口大幅向城市集中，出現百貨公司、咖啡廳、電影院等新式消費場所，現代化娛樂逐漸普及',
+   'C 台灣人被禁止進入日本式的娛樂場所',
+   'D 都市化讓台灣人完全放棄傳統文化'
+ ],ans:1,
+ explain:'日治時期都市文化：1920年代後人口大幅向城市集中，城市形成現代都市。新式消費場所出現：百貨公司、咖啡廳、電影院、新式旅館等。新興習慣：喝咖啡、看電影、逛百貨，帶動台灣人新型態消費與娛樂生活。'},
+
+// ══ 單元4a：二二八與戒嚴 ══
+{t:'u4a',era:'戰後・二二八事件',type:'mc',
+ q:'二二八事件（1947年2月28日）的起因和影響是？',
+ opts:[
+   'A 台灣原住民對中華民國政府的武裝抗議',
+   'B 行政長官公署查緝私菸引發衝突，民怨爆發，全台各地抗議→中央政府派遣軍隊武力鎮壓→造成大量台灣人傷亡，對台灣政治發展和族群關係有長期不良影響',
+   'C 日本殘餘勢力的武裝叛變',
+   'D 台灣商人對稅收政策的抗議'
+ ],ans:1,
+ explain:'二二八事件（民國36年，1947年）：導火線→行政長官公署查緝私菸，在台北發生衝突，引起民憤→全台各地相繼爆發抗議→中央政府調遣軍隊武力鎮壓、清鄉，造成大量台灣人傷亡（含地方精英）。影響：對台灣政治發展和族群關係造成長期不良影響，傷痕延續至今。'},
+
+{t:'u4a',era:'戰後・戒嚴令',type:'mc',
+ q:'台灣戒嚴令（民國38年，1949年）的法令名稱和實施時間是？',
+ opts:[
+   'A 動員戡亂臨時條款，實施38-80年',
+   'B 台灣省政府宣布的戒嚴令，法令名稱《戒嚴令》，實施38-76年（共38年）',
+   'C 中華民國憲法特別條款，實施36-75年',
+   'D 戒嚴計畫，實施40-76年'
+ ],ans:1,
+ explain:'戒嚴令（民國38年，1949年）：台灣省政府主席陳誠發布，法令《戒嚴令》，限制台灣人言論、集會、結社、出版等自由，民國76年（1987年）由蔣經國宣布解除。動員戡亂時期臨時條款：民國37-80年實施，總統連任不受限制。'},
+
+{t:'u4a',era:'戰後・白色恐怖',type:'mc',
+ q:'「白色恐怖」時期（民國40-50年代）的主要特徵是？',
+ opts:[
+   'A 台灣人民享有完全的言論和集會自由',
+   'B 政府濫用公權力，運用情治機關戕害人權，未經正常公平的司法程序，便對異議分子定罪，造成許多冤獄',
+   'C 政府積極推動政治改革',
+   'D 台灣人民可以自由組織政黨'
+ ],ans:1,
+ explain:'白色恐怖（民國40-50年代）：政府以防制共產主義和反對黨活動為由頒布戒嚴令，並利用情治機關濫用公權力，未經正常公平司法程序便對異議分子定罪，造成許多冤獄。影響：人民精神和財產受嚴重傷害，使人互不信任，影響社會發展。'},
+
+// ══ 單元4b：政治民主化歷程 ══
+{t:'u4b',era:'戰後政治・民主化',type:'sort',
+ q:'請將台灣政治民主化的重要事件依時間先後排列：',
+ items:['民國85年，首次由人民直選總統（李登輝當選）','民國49年，雷震事件（雷震因《自由中國》被捕）','民國75年，民主進步黨成立','民國80年，學潮促使政府宣布廢止動員戡亂臨時條款，並進行修憲'],
+ correctOrder:[1,2,3,0],
+ explain:'民主化歷程：民國49年雷震事件→民國68年美麗島事件→民國75年民主進步黨成立→民國79年三月學運→民國80年廢止動員戡亂臨時條款→民國85年首次直選總統。'},
+
+{t:'u4b',era:'戰後政治・美麗島事件',type:'mc',
+ q:'「美麗島事件」（民國68年，1979年）的背景和意義是？',
+ opts:[
+   'A 台灣原住民要求土地返還的運動',
+   'B 黨外人士在高雄舉行集會活動，與警察爆發衝突，多名黨外人士遭逮捕，但引起更大的民主化運動聲浪',
+   'C 台灣人要求與中國大陸統一',
+   'D 台灣農民抗議農業政策的運動'
+ ],ans:1,
+ explain:'美麗島事件（民國68年，1979年）：黨外人士在高雄舉行集會（紀念世界人權日），與警察爆發衝突，多名黨外重要人士（如施明德、呂秀蓮等）遭逮捕起訴。意義：雖然被鎮壓，但引發更大的民主化聲浪，黨外人士持續推動民主運動，促成民國75年民主進步黨成立。'},
+
+{t:'u4b',era:'戰後政治・民主進步黨',type:'mc',
+ q:'民主進步黨（民主進步黨，1986年）成立的意義是？',
+ opts:[
+   'A 台灣第一個合法的反對黨，正式進入兩黨政治',
+   'B 台灣回歸一黨專政',
+   'C 民進黨立即取代國民黨成為執政黨',
+   'D 民進黨是台灣歷史上第一個政黨'
+ ],ans:0,
+ explain:'民進黨成立（民國75年，1986年）：在戒嚴尚未解除前由黨外人士組成，雖違反戒嚴法規定，但蔣經國未予取締。意義：台灣出現第一個真正的反對黨，正式進入兩黨政治時代。民國76年解嚴後，民進黨正式合法化，政治改革加速進行。'},
+
+{t:'u4b',era:'戰後政治・原住民治理',type:'mc',
+ q:'戰後台灣政府對原住民「正名」運動的成果是？',
+ opts:[
+   'A 原住民在日治時期已完成正名',
+   'B 民國83年修憲，將「山地同胞」改稱「原住民」；解嚴後原住民陸續發起社會運動爭取權益',
+   'C 政府拒絕承認原住民族群',
+   'D 原住民獲得完全的土地所有權'
+ ],ans:1,
+ explain:'原住民正名：戒嚴時期政府推動山地平地政策、要求以漢名登記，影響原住民傳統土地和文化。解嚴後，原住民陸續發起社會運動爭取正名和土地權益。民國83年（1994年）修憲成功，將「山地同胞」改稱「原住民」，民國86年進一步稱「原住民族」。'},
+
+// ══ 單元4c：外交發展與兩岸 ══
+{t:'u4c',era:'戰後外交・台美關係',type:'mc',
+ q:'民國43年（1954年）台灣與美國簽訂的重要協定是？',
+ opts:[
+   'A 台美自由貿易協定','B 中美共同防禦條約','C 台灣關係法','D 三不政策'
+ ],ans:1,
+ explain:'中美共同防禦條約（民國43年，1954年）：台灣納入東亞反共防衛體系，美國提供軍事、經濟援助。民國49年韓戰爆發後，美國派第七艦隊協防台灣海峽。但民國68年美國與中華人民共和國建交，另制定《台灣關係法》維持台灣關係。'},
+
+{t:'u4c',era:'戰後外交・外交轉折',type:'mc',
+ q:'民國60年（1971年）台灣發生的重大外交轉折是？',
+ opts:[
+   'A 台灣加入世界貿易組織',
+   'B 中華人民共和國取代中華民國獲得聯合國席位，台灣退出聯合國',
+   'C 台灣與日本斷交',
+   'D 台灣宣布放棄光復大陸政策'
+ ],ans:1,
+ explain:'民國60年（1971年）：中華人民共和國取代中華民國獲得聯合國中國代表席位，中華民國退出聯合國。此後陸續與多國斷交，外交空間大幅萎縮。台灣採取「彈性外交」策略（民國77年，1988年李登輝接任後），以無邦交方式發展文化、經貿實質交流，突破中華人民共和國的外交封鎖。'},
+
+{t:'u4c',era:'戰後兩岸・關係發展',type:'mc',
+ q:'民國76年（1987年）解嚴後，兩岸關係有哪些重要發展？',
+ opts:[
+   'A 台灣和中國大陸宣布和平統一',
+   'B 台灣開放民眾赴中國大陸探親；民國80年成立海峽交流基金會，民國90年開放金門馬祖和福建三通',
+   'C 兩岸重新爆發大規模武裝衝突',
+   'D 台灣加入中國大陸的經濟特區'
+ ],ans:1,
+ explain:'解嚴後兩岸交流發展：①民國76年解嚴，開放民眾赴大陸探親；②民國80年成立海峽交流基金會（海基會），海峽兩岸進行官方授權的民間往來；③民國90年開放金門、馬祖與福建三通；④民國97年正式實施兩岸三通（通郵、通商、通航）。'},
+
+// ══ 單元4d：戰後經濟與社會文化 ══
+{t:'u4d',era:'戰後經濟・土地改革',type:'mc',
+ q:'民國38-42年陸續實施的「土地改革」包含哪些政策？',
+ opts:[
+   'A 政府全面收購農地，統一分配給農民',
+   'B 三七五減租（民國38年）、公地放領（民國40年）、耕者有其田（民國42年），使佃農成為自耕農',
+   'C 禁止農民自由買賣土地',
+   'D 讓外國資本投資台灣農地'
+ ],ans:1,
+ explain:'土地改革三階段：①三七五減租（民國38年）：佃農繳給地主的租金上限為37.5%；②公地放領（民國40年）：政府將公有土地分售給農民；③耕者有其田（民國42年）：政府購買地主土地，轉賣給農民。成果：佃農成為自耕農，農業生產力提高，也促使地主將資本投入工商業，帶動工業發展。'},
+
+{t:'u4d',era:'戰後經濟・進口替代到出口導向',type:'sort',
+ q:'請將戰後台灣經濟發展政策依時間先後排列：',
+ items:['產業升級（民國70年代，設立新竹科學工業園區）','出口導向（民國50年代，輸出食品衣服等輕工業品）','進口替代（民國40年代，積極發展農工業，以國產取代進口）','十大建設（民國60年代，行政院長蔣經國推動重大基礎建設）'],
+ correctOrder:[2,1,3,0],
+ explain:'戰後台灣經濟政策演變：進口替代（40年代）→出口導向（50年代）→十大建設重工業（60年代）→產業升級高科技（70年代）→自由化國際化（80年代至今）。'},
+
+{t:'u4d',era:'戰後經濟・十大建設',type:'mc',
+ q:'民國60年代「十大建設」的背景和目的是？',
+ opts:[
+   'A 為了迎接台灣加入聯合國而建設',
+   'B 因石油危機導致全球經濟不景氣，行政院長蔣經國推行十大建設（以交通、能源為主要的基礎建設），帶動台灣重工業發展',
+   'C 為了配合美國的台灣投資計畫',
+   'D 為了應對中共的軍事威脅而建設軍事設施'
+ ],ans:1,
+ explain:'十大建設（民國60年代）：背景→石油危機引發全球經濟不景氣。行政院長蔣經國以交通和能源為主要基礎建設（包含中正國際機場、核能發電廠、中山高速公路、台中港、鐵路電氣化、北迴鐵路等），帶動台灣重工業發展。成果：台灣經濟快速復甦，與香港、南韓、新加坡並稱「亞洲四小龍」。'},
+
+{t:'u4d',era:'戰後文化・文化演變',type:'mc',
+ q:'台灣戰後初期（民國38-50年代）文化政策的主要特徵是？',
+ opts:[
+   'A 鼓勵台灣本土文化發展，保護本土語言',
+   'B 提倡「反共抗俄」文化，推行國語（普通話），限制台語廣播和出版，以抑制中共文化影響',
+   'C 全面引進西方文化',
+   'D 延續日治時期的皇民化文化政策'
+ ],ans:1,
+ explain:'戰後初期文化政策：①提倡「反共抗俄」文化，文藝創作以反共為主流；②推行國語（普通話）政策，限制台語廣播時間，學校不得說台語、客語；③限制台灣本土文化的發展。民國60年代後，台灣知識分子受民族自決思潮影響，展開文化啟蒙，我的民族意識逐漸抬頭。'},
+
+{t:'u4d',era:'戰後文化・多元社會',type:'mc',
+ q:'民國70年代以後，台灣社會變遷的重要特徵是？',
+ opts:[
+   'A 台灣社會更加封閉，對外文化交流減少',
+   'B 解嚴後社會日趨開放，多元文化和新住民（外籍配偶、移工等）移入，帶動多元文化發展',
+   'C 台灣社會完全放棄中華文化',
+   'D 台灣人口大幅減少'
+ ],ans:1,
+ explain:'民國70年代後台灣社會變遷：①解嚴後社會日趨開放，人民更關注權利義務；②社會運動發展：環保、勞工、女權、族群等議題運動興起；③多元文化：外籍配偶、移工等新住民大量移入，帶動多元文化發展；④台灣文化走向本土化，同時與國際文化頻繁交流。'},
+
+];
+
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.panel).classList.add('active');if(tab.dataset.panel==='wrong')renderWP();});});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+function updateGo(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);const btn=document.getElementById('goBtn');if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}else{btn.disabled=true;btn.textContent='請選擇單元與模式';}}
+document.getElementById('goBtn').addEventListener('click',startGame);
+function startGame(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;const isLong=S.mode==='normal'||S.mode==='timed';let pool=QB.filter(q=>S.topics.includes(q.t));pool=shuffle(pool);S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));S.cur=0;showScreen('game');renderQ();}
+function startWrongPractice(){const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();}
+function renderQ(){if(S.cur>=S.qs.length){showResult();return;}const q=S.qs[S.cur];S.answered=false;const total=S.qs.length;document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));else document.getElementById('gLives').textContent='';const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort'};document.getElementById('qtag').textContent=tMap[q.type]||'題目';document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;document.getElementById('qtext').textContent=q.q;document.getElementById('qsub').textContent=q.hint||'';const area=document.getElementById('ans-area');area.innerHTML='';document.getElementById('fbbox').className='fb-box';document.getElementById('nextBtn').className='next-btn';if(q.type==='mc')renderMC(q,area);else if(q.type==='tf')renderTF(q,area);else if(q.type==='fill')renderFillQ(q,area);else if(q.type==='match')renderMatch(q,area);else if(q.type==='sort')renderSort(q,area);clearInterval(S.timer);const te=document.getElementById('gTimer');if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}else te.style.display='none';}
+function renderMC(q,area){const grid=document.createElement('div');grid.className='opts';q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt';btn.textContent=o;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const ok=i===q.ans;grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});finish(ok,q);});grid.appendChild(btn);});area.appendChild(grid);}
+function renderTF(q,area){const row=document.createElement('div');row.className='tf-row';['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const userT=i===0,ok=userT===q.ans;row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});finish(ok,q);});row.appendChild(btn);});area.appendChild(row);}
+function renderFillQ(q,area){const row=document.createElement('div');row.className='fill-row';const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確：${q.ans}`);};btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});row.append(inp,btn);area.appendChild(row);}
+function renderMatch(q,area){const wrap=document.createElement('div');wrap.className='match-wrap';const lCol=document.createElement('div');lCol.className='match-col';const rCol=document.createElement('div');rCol.className='match-col';const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);let lPicked=null,rPicked=null,matched=0;pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});wrap.append(lCol,rCol);area.appendChild(wrap);function tryM(){if(!lPicked||!rPicked)return;const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}lPicked=null;rPicked=null;}wrap.addEventListener('click',e=>{if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}tryM();});}
+let dragEl=null;
+function renderSort(q,area){const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));const list=document.createElement('div');list.className='sort-list';shuffled.forEach(item=>{const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});el.addEventListener('dragend',()=>el.classList.remove('dragging'));el.addEventListener('dragover',e=>e.preventDefault());el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});list.appendChild(el);});area.appendChild(list);const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});area.appendChild(chk);}
+function finish(ok,q,extraMsg){const pts=calcPts(ok,q.type);if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;document.getElementById('fbmsg').textContent=msg;document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;const nb=document.getElementById('nextBtn');nb.className='next-btn show';const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};}
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+function startTimer(sec){S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';S.timer=setInterval(()=>{S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}},1000);}
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+function showResult(){clearInterval(S.timer);showScreen('result');const max=S.qs.length*6;const pct=max>0?S.score/max:0;let emoji,title,msg;if(pct>=.9){emoji='🏆';title='歷史達人！';msg='歷史第二冊掌握得非常好！繼續保持！';}else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點複習！';}else if(pct>=.5){emoji='📖';title='繼續加油！';msg='去錯題複習區針對弱點加強！';}else{emoji='💪';title='不要灰心！';msg='把講義再仔細看一遍，再來挑戰！';}document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';document.getElementById('rMsg').textContent=msg;const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}else document.getElementById('rWeak').style.display='none';const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';if(pct>=.75)confetti();}
+function renderWP(){const bank=loadWB();const panel=document.getElementById('wrongPanel');const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;pw.style.display='block';cl.style.display='block';}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#2c5282','#1a3a8e','#15337a','#3182ce','#c3d4f0'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

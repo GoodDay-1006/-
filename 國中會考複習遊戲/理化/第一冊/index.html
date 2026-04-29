@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>理化闖關王 第一冊</title>
+<style>
+:root{
+  --bg:#f8f0ff;--ink:#0a1a2a;--red:#c0392b;--gold:#6c3483;
+  --teal:#512e8b;--blue:#4a235a;--accent:#8e44ad;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(10,26,42,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(142,68,173,.08) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(108,52,131,.06) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#e8d5f5 0%,var(--bg) 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(10,26,42,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(10,26,42,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(10,26,42,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(10,26,42,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(10,26,42,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#e8d5f5;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(10,26,42,.48);margin-top:3px;line-height:1.4;}
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(10,26,42,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(10,26,42,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(10,26,42,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(10,26,42,.38);border:1px solid rgba(10,26,42,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:#ff6b6b;animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#e8d5f5;color:var(--teal);}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8d5f5;color:#4a235a;}
+.qtag.match{background:#fce8d0;color:#b06010;}
+.qtag.sort{background:#fde8d0;color:#d35400;}
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(10,26,42,.43);margin-bottom:11px;font-style:italic;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#f3e8ff;border:2px solid #c39bd3;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#e8d5f5;}
+.opt.ok{background:#d4f5e2;border-color:#1a7a3a;color:#1a7a3a;font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #c39bd3;background:#f3e8ff;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:#1a7a3a;}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:#1a7a3a;background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--blue);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#f3e8ff;border:2px solid #c39bd3;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:var(--gold);background:#e8d5f5;font-weight:700;}
+.match-item.matched{border-color:#1a7a3a;background:#d4f5e2;color:#1a7a3a;font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#e8d5f5;border:2px solid #c39bd3;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--teal);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:#1a7a3a;border-left:4px solid #1a7a3a;}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+#result{background:linear-gradient(155deg,#e8d5f5 0%,var(--bg) 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(10,26,42,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(10,26,42,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(10,26,42,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#f3e8ff;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">理化闖關王</div>
+    <div class="home-badge">國中理化 第一冊 · 單元1-6 · 會考複習</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip on" data-t="u1">📏 單元1 基礎測量</div>
+      <div class="tchip on" data-t="u2">⚗️ 單元2 物質的世界</div>
+      <div class="tchip on" data-t="u3">🔊 單元3 波動與聲音</div>
+      <div class="tchip on" data-t="u4">💡 單元4 光與色的世界</div>
+      <div class="tchip on" data-t="u5">🌡️ 單元5 溫度與熱</div>
+      <div class="tchip on" data-t="u6">⚛️ 單元6 元素與化合物</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+<div class="screen" id="game">
+  <div class="gbar">
+    <div><div class="gbar-left" id="gInfo">第 1 / 50 題</div><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;"><div class="gbar-timer" id="gTimer" style="display:none;">20</div><div><div class="gbar-score" id="gScore">0 分</div><div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox"><div class="fb-title" id="fbtitle"></div><div id="fbmsg"></div></div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div><div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div><div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div><div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+<div class="combo" id="combo"></div>
+<script>
+const SK='sci_book1_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+// ===== 單元1 基礎測量 =====
+{t:'u1',type:'mc',era:'測量・有效數字與估值',q:'用量筒測量液體體積時，讀數應讀到最小刻度的幾分之一？',opts:['估讀最小刻度的十分之一（一位估讀）','讀取整數刻度，不需要進行估讀','只讀整數，精確到最小刻度即可','估讀最小刻度的二分之一（兩位估讀）'],ans:0,explain:'量筒讀數：確定值讀到最小刻度，再估讀最小刻度的十分之一（估值）。例如最小刻度為1 mL，則可讀到0.1 mL。眼睛要與液面最低點（水）或最高點（水銀）齊平。'},
+{t:'u1',type:'mc',era:'測量・長度換算',q:'1公升（L）等於多少毫升（mL）？等於多少立方公分（cm³）？',opts:['100 mL = 10 cm³（錯誤換算）','1000 mL = 1000 cm³（正確換算）','10 mL = 1000 cm³（錯誤換算）','500 mL = 5000 cm³（錯誤換算）'],ans:1,explain:'體積換算：1 L = 1000 mL = 1000 cm³ = 1000 cc。1 mL = 1 cm³ = 1 cc。1 m³ = 10⁶ cm³。這是理化最常用的單位換算！'},
+{t:'u1',type:'mc',era:'測量・排水法',q:'用排水法測量一個「浮在水面上的」塑膠球體積，下列哪種方法最適合？',opts:['直接放入量筒，讀取液面上升的量','用針將球完全壓入水中，計算液面上升量','浮在水面的物體無法使用排水法測量','先秤質量再除以密度，不需排水法'],ans:1,explain:'排水法：適用於不溶於水的固體。若物體會浮，可用細線或金屬棒將其完全壓入水面下，再讀液面上升量。若會沉，直接放入即可。排水法測的是「排水體積 = 物體體積」。'},
+{t:'u1',type:'mc',era:'測量・密度定義',q:'密度的定義與公式為何？',opts:['密度 = 體積 ÷ 質量（V/M）','密度 = 質量 ÷ 體積（M/V）','密度 = 質量 × 體積（M×V）','密度 = 重量 ÷ 體積（W/V）'],ans:1,explain:'密度（D）= 質量（M）÷ 體積（V），單位為 g/cm³ 或 kg/m³。密度是物質本身的特性，不隨質量或體積改變。水的密度約 1 g/cm³，酒精約 0.8 g/cm³。'},
+{t:'u1',type:'mc',era:'測量・天平使用',q:'使用上皿天平測量物質質量時，下列操作何者正確？',opts:['待測物置右盤，砝碼置左盤，用手直接取砝碼','待測物置左盤，砝碼置右盤，藥品置稱量紙，先歸零','砝碼可用手直接取放，不需鑷子，不必歸零','不需先歸零，待測物與砝碼皆置於左盤'],ans:1,explain:'上皿天平使用：①待測物放左盤、砝碼放右盤；②藥品放稱量紙上（防腐蝕）；③測量前先歸零（指針指向中間，左右擺幅相同）；④取砝碼用鑷子，不可用手。'},
+{t:'u1',type:'tf',era:'測量・密度與質量體積關係',q:'同種材質但體積不同的兩個物體，其密度相同；不同材質但質量相同的兩物體，密度一定不同。',ans:true,explain:'密度是物質的固有特性，與質量和體積無關（只要材質相同密度就相同）。不同材質密度不同，所以質量相同時體積不同；體積相同時質量不同。'},
+{t:'u1',type:'mc',era:'科學方法・操作變因',q:'實驗中「操作變因」的定義為何？',opts:['實驗中固定保持不變的因素（控制變因）','實驗者每次刻意改變的單一因素（操作變因）','因操作改變而跟著改變的實驗結果（應變變因）','對結果沒有直接影響的次要外在因素'],ans:1,explain:'科學方法三變因：①操作變因：刻意改變的因素（只能1個）；②控制變因：保持不變的其他因素（至少1個以上）；③應變變因：因操作變因改變而改變的實驗結果（對應1個）。'},
+{t:'u1',type:'sort',era:'科學方法・科學步驟順序',q:'請將科學方法的步驟由「最先」到「最後」排列：',items:['提出假設（根據觀察猜測原因）','觀察現象（發現問題）','實驗驗證（設計對照實驗）','歸納結論（分析結果）'],correctOrder:[1,0,2,3],explain:'科學方法步驟：①觀察（發現問題）→②提出假設→③設計實驗驗證→④分析數據→⑤歸納結論。如有新問題，循環重複此過程。'},
+{t:'u1',type:'fill',era:'測量・混合密度',q:'密度0.8 g/cm³的液體A與密度1.2 g/cm³的液體B等體積混合，若兩液體體積有加性，混合後密度為_____g/cm³。',ans:'1.0',alts:['1'],explain:'混合密度 = (M_A + M_B) / (V_A + V_B)。設各為V cm³，M_A = 0.8V，M_B = 1.2V，混合密度 = (0.8V + 1.2V)/(V + V) = 2V/2V = 1.0 g/cm³。'},
+
+// ===== 單元2 物質的世界 =====
+{t:'u2',type:'mc',era:'物質・定義與分類',q:'下列何者屬於「物質」？',opts:['光能、熱能、電能等各種能量形式','木頭、鐵釘、玻璃等有質量且占空間的東西','聲音、磁力等非物質的作用形式','核能、化學能等儲存於物質中的能量'],ans:1,explain:'物質：占有空間、具有質量的東西，如木頭、鐵、水。非物質：不占空間、不具質量，如光能、聲能、熱能、電能。物質的質量不因形態或位置改變。'},
+{t:'u2',type:'mc',era:'物質・三態特性',q:'固態、液態、氣態的主要特性比較，下列何者正確？',opts:['固態體積不定形狀固定，液態兩者皆固定，氣態可壓縮','固態體積形狀均固定，液態體積固定形狀不定，氣態兩者皆不固定','氣態體積形狀均固定，粒子靜止不動不可壓縮','液態體積不定形狀固定，粒子不能自由移動'],ans:1,explain:'三態特性：固態（體積固定、形狀固定、不可壓縮）；液態（體積固定、形狀不固定、不可壓縮）；氣態（體積不固定、形狀不固定、可壓縮）。粒子排列：固>液>氣，粒子運動速度：氣>液>固。'},
+{t:'u2',type:'match',era:'物質・三態變化名稱配對',q:'請將三態變化方向與名稱配對：',pairs:[['固態→液態（吸熱）','熔化'],['液態→氣態（吸熱）','汽化（蒸發/沸騰）'],['氣態→液態（放熱）','凝結（液化）'],['液態→固態（放熱）','凝固']],explain:'三態變化：吸熱（固→液熔化；液→氣汽化；固→氣昇華）；放熱（液→固凝固；氣→液凝結；氣→固凝華）。昇華例如：乾冰、衛生球（樟腦）。'},
+{t:'u2',type:'mc',era:'物質・物理與化學變化',q:'下列何者屬於「化學變化」？',opts:['冰融化為水（物理變化，三態轉換）','糖溶於水（物理變化，溶解現象）','鐵生鏽（化學變化，產生新物質）','玻璃破碎（物理變化，形狀改變）'],ans:2,explain:'化學變化：有新物質產生，例如燃燒、生鏽、光合作用、消化作用。物理變化：物質沒有變成新物質，例如三態變化（熔化、汽化）、溶解、磁化、玻璃破碎。鐵生鏽→產生氧化鐵（新物質）=化學變化。'},
+{t:'u2',type:'tf',era:'物質・純物質與混合物',q:'純物質具有固定的熔點、沸點、密度；混合物沒有固定的性質，可用物理方法（如過濾、蒸餾）分離。',ans:true,explain:'純物質：有固定組成、熔沸點、密度（如純水、純鐵）；混合物：沒有固定性質（如海水、空氣、食鹽水）。分離混合物可用過濾（顆粒大小不同）、蒸發結晶（溶解度不同）、蒸餾（沸點不同）等。'},
+{t:'u2',type:'mc',era:'溶液・溶解度與飽和溶液',q:'關於「溶解度」的敘述，下列何者正確？',opts:['每100克溶劑在特定溫度下能溶解的最大溶質克數','溶質質量占溶液總質量的百分比數值','固定不變的常數，不受溫度或溶劑種類影響','加入更多溶劑後，同溫下的溶解度會增大'],ans:0,explain:'溶解度：每100克溶劑（通常指水）在特定溫度下，最多能溶解的溶質克數。溫度越高，固體溶解度通常增大；氣體溶解度則隨溫度升高而降低。達最大量為飽和溶液。'},
+{t:'u2',type:'mc',era:'溶液・濃度計算',q:'將30克食鹽溶於170克水中，此食鹽水的重量百分濃度為多少？',opts:['30%（30克÷100克×100%）','15%（30克÷200克×100%）','17%（30克÷170克×100%）','12%（30克÷250克×100%）'],ans:1,explain:'重量百分濃度(W%) = 溶質重量/(溶液重量) × 100% = 30/(30+170) × 100% = 30/200 × 100% = 15%。注意分母是溶液重（溶質+溶劑），不是溶劑重。'},
+{t:'u2',type:'mc',era:'溶液・擴散現象',q:'將一滴紅色墨水滴入清水中，最終整杯水都變紅，這個現象稱為什麼？',opts:['蒸發（液體表面分子轉為氣態）','溶解（溶質均勻分散在溶劑中）','擴散（粒子由高濃度往低濃度自然移動）','凝結（氣態水分子轉為液態）'],ans:2,explain:'擴散：物質粒子由濃度高的地方自發地往濃度低的地方運動，直到均勻分布為止。這說明粒子一直在運動（布朗運動）。溶解時也會發生擴散現象（溶質粒子均勻分散在溶劑中）。'},
+{t:'u2',type:'mc',era:'空氣・組成成分',q:'空氣中含量最多的氣體是？第二多的是？',opts:['O₂約78%，N₂約21%，其餘為稀有氣體','N₂約78%，O₂約21%，其餘為稀有氣體','CO₂約78%，N₂約21%，其餘為氧氣','Ar約78%，O₂約21%，其餘為氮氣'],ans:1,explain:'空氣組成：N₂（氮氣）78%、O₂（氧氣）21%、Ar（氬氣）0.9%、CO₂（二氧化碳）0.03%。記憶：氮氧氬碳（N₂最多！）。氮氣無色無味、不可燃不助燃，常用充氮保鮮。'},
+{t:'u2',type:'mc',era:'空氣・氧氣製備',q:'實驗室製備氧氣的方法：用雙氧水（H₂O₂）加____催化劑，分解產生氧氣。',opts:['石灰石（CaCO₃）作為催化劑','二氧化錳（MnO₂）作為催化劑','大理石（CaCO₃）作為催化劑','鹽酸（HCl）作為催化劑'],ans:1,explain:'氧氣製備：2H₂O₂ →(MnO₂催化)→ 2H₂O + O₂。二氧化錳（MnO₂）是催化劑，加快反應速率但自身不消耗（質量不變）。增加雙氧水量可增加氧氣總量，增加濃度可加快速率。'},
+{t:'u2',type:'tf',era:'空氣・二氧化碳性質',q:'二氧化碳（CO₂）不可燃也不助燃，密度比空氣大，常用於滅火；固態CO₂稱為乾冰，乾冰昇華時周圍白霧是小水滴。',ans:true,explain:'CO₂性質：無色無味、密度比空氣大（沉在下方）、不可燃不助燃（最常用滅火）、溶於水成碳酸（呈酸性）。乾冰（固態CO₂）昇華吸熱，使周圍水氣凝結成白色小水滴（霧）。'},
+{t:'u2',type:'mc',era:'物質分離・方法',q:'「蒸發結晶」的原理是利用物質的哪種性質不同來分離？',opts:['利用顆粒大小不同篩選分離（過濾）','利用溶解度不同加熱蒸發使溶質析出','利用沸點不同加熱蒸餾使物質分離','利用密度不同使物質自然沉降分離'],ans:1,explain:'分離方法：過濾（顆粒大小）→分離食鹽水+砂；蒸發結晶（溶解度）→分離食鹽水得食鹽晶體；蒸餾（沸點）→分離不同沸點液體；層析（吸附力）→分離色素。'},
+
+// ===== 單元3 波動與聲音 =====
+{t:'u3',type:'mc',era:'波動・基本定義',q:'波的「波長」、「週期」、「頻率」的定義，下列何者正確？',opts:['波長是傳播距離，週期是波的振幅，頻率是波速','波長是相鄰波峰距離，週期是一次振動時間，頻率是每秒振動次數','波速等於波長乘以週期，頻率越高振幅越大','頻率越高波長越長，波速等於波長加上週期'],ans:1,explain:'波的基本量：①波長（λ）：相鄰兩波峰距離（或兩波谷、兩同相點間距）；②週期（T）：完成一次完整振動的時間（秒）；③頻率（f）：每秒振動次數（Hz），f=1/T；④波速（v）= 波長×頻率 = λ×f。'},
+{t:'u3',type:'mc',era:'波動・橫波與縱波',q:'聲波屬於哪種波？光波屬於哪種波？傳播方向與振動方向的關係？',opts:['聲波為橫波（振動垂直傳播），光波為縱波（振動平行傳播）','聲波為縱波（振動平行傳播），光波為橫波（振動垂直傳播）','聲波和光波都是橫波（振動垂直傳播方向）','聲波和光波都是縱波（振動平行傳播方向）'],ans:1,explain:'縱波：振動方向與傳播方向平行（如聲波）；橫波：振動方向與傳播方向垂直（如光波、水波、繩波）。記憶：聲音是縱波（空氣壓縮疏密），光是橫波。'},
+{t:'u3',type:'mc',era:'聲音・傳播條件',q:'聲音傳播需要介質，下列敘述何者正確？',opts:['聲音傳播速度：真空最快，固體其次，液體最慢','聲音傳播速度：固體最快（固>液>氣），真空無法傳播','聲音傳播速度：氣體最快，液體其次，固體最慢','聲音屬電磁波，不需介質即可在真空中傳播'],ans:1,explain:'聲速大小：固體>液體>氣體>真空（真空無法傳聲）。空氣中（15℃乾燥）聲速≈340 m/s，溫度越高聲速越快（v = 331 + 0.6T m/s）。聲音屬力學波，需要介質傳播（光不需要）。'},
+{t:'u3',type:'mc',era:'聲音・波速計算',q:'某地氣溫為25℃，此時空氣中的聲速約為多少m/s？',opts:['331 m/s（0℃時的標準聲速）','346 m/s（331+0.6×25，25℃的聲速）','340 m/s（近似值，不考慮溫度修正）','300 m/s（聲音在水中的傳播速度）'],ans:1,explain:'聲速公式：v = 331 + 0.6T（T為攝氏溫度）。25℃時：v = 331 + 0.6 × 25 = 331 + 15 = 346 m/s。0℃時：v = 331 m/s。光速約3×10⁸ m/s，比聲速快得多。'},
+{t:'u3',type:'mc',era:'聲音・三要素',q:'聲音的三要素（音量、音調、音色）分別由聲波的哪個性質決定？',opts:['音量由頻率決定，音調由振幅決定，音色由波長決定','音量由振幅決定，音調由頻率決定，音色由波形決定','音量由波形決定，音調由波長決定，音色由振幅決定','音量音調音色三者都是由振動頻率高低決定'],ans:1,explain:'聲音三要素：①音量（響度）：振幅大小，單位分貝（dB）；②音調：頻率高低（Hz），頻率高音調高；③音色（音品）：波形，不同樂器音色不同。改變弦長可改變音調，改變發力可改變音量，但音色不變。'},
+{t:'u3',type:'tf',era:'聲音・回聲',q:'回聲是聲音遇障礙物反射回來的聲音；人耳能分辨回聲的條件是：聲音反射面必須距離17公尺以上，且原聲與回聲間隔0.1秒以上。',ans:true,explain:'回聲條件：①反射面需距離發聲者17公尺以上；②原聲與回聲需間隔0.1秒以上（人耳反應時間）。應用：聲納測海深（距離 = 聲速 × 時間/2）、超聲波檢查（頻率>20000 Hz）。'},
+{t:'u3',type:'mc',era:'聲音・超聲波',q:'超聲波的定義是？人類能聽到的頻率範圍為何？',opts:['頻率低於20 Hz為次聲波；人耳範圍20~2000 Hz','頻率超過20000 Hz為超聲波；人耳範圍20~20000 Hz','頻率超過20000 Hz為次聲波；人耳範圍300~20000 Hz','聲速超過340 m/s的音波才稱為超聲波'],ans:1,explain:'人耳可聽範圍：20-20000 Hz。低於20 Hz→次聲波；超過20000 Hz→超聲波。超聲波應用：聲納測魚群和海深、超聲波檢查孕婦（無輻射）、清洗眼鏡、蝙蝠定位。'},
+{t:'u3',type:'mc',era:'聲音・共振',q:'「共振」的定義是什麼？應用為何？',opts:['兩物體振動頻率不同時互相干擾抵銷','兩物體固有頻率相同，一個振動引起另一個跟著振動','聲音遇障礙物反射回來，形成回聲的現象','兩列波相遇時振幅疊加互相增強的現象'],ans:1,explain:'共振：兩物體固有振動頻率相同，一個振動引起另一個跟著振動。應用：樂器共鳴箱（放大聲音）、吉他箱體（共振增大音量）、橋梁設計需避免共振（避免共振損壞結構）。'},
+
+// ===== 單元4 光與色的世界 =====
+{t:'u4',type:'mc',era:'光・反射定律',q:'光的反射定律包含哪三個條件？',opts:['入射角等於折射角，光線在法線同側','三線共面，入射線反射線在法線兩側，入射角等於反射角','平行光入射後都向同一固定方向反射','反射角一定大於入射角，與介質種類有關'],ans:1,explain:'反射定律：①入射線、反射線、法線在同一平面；②入射線與反射線在法線兩側；③入射角=反射角。平面鏡的像：正立、等大、虛像，像在鏡後（物像距相等）。'},
+{t:'u4',type:'mc',era:'光・平面鏡',q:'平面鏡成像性質為何？「所需平面鏡最小長度」與人身高的關係？',opts:['正立放大虛像；最小鏡長等於身高','正立等大虛像；最小鏡長等於身高的二分之一','倒立縮小實像；最小鏡長等於身高','正立放大虛像；最小鏡長大於身高'],ans:1,explain:'平面鏡：正立、等大、虛像（無法在紙上呈現）。看到自己全身像所需最小鏡長 = 身高/2（可推導：眼到頭頂距離/2 + 眼到腳底距離/2 = 身高/2）。'},
+{t:'u4',type:'mc',era:'光・折射',q:'光從水中進入空氣，折射角與入射角的關係為何？',opts:['折射角等於入射角，光線不偏折直線前進','折射角小於入射角，光線偏向法線方向','折射角大於入射角，光線偏離法線方向','光從水進入空氣時會完全反射，無法進入'],ans:2,explain:'光的折射：從光速慢的介質（水）進入光速快的介質（空氣），折射角>入射角（偏離法線）。從空氣進入水，折射角<入射角（偏向法線）。速度慢的介質折射率大。'},
+{t:'u4',type:'match',era:'光・凸透鏡成像配對',q:'請將物體位置與凸透鏡成像性質配對：',pairs:[['物在焦點外2倍焦距以外','倒立縮小實像（物像異側）'],['物在焦點外，1倍到2倍焦距間','倒立放大實像（物像異側）'],['物在焦點內（焦距以內）','正立放大虛像（物像同側）'],['物在焦點上','不成像（平行光射出）']],explain:'凸透鏡成像：焦距外>2F→倒立縮小實像（相機）；F~2F→倒立放大實像（投影機）；F以內→正立放大虛像（放大鏡）。記憶：物越近凸透鏡，像越遠且越大（在焦距外）。'},
+{t:'u4',type:'mc',era:'光・凹鏡凸鏡',q:'凹面鏡與凸面鏡的功能比較，下列何者正確？',opts:['凸面鏡聚光用於集熱；凹面鏡發散用於後視鏡','凹面鏡聚光用於集熱；凸面鏡發散視野廣用於後視鏡','凹凸面鏡功能完全相同，均可聚光也可發散','凹面鏡成像一定是虛像，凸面鏡一定是實像'],ans:1,explain:'凹面鏡：中央凹入，聚光，可形成實像（太陽能集熱、手電筒、美容放大鏡）。凸面鏡：向外凸出，發散光，視野廣，像為正立縮小虛像（汽車後視鏡、店鋪防盜鏡）。'},
+{t:'u4',type:'mc',era:'光・近視遠視矯正',q:'近視眼成因及矯正方式為何？',opts:['水晶體過薄焦距過長，成像在視網膜後，需配凸透鏡','水晶體過厚焦距過短，成像在視網膜前，需配凹透鏡','水晶體彈性消失焦距不可調，不需配戴眼鏡','成像剛好落在視網膜上，屬於正常視力'],ans:1,explain:'近視：水晶體太厚（焦距太短）→成像在視網膜前→配戴凹透鏡（發散光）矯正。遠視：水晶體太薄（焦距太長）→成像在視網膜後→配戴凸透鏡（會聚光）矯正。'},
+{t:'u4',type:'mc',era:'光・色散與三原色',q:'白光（太陽光）通過三稜鏡後會散開成彩虹色，這個現象稱為「色散」。光的三原色為何？',opts:['紅、橙、黃三色為光的三原色','紅（R）、綠（G）、藍（B）三色混合成白光','紅、黃、藍三色為光的三原色','紫、橙、綠三色為光的三原色'],ans:1,explain:'光的色散：白光通過三稜鏡發生兩次折射，不同波長光折射角不同→分散。折射角：紫>藍>綠>黃>橙>紅（波長：紅>橙>…>紫）。光的三原色：紅（R）、綠（G）、藍（B），三色相加→白光。'},
+{t:'u4',type:'tf',era:'光・物體顏色',q:'透明物體的顏色由「透過」的光決定；不透明物體的顏色由「反射」的光決定；黑色物體吸收所有光，白色物體反射所有光。',ans:true,explain:'物體顏色：透明體→透過特定色光（紅色玻璃只讓紅光通過）；不透明體→反射特定色光（紅色蘋果反射紅光，吸收其他光）；黑色→吸收全部光（不反射）；白色→反射全部光。'},
+
+// ===== 單元5 溫度與熱 =====
+{t:'u5',type:'mc',era:'溫度・溫標換算',q:'攝氏30℃換算為華氏溫標為多少℉？',opts:['62℉（以F=8/5×C+32計算）','86℉（以F=9/5×C+32計算）','68℉（以F=9/5×C+20計算）','54℉（以F=9/5×20+32計算）'],ans:1,explain:'溫標換算公式：F = 9/5 × C + 32；C = 5/9 × (F - 32)。30℃ = 9/5 × 30 + 32 = 54 + 32 = 86℉。水的冰點：0℃ = 32℉；沸點：100℃ = 212℉。'},
+{t:'u5',type:'mc',era:'溫度・溫度計原理',q:'大多數溫度計利用什麼原理測量溫度？水銀溫度計適合測量哪個溫度範圍？',opts:['磁鐵遇熱失去磁性的原理；適合0~100℃','熱脹冷縮現象；水銀溫度計適合-38℃~356℃','物質密度隨溫度改變的原理；適合-100~100℃','聲速隨溫度改變的原理；只適合室溫範圍'],ans:1,explain:'溫度計原理：熱脹冷縮（液體受熱體積膨脹，上升讀數）。水銀溫度計（-38~356℃，測高溫）；酒精溫度計（-111~78℃，測低溫）；耳溫槍（紅外線）；液晶溫度計（顏色變化）。'},
+{t:'u5',type:'mc',era:'熱・比熱定義',q:'比熱的定義為何？水的比熱約為多少？',opts:['每克物質升高1℃所吸收的熱量；水≈1 cal/g℃','每克物質降低1℃所放出的熱量；水≈0.5 cal/g℃','物質升高1℃的熱量，不計質量；水≈2 cal/g℃','熱量除以溫度差所得的比值；水≈3 cal/g℃'],ans:0,explain:'比熱（S）：1克物質溫度升高（或降低）1℃所需吸收（或放出）的熱量。單位：cal/(g·℃)。水的比熱≈1 cal/g℃（最大），意謂水升溫慢、降溫也慢，是良好的散熱材料。'},
+{t:'u5',type:'mc',era:'熱・熱量公式',q:'吸放熱量的計算公式為何？若100克水從20℃升溫至70℃，需吸收多少卡熱量？',opts:['H = M+S+ΔT；計算得100+1+50 = 151 cal','H = M×S×ΔT；計算得100×1×50 = 5000 cal','H = S×ΔT；計算得1×50 = 50 cal（漏算質量）','H = M÷S÷ΔT；計算得100÷1÷50 = 2 cal'],ans:1,explain:'熱量公式：H = M × S × ΔT（M為質量g，S為比熱cal/g℃，ΔT為溫度變化℃）。100g水，S=1 cal/g℃，ΔT=70-20=50℃，H = 100 × 1 × 50 = 5000 cal = 5 kcal。'},
+{t:'u5',type:'match',era:'熱・傳播方式配對',q:'請將熱的傳播方式與說明配對：',pairs:[['傳導','物體間直接接觸傳熱，固體最好（金屬>非金屬）'],['對流','流體（液體或氣體）受熱膨脹上升，冷流體下沉，形成循環'],['輻射','不需介質，以電磁波（紅外線）形式傳熱，真空中也能傳'],['溫室效應','大氣吸收地球輻射熱，使地球升溫']],explain:'熱傳播：①傳導（固體接觸，金屬導熱好）；②對流（流體循環，冷氣放上面/暖氣放下面）；③輻射（電磁波，不需介質，如太陽能到地球）。真空中只有輻射方式傳熱。'},
+{t:'u5',type:'tf',era:'熱・熱平衡',q:'兩個溫度不同的物體接觸時，熱量從高溫流向低溫，最終達到同一溫度（熱平衡），此時高溫物體放出的熱量等於低溫物體吸收的熱量。',ans:true,explain:'熱平衡：Q放 = Q吸，即 M₁×S₁×(T₁-T平) = M₂×S₂×(T平-T₂)。這是理化計算的基礎。能量守恆：熱量既不憑空產生也不消滅，只是轉移。'},
+{t:'u5',type:'mc',era:'熱・物態變化與溫度',q:'物質在「熔化」過程中，溫度的變化為何？',opts:['溫度持續上升直到全部由固態變為液態','溫度維持在熔點不變，直到全部熔化完畢','溫度先升至熔點，再下降直到固態消失','溫度持續下降，固體吸熱後逐漸熔化'],ans:1,explain:'純物質熔化（及凝固）時：溫度保持在熔點不變，直到相變完成。加熱曲線：固態升溫→熔化（水平線，溫度不變）→液態升溫→沸騰（水平線）→氣態升溫。混合物沒有固定熔沸點。'},
+
+// ===== 單元6 元素與化合物 =====
+{t:'u6',type:'mc',era:'元素・金屬與非金屬',q:'金屬元素的主要特性，下列何者正確？',opts:['大部分固態、導電性差、無光澤、無延展性','大部分固態、有光澤、導電導熱佳、有延展性，汞為液態','大部分氣態、有光澤、導電性差、無延展性','大部分固態、無光澤、溶水呈酸性、無延展性'],ans:1,explain:'金屬特性：固態（常溫，汞例外）、光澤、良導體、延展性（金最強）、氧化物溶水呈鹼性。汞（Hg）是唯一液態金屬。延展性最佳：金；導電性最佳：銀>銅>金>鋁。'},
+{t:'u6',type:'mc',era:'元素・原子結構',q:'原子由哪些粒子組成？各粒子的特性為何？',opts:['原子由中子和電子組成，中子帶正電不含質子','原子核含質子（正電）和中子（不帶電），外圍為電子','原子由質子和電子組成，電子在核內帶負電','電子帶正電在核內，質子帶負電在核外圍'],ans:1,explain:'原子結構：原子核（質子+中子）+ 核外電子。質子：帶正電（+1），質量≈1836×電子；電子：帶負電（-1），質量很小；中子：不帶電，質量≈質子。中性原子：質子數=電子數。'},
+{t:'u6',type:'mc',era:'元素・原子序與質量數',q:'鈉原子（Na）原子序11，質量數23，則鈉原子有多少個質子、電子和中子？',opts:['質子11個、電子11個、中子23個','質子11個、電子11個、中子12個（23-11=12）','質子23個、電子23個、中子11個','質子12個、電子12個、中子11個'],ans:1,explain:'原子序=質子數=（中性原子的）電子數。中子數=質量數-質子數=23-11=12。Na：11個質子、11個電子、12個中子。原子序決定元素種類（化學性質），中子數不同→同位素。'},
+{t:'u6',type:'mc',era:'元素・同位素',q:'「同位素」的定義是什麼？舉例說明。',opts:['不同元素但原子序恰好相同的一組原子','相同元素但中子數不同的原子，化學性質相同（如氕氘氚）','原子序和質量數都相同，中子數也相同的原子','同元素但電子數不同，因此帶有不同電荷'],ans:1,explain:'同位素：相同原子序（相同元素）但中子數不同，因此質量數不同；化學性質幾乎相同。例：¹²C與¹⁴C（碳14，用於文物年代鑑定）；⁽¹⁶⁾O與¹⁸O；氕¹H、氘²H、氚³H。'},
+{t:'u6',type:'mc',era:'元素・週期表',q:'元素週期表的「族」與「週期」的意義為何？',opts:['橫列稱族（共18族），縱行稱週期（共7個），同族性質不同','橫列稱週期（共7個），縱行稱族（共18族），同族化學性質相似','橫列縱行都稱週期，依原子序由小到大排列','橫列縱行意義相同，都只用來表示元素序號'],ans:1,explain:'週期表：橫列=週期（共7個），從左到右原子序增加；縱行=族（共18族），同族元素最外層電子數相同，化學性質相似。第18族（惰性氣體）最穩定，不易反應。'},
+{t:'u6',type:'mc',era:'元素・化學式書寫',q:'化學式的書寫規則：金屬元素與非金屬元素的化合物，金屬符號寫在哪裡？',opts:['非金屬符號寫前面，金屬符號寫後面（如ClNa）','金屬符號寫前面，非金屬符號寫後面（如NaCl、CaO）','金屬與非金屬位置可以任意對調，無固定規則','按英文字母A到Z的順序依序排列元素符號'],ans:1,explain:'化學式書寫：①金屬和非金屬化合→金屬寫前面（如NaCl、MgCl₂）；②氧化物→O寫後面（如CO₂、CaO）；③有機化合物→按C、H、O順序（如C₆H₁₂O₆葡萄糖）。'},
+{t:'u6',type:'mc',era:'元素・陽離子陰離子',q:'鈉原子（Na）失去一個電子後變成什麼？氯原子（Cl）得到一個電子後變成什麼？',opts:['Na⁻（鈉陰離子，帶負電）；Cl⁺（氯陽離子，帶正電）','Na⁺（鈉陽離子，帶正電）；Cl⁻（氯陰離子，帶負電）','Na和Cl都得到電子，均形成帶正電的陽離子','Na和Cl都失去電子，均形成帶負電的陰離子'],ans:1,explain:'離子：①失去電子→質子>電子→帶正電→陽離子（如Na⁺、Mg²⁺）；②得到電子→電子>質子→帶負電→陰離子（如Cl⁻、O²⁻）。金屬一般失電子，非金屬一般得電子。'},
+{t:'u6',type:'tf',era:'元素・碳的同素異形體',q:'石墨、鑽石（金剛石）和足球烯（C-60）都是由碳元素組成，但結構不同，互稱為「同素異形體」，物理性質不同但化學性質相似。',ans:true,explain:'同素異形體：相同元素組成但結構不同→物理性質不同（硬度、導電性等），但化學性質相似。碳的同素異形體：石墨（導電、軟）→鉛筆芯；鑽石（最硬，不導電）→切割工具；C-60（巴克球）→奈米科技。'},
+];
+
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.panel).classList.add('active');if(tab.dataset.panel==='wrong')renderWP();});});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+function updateGo(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);const btn=document.getElementById('goBtn');if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}else{btn.disabled=true;btn.textContent='請選擇單元與模式';}}
+document.getElementById('goBtn').addEventListener('click',startGame);
+function startGame(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;const isLong=S.mode==='normal'||S.mode==='timed';let pool=QB.filter(q=>S.topics.includes(q.t));pool=shuffle(pool);S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));S.cur=0;showScreen('game');renderQ();}
+function startWrongPractice(){const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();}
+function renderQ(){if(S.cur>=S.qs.length){showResult();return;}const q=S.qs[S.cur];S.answered=false;const total=S.qs.length;document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));else document.getElementById('gLives').textContent='';const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort'};document.getElementById('qtag').textContent=tMap[q.type]||'題目';document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;document.getElementById('qtext').textContent=q.q;document.getElementById('qsub').textContent=q.hint||'';const area=document.getElementById('ans-area');area.innerHTML='';document.getElementById('fbbox').className='fb-box';document.getElementById('nextBtn').className='next-btn';if(q.type==='mc')renderMC(q,area);else if(q.type==='tf')renderTF(q,area);else if(q.type==='fill')renderFillQ(q,area);else if(q.type==='match')renderMatch(q,area);else if(q.type==='sort')renderSort(q,area);clearInterval(S.timer);const te=document.getElementById('gTimer');if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}else te.style.display='none';}
+function renderMC(q,area){const grid=document.createElement('div');grid.className='opts';q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt';btn.textContent=o;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const ok=i===q.ans;grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});finish(ok,q);});grid.appendChild(btn);});area.appendChild(grid);}
+function renderTF(q,area){const row=document.createElement('div');row.className='tf-row';['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const userT=i===0,ok=userT===q.ans;row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});finish(ok,q);});row.appendChild(btn);});area.appendChild(row);}
+function renderFillQ(q,area){const row=document.createElement('div');row.className='fill-row';const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確：${q.ans}`);};btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});row.append(inp,btn);area.appendChild(row);}
+function renderMatch(q,area){const wrap=document.createElement('div');wrap.className='match-wrap';const lCol=document.createElement('div');lCol.className='match-col';const rCol=document.createElement('div');rCol.className='match-col';const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);let lPicked=null,rPicked=null,matched=0;pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});wrap.append(lCol,rCol);area.appendChild(wrap);function tryM(){if(!lPicked||!rPicked)return;const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}lPicked=null;rPicked=null;}wrap.addEventListener('click',e=>{if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}tryM();});}
+let dragEl=null;
+function renderSort(q,area){const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));const list=document.createElement('div');list.className='sort-list';shuffled.forEach(item=>{const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});el.addEventListener('dragend',()=>el.classList.remove('dragging'));el.addEventListener('dragover',e=>e.preventDefault());el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});list.appendChild(el);});area.appendChild(list);const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});area.appendChild(chk);}
+function finish(ok,q,extraMsg){const pts=calcPts(ok,q.type);if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;document.getElementById('fbmsg').textContent=msg;document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;const nb=document.getElementById('nextBtn');nb.className='next-btn show';const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};}
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+function startTimer(sec){S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';S.timer=setInterval(()=>{S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}},1000);}
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+function showResult(){clearInterval(S.timer);showScreen('result');const max=S.qs.length*6;const pct=max>0?S.score/max:0;let emoji,title,msg;if(pct>=.9){emoji='🏆';title='理化天才！';msg='第一冊掌握得非常好！繼續保持！';}else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點複習！';}else if(pct>=.5){emoji='📖';title='繼續加油！';msg='去錯題複習區針對弱點加強！';}else{emoji='💪';title='不要灰心！';msg='把筆記再仔細看一遍，再來挑戰！';}document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';document.getElementById('rMsg').textContent=msg;const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}else document.getElementById('rWeak').style.display='none';const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';if(pct>=.75)confetti();}
+function renderWP(){const bank=loadWB();const panel=document.getElementById('wrongPanel');const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;pw.style.display='block';cl.style.display='block';}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#8e44ad','#6c3483','#512e8b','#4a235a','#e8d5f5'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

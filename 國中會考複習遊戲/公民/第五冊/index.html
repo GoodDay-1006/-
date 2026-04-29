@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>公民闖關王 第五冊</title>
+<style>
+:root{
+  --bg:#f0fff4;--ink:#0a2a10;--red:#c0392b;--gold:#1a7a3a;
+  --teal:#155a28;--blue:#0f3d1c;--accent:#27ae60;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(10,42,16,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(39,174,96,.08) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(26,122,58,.06) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#c8f5d8 0%,#f0fff4 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(10,42,16,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(10,42,16,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(10,42,16,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(10,42,16,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(10,42,16,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#c8f5d8;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(10,42,16,.48);margin-top:3px;line-height:1.4;}
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(10,42,16,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(10,42,16,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(10,42,16,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(10,42,16,.38);border:1px solid rgba(10,42,16,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:var(--red);animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#c8f5d8;color:var(--teal);}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:var(--green);}
+.qtag.match{background:#fce8d0;color:#b06010;}
+.qtag.sort{background:#fde8d0;color:#d35400;}
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(10,42,16,.43);margin-bottom:11px;font-style:italic;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#eafaf1;border:2px solid #a9dfbf;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#c8f5d8;}
+.opt.ok{background:#d4f5e2;border-color:var(--green);color:var(--green);font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #a9dfbf;background:#eafaf1;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:var(--green);}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:var(--green);background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--blue);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#eafaf1;border:2px solid #a9dfbf;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:var(--gold);background:#c8f5d8;font-weight:700;}
+.match-item.matched{border-color:var(--green);background:#d4f5e2;color:var(--green);font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#c8f5d8;border:2px solid #a9dfbf;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--teal);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:var(--green);border-left:4px solid var(--green);}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+#result{background:linear-gradient(155deg,#c8f5d8 0%,#f0fff4 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(10,42,16,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(10,42,16,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(10,42,16,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#eafaf1;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">公民闖關王</div>
+    <div class="home-badge">公民 第五冊 · 單元11-13 · 會考複習</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip on" data-t="u11a">🛒 資源稀少與機會成本</div>
+      <div class="tchip on" data-t="u11b">💰 誘因與價格影響消費</div>
+      <div class="tchip on" data-t="u11c">🏭 生產、利潤與資源分配</div>
+      <div class="tchip on" data-t="u12a">🏪 市場競爭</div>
+      <div class="tchip on" data-t="u12b">🌏 國際貿易與分工</div>
+      <div class="tchip on" data-t="u13a">💵 貨幣與現代支付</div>
+      <div class="tchip on" data-t="u13b">💱 外匯與匯率</div>
+      <div class="tchip on" data-t="u13c">👷 勞動與勞基法</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+<div class="screen" id="game">
+  <div class="gbar">
+    <div><div class="gbar-left" id="gInfo">第 1 / 50 題</div><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;"><div class="gbar-timer" id="gTimer" style="display:none;">20</div><div><div class="gbar-score" id="gScore">0 分</div><div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox"><div class="fb-title" id="fbtitle"></div><div id="fbmsg"></div></div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div><div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div><div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div><div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+<div class="combo" id="combo"></div>
+<script>
+const SK='civ5_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+
+// ══ 單元11a：資源稀少性與機會成本 ══
+{t:'u11a',era:'消費・資源稀少性',type:'mc',
+ q:'「只要資源無法滿足人的欲望，此資源就具有稀少性」，下列何者不具備稀少性？',
+ opts:['A 金錢','B 時間','C 空氣（一般環境）','D 石油'],ans:2,
+ explain:'稀少性：並非指數量少，而是指相對於人們的欲望而言不足。空氣（一般環境）不須付出代價即可取用，屬自由財，不具稀少性。但空汙嚴重地區的「清淨空氣」需付代價，則具稀少性。'},
+
+{t:'u11a',era:'消費・自由財vs經濟財',type:'mc',
+ q:'「需受付代價才能獲取的資源」稱為？',
+ opts:['A 自由財','B 經濟財','C 公共財','D 稀少財'],ans:1,
+ explain:'自由財：不須付出代價可任意取用的資源（如陽光、空氣），不具稀少性。經濟財：受付代價才能取得的資源（如金錢、石油），具稀少性。當環境被破壞，自由財可能轉變為經濟財。'},
+
+{t:'u11a',era:'消費・機會成本概念',type:'mc',
+ q:'機會成本的定義是？',
+ opts:[
+   'A 做任何選擇所需花費的全部金錢',
+   'B 將資源用於某一用途時，所放棄的其他用途中「價值最高」者',
+   'C 所放棄的選項之價值總和',
+   'D 選擇所帶來的全部收益'
+ ],ans:1,
+ explain:'機會成本：做出選擇時所放棄的代價，即所有放棄選項中「價值最高者」（不是總和）。口訣：天下沒有白吃的午餐，有得必有失，魚與熊掌不可兼得，不能腳踏兩條船。'},
+
+{t:'u11a',era:'消費・機會成本計算',type:'mc',
+ q:'小明有三個打工選項：速食店時薪195元、加油站時薪210元、書局時薪200元。小明選擇去加油站打工，其機會成本是多少？',
+ opts:['A 195元','B 200元','C 210元','D 405元'],ans:1,
+ explain:'機會成本是放棄選項中「價值最高者」。選加油站（210元）→放棄速食店195元和書局200元→機會成本是書局200元（較高者）。注意：機會成本不是所有放棄選項的總和。'},
+
+{t:'u11a',era:'消費・機會成本計算',type:'mc',
+ q:'機會成本的計算公式是？',
+ opts:[
+   'A 機會成本＝外顯成本＋隱藏成本',
+   'B 機會成本＝所有放棄選項的價值總和',
+   'C 機會成本＝外顯成本－隱藏成本',
+   'D 機會成本＝選擇所得到的利益'
+ ],ans:0,
+ explain:'機會成本＝外顯成本（實際支出的金錢）＋隱藏成本（投入自有資源放棄其他用途的代價）。例：取打工看電影，機會成本＝電影票錢（外顯）＋少賺的打工薪資（隱藏）。'},
+
+{t:'u11a',era:'消費・最佳選擇',type:'mc',
+ q:'做選擇時，最佳選擇的機會成本有何特徵？',
+ opts:[
+   'A 機會成本最大',
+   'B 機會成本最小（即第二名選項的價值最小）',
+   'C 沒有機會成本',
+   'D 機會成本等於所得收益'
+ ],ans:1,
+ explain:'最佳選擇：滿足程度最高、機會成本最小的選擇。機會成本是所放棄選項中排名第二的選項價值——當你選了最好的，你放棄的「次好選項」就是你的機會成本，而最佳選擇讓此成本最小。'},
+
+// ══ 單元11b：誘因與價格影響消費 ══
+{t:'u11b',era:'消費・誘因',type:'mc',
+ q:'「政府提出獎勵電動車補助，鼓勵民眾購買電動車」，這屬於哪種誘因？',
+ opts:['A 負向誘因（金錢）','B 正向誘因（金錢）','C 負向誘因（非金錢）','D 正向誘因（非金錢）'],ans:1,
+ explain:'誘因分兩類：①正向誘因：提高利益或降低損害，以鼓勵特定行為（如加薪、補助、獎勵）；②負向誘因：降低利益或提高損害，以抑制特定行為（如罰款、扣薪）。政府補助屬正向金錢誘因。'},
+
+{t:'u11b',era:'消費・誘因',type:'match',
+ q:'請將下列情境與誘因類型配對：',
+ pairs:[
+   ['政府提高菸稅，抑制民眾吸菸','負向誘因（金錢）'],
+   ['公司以記嘉獎方式鼓勵績優員工','正向誘因（非金錢）'],
+   ['以記警告方式懲罰違規者','負向誘因（非金錢）'],
+   ['年終獎金鼓勵員工努力工作','正向誘因（金錢）'],
+ ],
+ explain:'金錢誘因：加薪、補助、罰款、稅收等金錢方式。非金錢誘因：記嘉獎、記警告、升職、配給、記點等非金錢方式。正向：鼓勵；負向：抑制。'},
+
+{t:'u11b',era:'消費・價格影響需求量',type:'mc',
+ q:'「符合需求法則」的說法是？',
+ opts:[
+   'A 價格越高，消費者購買越多',
+   'B 價格越高，消費者購買越少；價格越低，消費者購買越多',
+   'C 價格不影響購買量',
+   'D 價格越低，消費者購買越少'
+ ],ans:1,
+ explain:'需求法則（口訣）：「價格高少買，價格低多買」。價格上漲→消費者購買數量減少；價格下降→消費者購買數量增加。這是消費者對價格的基本反應規律。'},
+
+{t:'u11b',era:'消費・非價格因素',type:'mc',
+ q:'「消費者預期蔬菜價格未來會上漲，因此現在提前大量購買」，這是哪種非價格因素影響消費？',
+ opts:['A 所得水準','B 個人偏好','C 預期心理','D 誘因'],ans:2,
+ explain:'影響消費的非價格因素：①所得水準（所得增加→消費型態提高）②預期心理（預期未來價格漲→提前購買）③個人偏好（受流行、廣告、習慣影響）。此題為預期心理影響消費決策。'},
+
+{t:'u11b',era:'消費・非價格因素',type:'tf',
+ q:'所得水準越高，消費者的消費能力越強，所有商品的購買量都會增加。',
+ ans:false,
+ explain:'所得增加只會提高整體消費能力和消費型態，但不一定所有商品都增加購買。所得減少時，消費者會優先確保生活必需品；所得增加時，才會增加非必需品的購買，且消費型態整體提升。'},
+
+// ══ 單元11c：生產、利潤與資源分配 ══
+{t:'u11c',era:'生產・利潤計算',type:'mc',
+ q:'利潤的計算公式是？',
+ opts:[
+   'A 利潤＝銷售收入＋生產成本',
+   'B 利潤＝銷售收入－生產成本',
+   'C 利潤＝產品價格×銷售量',
+   'D 利潤＝生產成本÷銷售收入'
+ ],ans:1,
+ explain:'利潤公式：利潤＝銷售收入－生產成本。銷售收入＝產品價格×銷售量。生產成本包含：地租（承租土地）、薪資（人力資源）、利息（借款設備費用）。提高利潤方式：增加銷售收入或降低生產成本。'},
+
+{t:'u11c',era:'生產・資源分配方法',type:'match',
+ q:'請將資源分配方法與其說明配對：',
+ pairs:[
+   ['抽籤','隨機決定，都有機會取得，但全憑運氣'],
+   ['先占先贏','花時間排隊等待，先到者先得，公平但費時費力'],
+   ['輪流使用','每隔一段時間讓人使用，節省時間但若臨時有需求無法立即使用'],
+   ['預約登記','事先預約，節省時間、符合需求，但忽略經濟弱勢者需求'],
+   ['使用者付費','以價格為衡量單位，資源有效率使用，但不利經濟弱勢者'],
+ ],
+ explain:'五種資源分配方式各有優缺：抽籤（公平但靠運氣）、先占先贏（費時）、輪流使用（節時但無彈性）、預約登記（便利但忽略弱勢）、使用者付費（效率但不平等）。'},
+
+{t:'u11c',era:'生產・自由買賣vs政府管制',type:'mc',
+ q:'「自由買賣」的最大優點是？',
+ opts:[
+   'A 確保資源公平分配，弱勢不吃虧',
+   'B 價格由買賣雙方共同決定，可使資源有效率使用',
+   'C 政府可以控制物價穩定',
+   'D 生產者和消費者的選擇減少'
+ ],ans:1,
+ explain:'自由買賣：價格由買賣雙方共同決定，可使資源有效率使用，消費者有更多選擇。缺點：有些人在資源分配上處於弱勢，不易獲取資源。政府管制：使資源公平分配、價格穩定，但生產者與消費者選擇較少。'},
+
+{t:'u11c',era:'生產・價格影響供給量',type:'mc',
+ q:'「符合供給法則」的說法是？',
+ opts:[
+   'A 價格越高，生產者供給越少',
+   'B 價格越高，生產者供給越多；價格越低，生產者供給越少',
+   'C 價格不影響供給量',
+   'D 價格越低，生產者供給越多'
+ ],ans:1,
+ explain:'供給法則（口訣）：「價格高多供，價格低少供」。與需求法則相反：價格上漲→生產者願意增加供給量；價格下降→生產者減少供給量。需求與供給互為反向，共同決定市場均衡價格。'},
+
+// ══ 單元12a：市場競爭 ══
+{t:'u12a',era:'市場・交易概念',type:'mc',
+ q:'市場交易對買賣雙方互蒙其利的原因是？',
+ opts:[
+   'A 政府強制規定雙方交易',
+   'B 消費者與生產者各自衡量所有機會成本，做出最有利的選擇，並使資源做最有效率的分配與使用',
+   'C 交易可以讓雙方都賺錢',
+   'D 市場有「看得見的手」調控'
+ ],ans:1,
+ explain:'市場交易優點：①對消費者→可獲取日常所需財貨和勞務；②對生產者→可獲取利潤；③整體→各自衡量所有機會成本，做出最有利選擇，資源最有效率分配使用。市場運作如「看不見的手」自動調節。'},
+
+{t:'u12a',era:'市場・競爭方式',type:'mc',
+ q:'「推出買一送一、第二件半價」屬於哪種競爭方式？',
+ opts:['A 價格競爭','B 非價格競爭','C 惡性競爭','D 聯合壟斷'],ans:0,
+ explain:'競爭方式：①價格競爭（低價競爭）：單純以降低價格吸引消費者；②非價格競爭：不降低售價，以其他方式（提升品質、品牌形象、促銷活動如買一送一）吸引消費者。買一送一讓消費者實際付出更低的單位價格，屬價格競爭。'},
+
+{t:'u12a',era:'市場・競爭程度',type:'mc',
+ q:'市場門檻越低（廠商進入市場越容易），競爭程度通常？',
+ opts:['A 越低，廠商數量越少','B 越高，廠商數量越多','C 不受影響','D 由政府決定'],ans:1,
+ explain:'市場門檻與競爭程度的關係：門檻低→廠商進入容易→廠商數量多→競爭程度高→對消費者較有利（選擇多元）。門檻高→廠商進入困難→廠商數量少→競爭程度低→廠商有較強決定價格的能力（如電力公司）。'},
+
+{t:'u12a',era:'市場・消費者保護',type:'mc',
+ q:'消費者保護法賦予消費者的「7天猶豫期」適用於哪種情況？',
+ opts:[
+   'A 所有商品的購買',
+   'B 網路購物、電視購物等非實體店面的購買，可7天內無條件退貨',
+   'C 只適用於食品類商品',
+   'D 實體店面的大額購物'
+ ],ans:1,
+ explain:'7天猶豫期（消費者保護法）：網購、電視購物等「非實體店面」購物，有7天猶豫期可無條件退貨。例外：易腐敗品、保存期短的商品、客製化商品、已開封的影音商品、電腦軟體、個人衛生用品等不適用。實體店面無此法律保障。'},
+
+{t:'u12a',era:'市場・良性vs惡性競爭',type:'mc',
+ q:'「故意詆毀競爭對手商品、仿冒他人品牌」屬於哪種競爭？',
+ opts:['A 良性競爭','B 價格競爭','C 惡性競爭','D 非價格競爭'],ans:2,
+ explain:'良性競爭：促進經濟良性循環，讓消費者有更多選擇、更好的商品品質。惡性競爭：以不公平方式搶奪消費者，包含：故意詆毀競爭對手、仿冒品牌、使用劣質原料降低成本、用不實廣告誤導消費者等。'},
+
+// ══ 單元12b：國際貿易與分工 ══
+{t:'u12b',era:'國際貿易・個人分工原理',type:'mc',
+ q:'個人分工（專業化）的基本原則是？',
+ opts:[
+   'A 選擇自己最擅長的工作',
+   'B 選擇機會成本相對較低的工作，從事專業化生產',
+   'C 選擇薪資最高的工作',
+   'D 選擇工時最短的工作'
+ ],ans:1,
+ explain:'個人分工原則：使用同樣的資源，機會成本較低的人較有利→選擇機會成本較低的工作，從事專業化生產，再透過交易互通有無。分工後總產量大於分工前，代表專業化分工比自給自足有利。'},
+
+{t:'u12b',era:'國際貿易・出口進口',type:'mc',
+ q:'台灣出口電腦零組件等高科技產品，代表台灣在這些產品上具有？',
+ opts:['A 絕對劣勢','B 生產優勢（機會成本相對較低）','C 高進口需求','D 貿易逆差'],ans:1,
+ explain:'出口：把國內生產的財貨或服務，銷售到其他國家，賺取貿易收入。出口具生產優勢的商品（機會成本較低）。進口：向其他國家購進本國短缺的產品。台灣出口高科技產品代表在此具生產優勢（機會成本較低）。'},
+
+{t:'u12b',era:'國際貿易・開放進口影響',type:'mc',
+ q:'開放進口對「國內消費者」的主要影響是？',
+ opts:[
+   'A 消費者負擔增加，商品選擇減少',
+   'B 更多商品選擇、商品品質提高、進口商品的安全獲保障',
+   'C 國內就業機會增加',
+   'D 消費者更難買到外國商品'
+ ],ans:1,
+ explain:'開放進口的影響：對消費者→更多商品選擇、商品品質提高（競爭使然）、進口商品安全有保障。對國內生產者→面臨外國競爭，可能導致本國商品滯銷，需升級轉型。政府因應：協助廠商轉型、保護消費者權益。'},
+
+{t:'u12b',era:'國際貿易・自由貿易',type:'tf',
+ q:'自由貿易對所有國內產業都是有利的。',
+ ans:false,
+ explain:'自由貿易的影響是雙面的：對本國具競爭優勢的出口產業有利（可擴大市場規模、增加獲利）；但對不具競爭優勢的進口替代產業不利（面臨外國低成本競爭，可能導致產業萎縮、失業增加）。因此有些國家為保護國內產業，會限制自由貿易（如課徵關稅）。'},
+
+// ══ 單元13a：貨幣與現代支付 ══
+{t:'u13a',era:'貨幣・演進過程',type:'sort',
+ q:'請將貨幣的演進歷程依時間先後排列：',
+ items:['法定貨幣（由政府透過法律賦予強制流通）','商品貨幣（以本身就是商品的物品作為交易媒介）','以物易物（人類社會以物品直接交換）'],
+ correctOrder:[2,1,0],
+ explain:'貨幣演進：以物易物→商品貨幣（貝殼、茶葉、白銀等）→法定貨幣（紙鈔、硬幣，由政府法律強制流通）。我國新台幣由中央銀行發行。'},
+
+{t:'u13a',era:'貨幣・四大功能',type:'match',
+ q:'請將貨幣的四大功能與說明配對：',
+ pairs:[
+   ['交易媒介','貨幣作為買賣商品和服務的工具，具普通接受性'],
+   ['價值衡量','貨幣是一種計價單位，能有效衡量不同商品間的相對價值'],
+   ['價值儲藏','人們能將所得以貨幣形式儲存起來，以備未來消費'],
+   ['債務清償','貨幣可作為延遲支付的標準，以法定貨幣清償債務'],
+ ],
+ explain:'貨幣四功能：交易媒介（便利交易）、價值衡量（計價標準）、價值儲藏（儲存購買力）、債務清償（延遲支付工具）。'},
+
+{t:'u13a',era:'貨幣・中央銀行',type:'mc',
+ q:'中央銀行（台灣為中華民國中央銀行）的主要任務中，「維持物價穩定」的手段是？',
+ opts:[
+   'A 直接設定商品價格',
+   'B 控制貨幣的發行量',
+   'C 補貼消費者購買力',
+   'D 管理全國所有商業銀行存款'
+ ],ans:1,
+ explain:'中央銀行三大任務：①發行貨幣：控制貨幣發行量，維持物價水準穩定；②管理外匯：管理國家的黃金和外匯儲備；③輔助各金融機構穩定金融秩序。物價穩定靠控制貨幣發行量：發行多→貨幣貶值；發行少→貨幣升值。'},
+
+{t:'u13a',era:'貨幣・儲值卡vs信用卡',type:'mc',
+ q:'儲值卡（如悠遊卡）和信用卡最主要的差異是？',
+ opts:[
+   'A 兩者完全相同',
+   'B 儲值卡是先儲值後消費（預付），信用卡是先消費後付款（延遲支付）',
+   'C 信用卡先儲值後消費',
+   'D 儲值卡可以透支'
+ ],ans:1,
+ explain:'儲值卡（悠遊卡等）：先儲值後消費，是「預付」制度，用完要再加值。信用卡：先消費後付款，具延遲支付功能，由發卡銀行依個人財務狀況及信用記錄，核發信用額度；若未全額繳清，會被收取高額利息。'},
+
+{t:'u13a',era:'貨幣・貨幣價值',type:'mc',
+ q:'「通貨膨脹」（物價持續全面上漲）對貨幣價值的影響是？',
+ opts:['A 貨幣升值','B 貨幣貶值','C 貨幣價值不變','D 貨幣發行量減少'],ans:1,
+ explain:'貨幣價值以所能購買的商品數量決定，而非面額。物價上漲（通貨膨脹）→相同金額能買到的商品數量減少→貨幣貶值。物價下跌（通貨緊縮）→相同金額能買到的商品數量增加→貨幣升值。'},
+
+// ══ 單元13b：外匯與匯率 ══
+{t:'u13b',era:'外匯・基本概念',type:'mc',
+ q:'「外匯」是指？',
+ opts:['A 國內貨幣','B 本國以外的貨幣，是不同國家間交易的媒介','C 黃金和白銀','D 國際組織的特別提款權'],ans:1,
+ explain:'外匯：本國以外的貨幣，是不同國家間交易的媒介。例如美金、日圓、歐元等（最常使用的外幣是美金）。進行國際貿易需要使用外幣，因此需要先把本國貨幣兌換成外國貨幣。'},
+
+{t:'u13b',era:'外匯・匯率影響',type:'mc',
+ q:'新台幣對美元「升值」（如1美元原本換30元台幣，現在只能換29元台幣），對台灣進口商的影響是？',
+ opts:[
+   'A 進口成本上升，不利進口商',
+   'B 進口成本下降，有利進口商',
+   'C 對進口商沒有影響',
+   'D 進口商利潤增加但出口量減少'
+ ],ans:1,
+ explain:'新台幣升值→台幣購買力變強→進口商品相對變便宜（同樣美元，需要更少台幣換）→有利進口商、有利消費者買進口品。但新台幣升值→台灣出口商品對外國買家來說變貴→出口量減少→不利出口商。口訣：升進貶出。'},
+
+{t:'u13b',era:'外匯・匯率影響',type:'mc',
+ q:'新台幣對美元「貶值」（如1美元原本換30元台幣，現在需要換31元台幣），對台灣出口商的影響是？',
+ opts:[
+   'A 出口競爭力下降，不利出口商',
+   'B 出口商品相對變便宜，有利出口商',
+   'C 出口商獲利減少',
+   'D 不影響出口商'
+ ],ans:1,
+ explain:'新台幣貶值→台幣購買力變弱→台灣出口商品以外幣計算變便宜→外國買家購買意願提高→出口量增加→有利出口商。但台幣貶值→進口商品變貴（需更多台幣換外幣）→不利進口商。口訣：升進貶出。'},
+
+{t:'u13b',era:'外匯・匯率影響',type:'sort',
+ q:'新台幣升值時，請依因果順序排列對進口的影響：',
+ items:['進口商品對台灣消費者而言相對便宜','新台幣升值（1美元兌換更少台幣）','台灣進口量可能增加','台幣購買力增強，兌換相同外幣需要更少台幣'],
+ correctOrder:[1,3,0,2],
+ explain:'升值因果鏈：新台幣升值→台幣購買力增強，兌換外幣需更少台幣→進口商品相對便宜→台灣進口量增加（有利進口商和消費者）。'},
+
+{t:'u13b',era:'外匯・出口入超',type:'mc',
+ q:'「貿易出超（順差）」是指？',
+ opts:[
+   'A 貿易收入小於貿易支出（入超）',
+   'B 貿易收入大於貿易支出（出超），代表國際支付能力強',
+   'C 進出口貿易完全平衡',
+   'D 政府干預貿易的行為'
+ ],ans:1,
+ explain:'出超（順差）：貿易收入＞貿易支出，長期出超可累積外匯存底，代表國際支付能力強。入超（逆差）：貿易收入＜貿易支出，對外貿易處於不利地位，長期入超不利國家經濟發展。'},
+
+// ══ 單元13c：勞動與勞基法 ══
+{t:'u13c',era:'勞動・市場勞動',type:'mc',
+ q:'「有償勞動」和「無償勞動（家務勞動）」的主要差異是？',
+ opts:[
+   'A 兩者沒有差異',
+   'B 有償勞動是在勞動市場中以獲取薪資為目的；無償勞動是在家中從事照顧家人、家事等不獲報酬的活動',
+   'C 無償勞動不算是真正的勞動',
+   'D 有償勞動只有男性才能從事'
+ ],ans:1,
+ explain:'勞動分兩類：①有償勞動（市場勞動）：在勞動市場中提供勞動力，以獲取薪資為主要目的；②無償勞動（非市場勞動/家務勞動）：包含照顧家人、整理家務等，不獲報酬但對家庭和社會有重要貢獻。'},
+
+{t:'u13c',era:'勞動・勞基法',type:'mc',
+ q:'《勞動基準法》的立法目的是？',
+ opts:[
+   'A 規範企業的財務報告',
+   'B 為保障勞工基本工作條件，規定工時、工資、假期、退休等基本事項',
+   'C 管理外籍勞工的工作許可',
+   'D 規範雇主的企業設立條件'
+ ],ans:1,
+ explain:'勞動基準法（勞基法）：規定勞動工作條件的最低基準，包含：工資（基本工資）、工時、休假（例假、國定假日、特休）、退休金、資遣費等。雇主不得低於勞基法規定的標準對待員工。'},
+
+{t:'u13c',era:'勞動・勞基法',type:'mc',
+ q:'依《勞動基準法》，雇主「不得」對勞工做的事情是？',
+ opts:[
+   'A 給予超過法定的特休假天數',
+   'B 以勞工的年齡、性別等因素對員工薪資進行不合理差別待遇',
+   'C 提供員工職業訓練',
+   'D 按月發給薪資'
+ ],ans:1,
+ explain:'勞基法保障平等就業：雇主不得以種族、階級、語言、思想、宗教、黨派、籍貫、出生地、性別、性傾向、年齡、婚姻、容貌等因素，對員工進行不合理差別待遇（除非基於業務需要）。'},
+
+{t:'u13c',era:'勞動・就業保險',type:'mc',
+ q:'《就業保險法》中，勞工失業後最主要可以獲得的給付是？',
+ opts:['A 醫療補助','B 失業給付（在一定期間內領取部分薪資）','C 退休金','D 傷病補償'],ans:1,
+ explain:'就業保險法給付項目：①失業給付（非自願失業，在找到新工作前領取原薪一定比例的給付）②職業訓練生活津貼（接受訓練期間的生活費補助）③育嬰留職停薪津貼（育嬰期間領取薪資補貼）。失業給付須符合：非自願失業、有工作能力及繼續工作意願、積極求職。'},
+
+{t:'u13c',era:'勞動・維護勞動權益',type:'tf',
+ q:'勞工如果遭受到雇主不公平對待，只能默默忍受，沒有法律途徑可以求助。',
+ ans:false,
+ explain:'勞工維護權益的途徑：①了解相關法律（勞基法、就業保險法、性別平等工作法等）②尋求法律諮詢、法律扶助②向勞動主管機關（如勞工局）申訴③提起民事訴訟向雇主求償。勞工有法律保障，遭受不公平對待時可循法律途徑救濟。'},
+
+];
+
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.panel).classList.add('active');if(tab.dataset.panel==='wrong')renderWP();});});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+function updateGo(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);const btn=document.getElementById('goBtn');if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}else{btn.disabled=true;btn.textContent='請選擇單元與模式';}}
+document.getElementById('goBtn').addEventListener('click',startGame);
+function startGame(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;const isLong=S.mode==='normal'||S.mode==='timed';let pool=QB.filter(q=>S.topics.includes(q.t));pool=shuffle(pool);S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));S.cur=0;showScreen('game');renderQ();}
+function startWrongPractice(){const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();}
+function renderQ(){if(S.cur>=S.qs.length){showResult();return;}const q=S.qs[S.cur];S.answered=false;const total=S.qs.length;document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));else document.getElementById('gLives').textContent='';const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort'};document.getElementById('qtag').textContent=tMap[q.type]||'題目';document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;document.getElementById('qtext').textContent=q.q;document.getElementById('qsub').textContent=q.hint||'';const area=document.getElementById('ans-area');area.innerHTML='';document.getElementById('fbbox').className='fb-box';document.getElementById('nextBtn').className='next-btn';if(q.type==='mc')renderMC(q,area);else if(q.type==='tf')renderTF(q,area);else if(q.type==='fill')renderFillQ(q,area);else if(q.type==='match')renderMatch(q,area);else if(q.type==='sort')renderSort(q,area);clearInterval(S.timer);const te=document.getElementById('gTimer');if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}else te.style.display='none';}
+function renderMC(q,area){const grid=document.createElement('div');grid.className='opts';q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt';btn.textContent=o;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const ok=i===q.ans;grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});finish(ok,q);});grid.appendChild(btn);});area.appendChild(grid);}
+function renderTF(q,area){const row=document.createElement('div');row.className='tf-row';['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const userT=i===0,ok=userT===q.ans;row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});finish(ok,q);});row.appendChild(btn);});area.appendChild(row);}
+function renderFillQ(q,area){const row=document.createElement('div');row.className='fill-row';const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確：${q.ans}`);};btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});row.append(inp,btn);area.appendChild(row);}
+function renderMatch(q,area){const wrap=document.createElement('div');wrap.className='match-wrap';const lCol=document.createElement('div');lCol.className='match-col';const rCol=document.createElement('div');rCol.className='match-col';const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);let lPicked=null,rPicked=null,matched=0;pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});wrap.append(lCol,rCol);area.appendChild(wrap);function tryM(){if(!lPicked||!rPicked)return;const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}lPicked=null;rPicked=null;}wrap.addEventListener('click',e=>{if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}tryM();});}
+let dragEl=null;
+function renderSort(q,area){const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));const list=document.createElement('div');list.className='sort-list';shuffled.forEach(item=>{const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});el.addEventListener('dragend',()=>el.classList.remove('dragging'));el.addEventListener('dragover',e=>e.preventDefault());el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});list.appendChild(el);});area.appendChild(list);const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});area.appendChild(chk);}
+function finish(ok,q,extraMsg){const pts=calcPts(ok,q.type);if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;document.getElementById('fbmsg').textContent=msg;document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;const nb=document.getElementById('nextBtn');nb.className='next-btn show';const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};}
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+function startTimer(sec){S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';S.timer=setInterval(()=>{S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}},1000);}
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+function showResult(){clearInterval(S.timer);showScreen('result');const max=S.qs.length*6;const pct=max>0?S.score/max:0;let emoji,title,msg;if(pct>=.9){emoji='🏆';title='公民高手！';msg='公民第五冊掌握得非常好！繼續保持！';}else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點複習！';}else if(pct>=.5){emoji='📖';title='繼續加油！';msg='去錯題複習區針對弱點加強！';}else{emoji='💪';title='不要灰心！';msg='把講義再仔細看一遍，再來挑戰！';}document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';document.getElementById('rMsg').textContent=msg;const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}else document.getElementById('rWeak').style.display='none';const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';if(pct>=.75)confetti();}
+function renderWP(){const bank=loadWB();const panel=document.getElementById('wrongPanel');const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;pw.style.display='block';cl.style.display='block';}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#27ae60','#1a7a3a','#155a28','#2ecc71','#c8f5d8'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

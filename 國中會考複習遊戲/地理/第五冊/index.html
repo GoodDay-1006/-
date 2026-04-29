@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地理闖關王 第五冊</title>
+<style>
+:root{
+  --bg:#f0f8ff;--ink:#0a1a2a;--red:#c0392b;--gold:#1a6ea8;
+  --teal:#156090;--blue:#0e4070;--accent:#2980b9;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(10,40,80,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(41,128,185,.09) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(26,110,168,.06) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#cce4f7 0%,var(--bg) 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(10,26,42,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(10,26,42,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(10,26,42,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(10,26,42,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(10,26,42,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#cce4f7;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(10,26,42,.48);margin-top:3px;line-height:1.4;}
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(10,26,42,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(10,26,42,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(10,26,42,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(10,26,42,.38);border:1px solid rgba(10,26,42,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:var(--red);animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#d6eaf8;color:#1a6ea8;}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:var(--green);}
+.qtag.match{background:#d6eaf8;color:#156090;}
+.qtag.sort{background:#cce4f7;color:#0e4070;}
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(10,26,42,.43);margin-bottom:11px;font-style:italic;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#eaf4fd;border:2px solid #a8d0f0;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#cce4f7;}
+.opt.ok{background:#d4f5e2;border-color:var(--green);color:var(--green);font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #a8d0f0;background:#eaf4fd;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:var(--green);}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:var(--green);background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#eaf4fd;border:2px solid #a8d0f0;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:#e6b800;background:#cce4f7;font-weight:700;}
+.match-item.matched{border-color:var(--green);background:#d4f5e2;color:var(--green);font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#eaf4fd;border:2px solid #a8d0f0;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--accent);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:var(--green);border-left:4px solid var(--green);}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+#result{background:linear-gradient(155deg,#cce4f7 0%,var(--bg) 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(10,26,42,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(10,26,42,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(10,26,42,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#eaf4fd;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">地理闖關王</div>
+    <div class="home-badge">地理 第五冊 · 單元09–11 · 會考複習</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip" data-t="u9a">單元09・歐盟與歐洲人文</div>
+      <div class="tchip" data-t="u9b">單元09・歐洲各區域產業</div>
+      <div class="tchip" data-t="u9c">單元09・俄羅斯文化與經濟</div>
+      <div class="tchip" data-t="u10a">單元10・北美洲自然環境</div>
+      <div class="tchip" data-t="u10b">單元10・北美洲人文與產業</div>
+      <div class="tchip" data-t="u10c">單元10・中南美洲</div>
+      <div class="tchip" data-t="u11a">單元11・大洋洲三大群島</div>
+      <div class="tchip" data-t="u11b">單元11・澳洲與紐西蘭</div>
+      <div class="tchip" data-t="u11c">單元11・兩極地區與氣候變遷</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+<div class="screen" id="game">
+  <div class="gbar">
+    <div><div class="gbar-left" id="gInfo">第 1 / 50 題</div><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;"><div class="gbar-timer" id="gTimer" style="display:none;">20</div><div><div class="gbar-score" id="gScore">0 分</div><div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox"><div class="fb-title" id="fbtitle"></div><div id="fbmsg"></div></div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div><div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div><div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div><div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+<div class="combo" id="combo"></div>
+<script>
+const SK='geo_b5_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+// ===== 單元09 歐盟與歐洲人文 =====
+{type:'mc',t:'u9a',era:'歐盟・目的與組織',q:'歐洲聯盟（EU）成立的主要目的是什麼？總部設在哪裡？',opts:['以軍事合作為主，總部在布魯塞爾','以經濟合作為主，擴展至外交、司法等層面，總部設在比利時布魯塞爾','以文化交流為主，總部設在法國巴黎','以農業補貼為主，總部設在德國柏林'],ans:1,explain:'歐盟（EU）以經濟合作為主要目的，逐漸擴展至外交、司法等領域。目前共27個成員國，總部設於比利時布魯塞爾。主要特色：共同市場（商品、資金、勞務自由流通）、共同貨幣歐元（€）、申根區（免除關稅）。'},
+{type:'mc',t:'u9a',era:'歐盟・共同市場',q:'歐盟「共同市場」的主要內容包括哪些？',opts:['只有農產品可以自由流通，工業品仍需課稅','境內商品、資金、勞務可自由流通，免除關稅，並統一工業產品規格','只有歐元區成員國享有共同市場，非歐元區不適用','共同市場限制外資進入，保護歐洲本地企業'],ans:1,explain:'歐盟共同市場：（1）境內商品、資金、勞務可自由流通（2）免除關稅（3）經濟合作、專業分工、資源共享（4）工業產品規格統一。共同市場使歐盟成為全球最大的單一市場之一，大幅促進了歐洲各國之間的貿易。'},
+{type:'mc',t:'u9a',era:'歐盟・歐元',q:'下列關於歐元（€）的敘述，何者正確？',opts:['所有27個歐盟成員國都使用歐元','歐元為部分歐盟成員國的共同貨幣，瑞典、丹麥、東歐部分新加入國等尚未使用歐元','歐元是在2020年才正式啟用的新貨幣','英國是最早使用歐元的國家之一'],ans:1,explain:'歐元是歐盟部分成員國使用的共同貨幣，並非所有成員國都使用。瑞典、丹麥等國雖是歐盟成員但保留本國貨幣；東歐新加入國需達到經濟條件才能申請加入歐元區。英國（已於2020年脫歐）從未使用歐元。'},
+{type:'tf',t:'u9a',era:'歐盟・申根區',q:'申根區讓歐盟成員國及部分非成員國的公民可以在成員國之間自由往來，不需要護照查驗。',ans:true,explain:'正確。申根協議（Schengen Agreement）建立了「申根區」，成員包括多數歐盟國家及部分非歐盟國家（如瑞士、挪威），在申根區內旅行不需邊境檢查。但英國、愛爾蘭等歐盟成員選擇不加入申根區。'},
+{type:'mc',t:'u9a',era:'歐盟・問題',q:'歐盟目前面臨的主要問題包括哪些？',opts:['歐盟成員國太多，導致農業補貼分配不均','英國脫歐受歐盟成員國規定限制、難民爭議、區域發展不均財政負擔重、援助東歐等問題','歐盟軍事力量過強，引起周邊國家的安全疑慮','歐元匯率太高，導致出口競爭力下降'],ans:1,explain:'歐盟面臨的主要問題：（1）2020年英國正式脫歐，是首例退出案例（2）各成員國對難民問題應對方式不同，引發爭議（3）區域發展不均，富國援助貧國的財政負擔（4）東歐、南歐部分國家財政困難（如希臘債務危機）。'},
+{type:'mc',t:'u9a',era:'歐洲人文・人口',q:'歐洲的人口發展有哪些主要特色？',opts:['歐洲是人口增長最快的洲，生育率居全球之首','人口分布最均勻的洲；人口成長停滯或甚至負成長（出生率低如德國、義大利）；因醫療衛生發達，人民壽命延長，人口老化嚴重','歐洲人口集中在東部，西部大多為沙漠，人口稀疏','歐洲移民政策最嚴格，外來人口比例極低'],ans:1,explain:'歐洲人口特色：（1）人口分布最均勻的洲（地形多平原、氣候溫和）（2）生育率低，人口成長停滯甚至負成長（德、義等）（3）醫療衛生發達→人民壽命延長→人口老化嚴重→勞動力短缺，需引進外來移民。'},
+// ===== 單元09 歐洲各區域產業 =====
+{type:'mc',t:'u9b',era:'歐洲產業・南歐',q:'南歐地中海型農業的特色是什麼？',opts:['全年多雨，適合種植熱帶水果和稻米','作物生長季和雨季無法配合，故需依賴灌溉，生產葡萄、橄欖、柑橘類等耐旱作物，出口葡萄酒、橄欖油為大宗'],ans:1,explain:'南歐地中海型氣候特徵：夏乾冬雨，作物生長季（夏）和雨季（冬）無法配合，需依賴灌溉。主要農產：葡萄（釀酒）、橄欖（榨油）、柑橘類、蔬菜。出口葡萄酒、橄欖油為重要收入來源。'},
+{type:'mc',t:'u9b',era:'歐洲產業・南歐觀光',q:'南歐的觀光業為何特別發達？',opts:['南歐氣候惡劣，人口少，觀光資源未被開發','希臘、羅馬等歐洲古文明遺址及地中海陽光海岸是重要景點，觀光業是南歐的重要經濟支柱'],ans:1,explain:'南歐觀光業發達的原因：（1）豐富的古文明遺址（希臘雅典衛城、義大利羅馬、葡萄牙昔日殖民歷史遺址等）（2）地中海氣候─夏季陽光充足、海灘優美（3）多元文化景觀吸引全球遊客。觀光業是希臘、西班牙、義大利、葡萄牙的重要經濟支柱。'},
+{type:'mc',t:'u9b',era:'歐洲產業・西歐',q:'西歐是歐洲的經濟核心，下列關於西歐各國產業特色的配對，何者錯誤？',opts:['英國─工業革命發源地，20世紀發展海洋石油（北海石油）推動產業升級','德國─歐洲工業產值最大的國家，優勢在精密工業、利用水運網絡、科技能力','法國─擁有豐富鐵礦，航太工業、捷運系統、高速鐵路（TGV）等銷多國，時尚產業、觀光業發達','荷蘭─以萊茵河為歐洲最大港口，轉口貿易發達；瑞士─居阿爾卑斯山，精密工業形成'],ans:3,explain:'荷蘭的港口是鹿特丹（Europoort），是歐洲最大港，而非萊茵河本身。荷蘭以鹿特丹港為歐洲最大港，利用萊茵河水運便利發展轉口貿易。瑞士居阿爾卑斯山，以精密工業（鐘錶、醫療器械）和觀光業為主。'},
+{type:'match',t:'u9b',era:'歐洲各國產業配對',q:'請將歐洲各國與其最具代表性的產業或特色配對：',pairs:[['英國','工業革命發源地，北海石油推動高科技發展'],['德國','歐洲工業產值最大，精密工業、汽車工業'],['法國','航太工業、高速鐵路TGV、時尚產業'],['荷蘭','鹿特丹港為歐洲最大港，轉口貿易發達']],explain:'西歐各國產業特色：英國（北海石油、金融）；德國（汽車BMW/賓士、化學、機械，優勢在精密工業和民族性）；法國（空中巴士、TGV、LV等時尚品牌、觀光）；荷蘭（鹿特丹港、鬱金香、乳酪）。'},
+{type:'tf',t:'u9b',era:'歐洲產業・義大利',q:'義大利是南歐工業最發達的國家，其工業主要集中在南部地區，以汽車工業最具代表性。',ans:false,explain:'錯誤。義大利工業主要集中在北部（波河平原地區），南部仍以農業和觀光業為主，南北發展差距明顯。義大利的代表工業包括汽車（飛雅特FIAT、法拉利）、時尚、食品等，有豐富的人文資源。'},
+// ===== 單元09 俄羅斯 =====
+{type:'mc',t:'u9c',era:'俄羅斯・人口分布',q:'俄羅斯人口分布極不均勻，人口主要集中在哪個地區？原因是什麼？',opts:['東部西伯利亞，因為礦產資源豐富','歐俄地區（烏拉山以西），因為氣候較暖溼、地形平坦、西伯利亞鐵路沿線，交通較便利'],ans:1,explain:'俄羅斯人口高度集中在歐俄地區（烏拉山以西）：（1）氣候較暖溼（2）地形較平坦（3）西伯利亞鐵路沿線，交通較便利（4）歷史上開發早，城市密集。西伯利亞地區（亞俄）氣候極寒、交通不便，人口極稀疏。'},
+{type:'mc',t:'u9c',era:'俄羅斯・天然資源',q:'俄羅斯天然資源豐富，其最重要的出口項目是什麼？主要輸往哪些地區？',opts:['農產品（小麥、大豆）為主，主要輸往非洲','天然氣和石油（西伯利亞產）為主，規劃「遠東管道」輸至中國、日本，也大量銷往歐洲地區'],ans:1,explain:'俄羅斯天然資源優勢：（1）西伯利亞有大量石油、天然氣、煤礦、鐵礦等（2）西伯利亞是全球最大天然氣出口國之一（3）輸往方向：歐洲（管道）、中國（遠東管道）、日本；（4）隱憂：過度依賴礦能源出口，易受國際市場價格波動影響，如烏俄戰爭後歐洲的能源問題。'},
+{type:'tf',t:'u9c',era:'俄羅斯・烏俄戰爭',q:'2022年2月俄羅斯入侵烏克蘭，戰爭原因之一是烏克蘭國內的親俄與親歐勢力衝突，以及北大西洋公約組織（NATO）向東擴張等因素。',ans:true,explain:'正確。烏俄戰爭背景：（1）蘇聯解體後烏克蘭獨立，國內仍有親俄與親歐兩派（2）2014年克里米亞衝突，俄羅斯兼併克里米亞（3）烏克蘭政府傾向加入歐盟與NATO（4）北約東擴使俄羅斯感受威脅（5）影響：天然氣管道、歐洲能源問題，以及戰爭持續帶來的人道危機。'},
+// ===== 單元10 北美洲自然環境 =====
+{type:'mc',t:'u10a',era:'北美洲・地形',q:'北美洲的地形由西到東可以分成哪三大地形區？',opts:['三角洲、平原、高原','西部高山區（洛磯山脈）、中部平原區（北美大平原）、東部高原丘陵區（拉布拉多高原、阿帕拉契山脈）'],ans:1,explain:'北美洲地形三大分區（自西向東）：（1）西部高山區─洛磯山脈（環太平洋火山地震帶，地勢高，多地震，設有多國家公園）（2）中部平原─北美大平原（冰河侵蝕、河川堆積，有五大湖、密西西比河衝積平原，重要農業帶）（3）東部高原丘陵─阿帕拉契山脈（古老陸塊，地勢較低）。'},
+{type:'mc',t:'u10a',era:'北美洲・五大湖',q:'北美洲五大湖的形成原因是什麼？有何重要性？',opts:['火山活動形成的火口湖，儲水量全球最大','冰河侵蝕形成，是世界最大淡水湖群；北部有五大湖，南部有密西西比河衝積平原，是重要農業帶'],ans:1,explain:'北美洲五大湖（蘇必略湖、密西根湖、休倫湖、伊利湖、安大略湖）：（1）冰河侵蝕形成（2）全球最大淡水湖群（3）位於美加邊境（4）連接聖勞倫斯河通往大西洋（5）湖區工業發達（鋼鐵、汽車），周邊為北美工業核心地帶。'},
+{type:'mc',t:'u10a',era:'北美洲・氣候',q:'北美洲西岸中緯度（40°N～60°N）的溫帶海洋性氣候的成因是什麼？',opts:['受赤道暖流影響，全年高溫多雨','終年受西風吹拂（盛行西風），加上阿拉斯加暖流，使氣候全年溫和溼潤，年溫差小'],ans:1,explain:'溫帶海洋性氣候（40°N-60°N西岸）：（1）終年西風吹拂─帶來大西洋暖溼氣流（2）阿拉斯加暖流─沿岸增溫（3）特徵：全年有雨、年溫差小（4）北美洲西岸落磯山脈阻擋，此氣候分布範圍不如西歐廣。'},
+{type:'mc',t:'u10a',era:'北美洲・氣候災害',q:'北美洲中部平原夏秋季常出現的「龍捲風」（春夏龍捲風），主要成因是什麼？',opts:['洛磯山脈火山噴發引發的氣流旋轉','北極冷空氣南下與墨西哥灣暖溼氣流在中部平原交會，形成強烈氣流旋轉'],ans:1,explain:'北美龍捲風「龍捲風走廊」（Tornado Alley，位於中南部平原）：（1）北極冷空氣南下（2）墨西哥灣暖溼氣流北上（3）兩者在中部平原交會，冷暖氣流對流劇烈，形成龍捲風。美國是全球龍捲風最頻繁的國家。'},
+{type:'tf',t:'u10a',era:'北美洲・溫帶草原',q:'北美洲中部平原的溫帶草原氣候（如落磯山以東），主要成因是位居內陸、遠離海洋，加上洛磯山脈阻擋太平洋水氣，形成乾燥少雨的氣候。',ans:true,explain:'正確。北美中部溫帶草原（大平原地區）氣候特點：（1）深居內陸（大陸性影響為主）（2）洛磯山脈阻擋太平洋水氣（地形雨效應）（3）冬季乾冷、夏季炎熱（4）降水少，以草原植被為主（5）為重要農業（玉米、小麥）和牧業（牛）地帶。'},
+{type:'sort',t:'u10a',era:'北美洲地形・由西到東',q:'請將北美洲地形區依照由西向東的順序排列：',items:['洛磯山脈（西部高山區）','中部大平原','阿帕拉契山脈','大西洋沿岸低地'],correctOrder:[0,1,2,3],explain:'北美洲地形由西向東：洛磯山脈（西部高山，環太平洋火山帶）→中部大平原（冰河侵蝕、河川堆積，含五大湖）→阿帕拉契山脈（東部古老低矮山脈）→大西洋沿岸低地。'},
+// ===== 單元10 北美洲人文與產業 =====
+{type:'mc',t:'u10b',era:'北美洲人文・文化分區',q:'北美洲依文化分為盎格魯美洲和拉丁美洲，兩者的主要分界是什麼？語言和宗教有何不同？',opts:['以赤道為界；盎格魯美洲通用法語、天主教；拉丁美洲通用英語、基督教','以墨西哥至巴拿馬一帶為大致分界；盎格魯美洲文化以英語（英美文化）為主；拉丁美洲以西班牙語、葡萄牙語為主，多信奉天主教'],ans:1,explain:'盎格魯美洲（北美）vs 拉丁美洲（中南美）：（1）分界：墨西哥至巴拿馬地峽（2）語言：盎格魯─英語為主；拉丁─西班牙語（巴西用葡萄牙語）（3）宗教：盎格魯─基督教（新教）為主；拉丁─天主教為主（4）起源：盎格魯受英國移民影響；拉丁受西班牙、葡萄牙殖民影響。'},
+{type:'mc',t:'u10b',era:'北美洲產業・美國',q:'美國的主要產業優勢包括哪些？',opts:['以農業為主，工業落後，依賴大量進口工業品','面積廣大、人口多樣化、重疊自由貿易協定（USMCA）、類型多元的產業（汽車、電子商務等），吸引外資投資，是全球最大的經濟體'],ans:1,explain:'美國產業優勢：（1）面積廣大、資源豐富（2）人口多樣化（移民國家）（3）美墨加協議（USMCA，前身NAFTA）促進自由貿易（4）矽谷（科技）、底特律（汽車）、紐約（金融）等各具特色（5）農業高度機械化（玉米、大豆出口大國）（6）吸引大量外資投資。'},
+{type:'mc',t:'u10b',era:'北美洲產業・墨西哥',q:'墨西哥近年來的產業發展有哪些特色？',opts:['以純農業為主，工業基礎薄弱，嚴重依賴美國援助','優勢在廉價勞工與中美洲臨近市場；利用USMCA發展加工出口區；以汽車、電子商務為主；但仍面臨貧富差距和依賴出口農礦產品的問題'],ans:1,explain:'墨西哥產業特色：（1）勞動力充足、薪資相對低廉（2）USMCA（美墨加協議）發展加工出口區（maquiladora，組裝工廠）（3）汽車、電子業發達（4）隱憂：經濟高度依賴美國、出口農礦產品、貧富差距大。'},
+// ===== 單元10 中南美洲 =====
+{type:'mc',t:'u10c',era:'中南美洲・地形',q:'中南美洲地形最主要的特徵是什麼？',opts:['全境為低平沖積平原，地形單調','以巴拿馬為界，中美洲以山地為主（連通太平洋與大西洋）；南美洲西側有安地斯山脈（世界最長高山），東側有亞馬遜盆地（熱帶雨林）及拉布拉他平原'],ans:1,explain:'中南美洲主要地形：（1）中美洲─山地為主，連通太平洋與大西洋（巴拿馬運河在此）（2）南美洲─西部安地斯山脈（世界最長山脈，環太平洋火山地震帶）；中部亞馬遜盆地（熱帶雨林，河流量世界最大）；東南部拉布拉他平原（阿根廷牧草地）。'},
+{type:'mc',t:'u10c',era:'中南美洲・巴拿馬運河',q:'巴拿馬運河的特色是什麼？它與蘇伊士運河有何不同？',opts:['巴拿馬運河連通大西洋與地中海，由法國管理','巴拿馬運河是世界唯一一條連通太平洋與大西洋的運河，地勢高於兩側海洋，須以水閘控制水位；蘇伊士運河連通紅海與地中海，由埃及管理'],ans:1,explain:'巴拿馬運河（中美洲，巴拿馬管理）：（1）連通太平洋與大西洋（2）地勢高於海洋，以水閘控制水位（水閘式運河）（3）節省大西洋到太平洋的航程。蘇伊士運河（埃及）：連通紅海與地中海（地中海到印度洋的捷徑），是平地運河，不需水閘。'},
+{type:'mc',t:'u10c',era:'中南美洲・族群',q:'中南美洲族群多元，形成的原因是什麼？',opts:['中南美洲自古以來就是多民族共存，從未受外來殖民','16世紀西班牙、葡萄牙殖民，從非洲帶入大量黑人奴隸，與原住民（印第安人）混血，形成印第安人、西班牙人、葡萄牙人、非洲黑人及混血後裔的多元族群'],ans:1,explain:'中南美洲族群形成：（1）原住民：馬雅、阿茲特克、印加文明（2）16世紀西班牙（墨西哥、中南美大部分）、葡萄牙（巴西）殖民（3）引進非洲黑人奴隸→「殖民地式經濟」（4）各族群通婚融合→混血人口（麥士蒂索/梅斯蒂索人）（5）語言以西班牙語為主，巴西用葡萄牙語。'},
+{type:'mc',t:'u10c',era:'中南美洲・亞馬遜',q:'中南美洲熱帶雨林（亞馬遜）面臨的主要問題是什麼？',opts:['雨林人口過密，造成資源耗竭','砍伐大規模雨林改為農業牧場區，引發物種滅絕、全球氣候變遷等危機；加上高度依賴礦產品出口，受國際市場波動影響大'],ans:1,explain:'中南美洲環境問題：（1）亞馬遜雨林大規模砍伐（農牧業開發）→物種減絕、影響全球碳循環（2）礦產開採破壞環境（3）高度依賴礦農產品出口→受國際市場波動（4）城鄉差距大、貧富差距大（地主壟斷土地資源）（5）都市化快，衍生貧民窟（如里約）等問題。'},
+{type:'tf',t:'u10c',era:'中南美洲・安地斯山',q:'安地斯山脈地區土地利用呈現「垂直變化」，低緯度高地人口反而較多，因為海拔較高氣候涼爽宜人，適合聚居。',ans:true,explain:'正確。安地斯山脈「垂直分帶」特色：（1）熱帶地區的低地氣候炎熱潮溼（2）高地氣候涼爽舒適（接近熱帶高地氣候）（3）因此低緯度地區人口反而集中在高地（如秘魯首都利馬、玻利維亞、厄瓜多等）（4）垂直氣候帶影響作物種植：山腳熱帶作物→中坡玉米、大麥→高海拔牧草、羊駝。'},
+{type:'match',t:'u10c',era:'中南美洲各國特色配對',q:'請將中南美洲各國與其最具代表性的特色配對：',pairs:[['巴西','面積最大，人口多元，亞馬遜雨林，出口農礦產品（大豆、咖啡、鐵礦）'],['墨西哥','美墨加協議（USMCA），汽車、電子加工業'],['阿根廷','拉布拉他平原廣大，牧業（牛肉、大豆）發達'],['智利','南北狹長，世界最長，出口銅礦為主']],explain:'中南美各國特色：巴西（最大+亞馬遜+農礦出口）；墨西哥（USMCA加工出口）；阿根廷（潘帕斯草原、牧牛業）；智利（世界最狹長國家、全球最大銅礦出口國）；秘魯（安地斯山、印加文明）。'},
+// ===== 單元11 大洋洲三大群島 =====
+{type:'mc',t:'u11a',era:'大洋洲・三大群島',q:'大洋洲的三大群島（密克羅尼西亞、美拉尼西亞、玻里尼西亞）是如何區分的？',opts:['依照氣候類型區分：熱帶、溫帶、寒帶','密克羅尼西亞在赤道以北（西太平洋）；美拉尼西亞在赤道以南（西太平洋）；玻里尼西亞大致在國際換日線（180°）以東，以夏威夷為代表'],ans:1,explain:'大洋洲三大群島位置：（1）密克羅尼西亞（Micronesia）─西太平洋、赤道以北，島嶼小（代表：關島、帛琉）（2）美拉尼西亞（Melanesia）─西太平洋、赤道以南（代表：斐濟、巴布亞紐幾內亞）（3）玻里尼西亞（Polynesia）─太平洋中東部（國際換日線以東），以夏威夷、紐西蘭為代表。'},
+{type:'mc',t:'u11a',era:'大洋洲・高島低島',q:'大洋洲的島嶼分為「高島（火山島）」和「低島（珊瑚礁島）」，兩者有何差異？',opts:['高島氣候炎熱，低島氣候寒冷','高島地勢較高、可截留雨水、土壤肥沃、農業較發展；低島地勢平坦低矮、難以截留水分、土壤石灰質、農業不利'],ans:1,explain:'高島vs低島：高島（火山島）：地勢較高→可截留水氣→雨水較充沛→土壤肥沃→農業較發達，人口較多（代表：夏威夷、斐濟）。低島（珊瑚礁島）：地勢低平→無法截留水氣→淡水缺乏→土壤石灰質→農業不利（代表：馬紹爾群島、吐瓦魯）；漁業、觀光業為主，且深受海平面上升威脅。'},
+{type:'tf',t:'u11a',era:'大洋洲・南島語族',q:'大洋洲多數島嶼的原住民屬於「南島語族」，其分布範圍從台灣、東南亞，向南一直延伸到紐西蘭，向東到達復活節島，是世界分布最廣的語族之一。',ans:true,explain:'正確。南島語族（Austronesian）是世界分布最廣的語族：（1）從台灣（最北端）出發（2）向南：馬來西亞、印尼、菲律賓（3）向東：太平洋各島嶼（4）向西：馬達加斯加（非洲東岸）（5）向南：紐西蘭毛利人（6）最東：復活節島。共超過1,200多種語言，約4億人使用。'},
+{type:'mc',t:'u11a',era:'大洋洲・特色',q:'大洋洲作為七大洲中面積最小、人口最少的洲，有哪些顯著特色？',opts:['大洋洲人口密集，工業高度發達，是全球最富裕的洲','面積最小（約全球陸地6%）、人口最少（約全球1%）；距離世界其他陸地遙遠，多島嶼孤立性強，自然生態與人文環境獨特；多為南島語族，澳洲例外'],ans:1,explain:'大洋洲特色：（1）七大洲中面積最小（約全球陸地6%）（2）人口最少（約全球1%）（3）距離其他主要陸地遙遠→孤立性強→特有生物多（袋鼠、無尾熊、鴨嘴獸等）（4）多為南島語族，澳洲原住民除外（5）受國際換日線影響，部分島國更換日期（薩摩亞）。'},
+// ===== 單元11 澳洲與紐西蘭 =====
+{type:'mc',t:'u11b',era:'澳洲・地形氣候',q:'澳洲地形由西向東可分為哪三部分？各有什麼特色？',opts:['全部為海岸平原，地形單調，氣候一致','西部高原（古老地塊、礦產豐富）、中部平原（背風乾燥、畜牧業發達）、東部山地（大分水嶺，氣候分界、東溼西乾）'],ans:1,explain:'澳洲地形由西到東：（1）西部高原─古老陸塊，礦產豐富（鐵礦、金礦）（2）中部平原─背風側，乾燥，畜牧業（牛羊）發達（3）東部山地─大分水嶺，成為氣候分界線：東側（迎風面）溼潤，為人口集中區；西側（背風面）乾燥。澳洲人口主要集中在東南沿海地區（墨爾本、雪梨、布里斯本）。'},
+{type:'mc',t:'u11b',era:'澳洲・農牧礦業',q:'澳洲的農牧業和礦業有哪些重要特色？',opts:['農業主要靠密集勞力（如台灣），工業發達但礦業薄弱','採粗放農牧（地廣人稀）：世界重要的小麥、羊毛、肉類、乳製品出口國；礦業：地質古老，礦產豐富（鐵礦、鋁土礦、煤、金），帶動工業發展'],ans:1,explain:'澳洲農牧礦業特色：（1）農牧業─地廣人稀→粗放農牧（大型牧場）；世界重要小麥、羊毛、牛肉、乳製品出口國（2）礦業─地質古老，礦產豐富（全球最大鐵礦和鋁土礦出口國之一）（3）工業─礦產帶動工業發展，但工業產值相對農牧礦業低（4）觀光─自然景觀（烏魯魯艾爾斯岩、大堡礁）。'},
+{type:'mc',t:'u11b',era:'澳洲・戰略發展',q:'澳洲近年來調整對外策略，積極加強與亞太地區的合作，主要措施包括哪些？',opts:['澳洲退出所有國際組織，採取孤立主義政策','加入亞太經濟合作（APEC）；簽署區域全面經濟夥伴協定（RCEP）；加強與日本、韓國、東南亞等合作；以及建立「藍色太平洋伙伴聯盟（PBP）」應對中國在太平洋的影響力'],ans:1,explain:'澳洲對外戰略轉型：（1）早期與英國貿易密切，後因亞洲距離近、成本低，轉向亞太地區（2）加入APEC，推動亞太經濟合作（3）簽署RCEP（全球最大自由貿易協定）（4）藍色太平洋伙伴（PBP）：美英澳等對抗中國在太平洋島國的軍事布局。'},
+{type:'mc',t:'u11b',era:'紐西蘭・地形氣候',q:'紐西蘭被稱為「活的地理教室」，其主要原因是什麼？',opts:['紐西蘭人口眾多，地理學家資源豐富','紐西蘭位於環太平洋火山地震帶，地形景觀豐富（北島火山、溫泉、地熱；南島山勢高峻、冰河地形），有「活的地理教室」之稱'],ans:1,explain:'紐西蘭地理特色：北島─火山地形發達（湯加里羅火山、白島活火山）、溫泉與地熱能源、地熱發電；南島─山勢高峻（南阿爾卑斯山），冰河地形發達（福克斯冰河、法蘭士約瑟夫冰河）。整體因位於太平洋火山地震帶，地形景觀豐富多樣，故有「活的地理教室」美譽。'},
+{type:'tf',t:'u11b',era:'紐西蘭・農牧業',q:'紐西蘭農牧業占出口總值的一半以上，以羊毛、羊肉、乳製品和奇異果為主要出口農牧產品，與北半球季節相反是其出口鮮果的優勢。',ans:true,explain:'正確。紐西蘭農牧業特色：（1）農牧業佔出口約50%（2）主要出口：羊毛、羊肉（全球最大出口國之一）、乳製品、牛肉（3）奇異果（kiwifruit）是特色農產品（4）季節與北半球相反（南半球）→聖誕節在夏天→可在北半球冬季（淡季）供應新鮮水果，具出口優勢。'},
+// ===== 單元11 兩極地區與氣候變遷 =====
+{type:'mc',t:'u11c',era:'兩極地區・比較',q:'北極地區與南極地區相比，哪一個氣溫較低？為什麼？',opts:['北極較冷，因為北極有大量北極熊等動物，會加速散熱','南極較冷，因為南極大陸比熱小（陸地），散熱快；地勢高（海拔平均2000公尺以上）；有全球最大、最強的「寒極」'],ans:1,explain:'南極比北極冷的原因：（1）南極是大陸（陸地），北極是海洋（冰層下為海）→大陸比熱小，散熱快（2）南極地勢高（平均海拔2000m以上）→氣溫隨高度降低（3）南極風力強勁（3）因此南極是全球最冷的地方（「寒極」），北極相對較暖（有暖流注入）。'},
+{type:'mc',t:'u11c',era:'兩極地區・資源與主權',q:'南極地區在人口和主權上有哪些特殊性？',opts:['南極洲由美國單獨管轄，並已有大量居民定居','南極無長期居民，主權不屬任何國家，只有少數科學家夏季進行研究；具重要環境研究價值（臭氧層、溫室效應等研究）'],ans:1,explain:'南極地區特殊性：（1）無長期居民（氣候太惡劣）（2）《南極條約》（1959年）─主權不屬任何國家，禁止軍事活動、核試驗（3）各國設有研究站（夏季使用）（4）研究價值：臭氧層破洞、溫室效應、生態資源天文觀測（5）交通革新後夏季觀光業發展，但易造成環境破壞。'},
+{type:'mc',t:'u11c',era:'氣候變遷・原因',q:'近年全球氣候變遷加劇的主要原因是什麼？',opts:['地球自然的氣候週期變化，與人類活動無關','人類大量排放二氧化碳、甲烷等溫室氣體，強化溫室效應；同時大量砍伐森林（減少碳吸收）；人為建築物集中散熱（都市熱島效應），使全球均溫快速上升'],ans:1,explain:'氣候變遷（全球暖化）成因：（1）工業化、交通、農業大量排放CO₂、甲烷等溫室氣體（2）砍伐森林→減少碳吸收能力（3）溫室效應加劇：大氣截留更多熱量（4）都市熱島效應。科學界目前高度共識：近代氣候變遷主要由人為活動造成。'},
+{type:'mc',t:'u11c',era:'氣候變遷・影響',q:'氣候變遷對各地區的影響包括哪些？',opts:['全球氣候變遷只影響南北兩極，對中緯度地區沒有顯著影響','極端氣候頻率增加（水災、乾旱、暴風雪等）；兩極冰雪融化、海平面上升（威脅低地島國如吐瓦魯）；珊瑚礁白化死亡；熱帶疾病擴散至溫帶地區；生態系統破壞'],ans:1,explain:'氣候變遷影響：（1）極端氣候增加─洪災、乾旱、熱浪、颶風（2）兩極冰融→海平面上升→威脅沿海城市和低地島國（3）珊瑚礁白化（海水溫度升高）（4）物種滅絕（棲息地改變）（5）熱帶疾病（瘧疾、登革熱）向高緯擴散（6）北極冰熊因浮冰減少缺乏食物（7）冰河縮小→高山地區缺水。'},
+{type:'mc',t:'u11c',era:'氣候變遷・國際公約',q:'下列國際氣候公約與其目標的配對，何者正確？',opts:['《京都議定書》（1997年）─要求2100年前全球升溫控制在2°C內','《京都議定書》（1997年）─減少石化產業，以低碳排放對抗氣候變遷；《巴黎協議》（2015年）─期望2100年前將全球溫升控制在2°C以內；《馬德里會議》（2019年）─2030年前達成碳排減半'],ans:1,explain:'國際氣候公約：（1）《京都議定書》（1997）─減少石化產業，開發替代能源，以低碳排放對抗氣候；主要針對已開發國家（2）《巴黎協議》（2015）─期望升溫控制在2°C內（最好1.5°C），各國自訂目標（NDC）（3）《馬德里會議》（COP25，2019）─強化各國碳排放目標，2030碳排減半，21世紀中淨零排放。'},
+{type:'tf',t:'u11c',era:'氣候變遷・對策',q:'目前應對全球氣候變遷的主要對策包括：減少石化能源使用、發展再生能源（太陽能、風能），以及透過聯合國召開氣候峰會達成全球減碳協議。',ans:true,explain:'正確。氣候變遷對策：（1）作法：減少化石燃料使用（煤、石油、天然氣）（2）發展綠能─太陽能、風能、地熱、潮汐（3）提升能源效率（4）植樹造林（增加碳吸收）（5）聯合國氣候公約：京都議定書→巴黎協議→各年COP峰會，督促各國履行承諾（6）2021年全球風力+太陽能發電量占約10%。'},
+{type:'sort',t:'u11c',era:'氣候公約時序',q:'請將國際氣候變遷公約/會議依時間先後排列：',items:['《京都議定書》簽訂（1997年）','《巴黎協議》正式通過（2015年）','馬德里氣候峰會（COP25，2019年）','全球目標2030年碳排減半'],correctOrder:[0,1,2,3],explain:'氣候公約時序：1997年京都議定書（減少石化）→2015年巴黎協議（升溫控制2°C）→2019年馬德里COP25（加強目標）→2030年目標碳排減半→21世紀中淨零排放。台灣雖未加入聯合國但也積極推動2050淨零排放目標。'}
+];
+
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.panel).classList.add('active');if(tab.dataset.panel==='wrong')renderWP();});});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+function updateGo(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);const btn=document.getElementById('goBtn');if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}else{btn.disabled=true;btn.textContent='請選擇單元與模式';}}
+document.getElementById('goBtn').addEventListener('click',startGame);
+function startGame(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;const isLong=S.mode==='normal'||S.mode==='timed';let pool=QB.filter(q=>S.topics.includes(q.t));pool=shuffle(pool);S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));S.cur=0;showScreen('game');renderQ();}
+function startWrongPractice(){const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();}
+function renderQ(){if(S.cur>=S.qs.length){showResult();return;}const q=S.qs[S.cur];S.answered=false;const total=S.qs.length;document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));else document.getElementById('gLives').textContent='';const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort'};document.getElementById('qtag').textContent=tMap[q.type]||'題目';document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;document.getElementById('qtext').textContent=q.q;document.getElementById('qsub').textContent=q.hint||'';const area=document.getElementById('ans-area');area.innerHTML='';document.getElementById('fbbox').className='fb-box';document.getElementById('nextBtn').className='next-btn';if(q.type==='mc')renderMC(q,area);else if(q.type==='tf')renderTF(q,area);else if(q.type==='fill')renderFillQ(q,area);else if(q.type==='match')renderMatch(q,area);else if(q.type==='sort')renderSort(q,area);clearInterval(S.timer);const te=document.getElementById('gTimer');if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}else te.style.display='none';}
+function renderMC(q,area){const grid=document.createElement('div');grid.className='opts';q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt';btn.textContent=o;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const ok=i===q.ans;grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});finish(ok,q);});grid.appendChild(btn);});area.appendChild(grid);}
+function renderTF(q,area){const row=document.createElement('div');row.className='tf-row';['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const userT=i===0,ok=userT===q.ans;row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});finish(ok,q);});row.appendChild(btn);});area.appendChild(row);}
+function renderFillQ(q,area){const row=document.createElement('div');row.className='fill-row';const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確答案：${q.ans}`);};btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});row.append(inp,btn);area.appendChild(row);}
+function renderMatch(q,area){const wrap=document.createElement('div');wrap.className='match-wrap';const lCol=document.createElement('div');lCol.className='match-col';const rCol=document.createElement('div');rCol.className='match-col';const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);let lPicked=null,rPicked=null,matched=0;pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});wrap.append(lCol,rCol);area.appendChild(wrap);function tryM(){if(!lPicked||!rPicked)return;const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}lPicked=null;rPicked=null;}wrap.addEventListener('click',e=>{if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}tryM();});}
+let dragEl=null;
+function renderSort(q,area){const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));const list=document.createElement('div');list.className='sort-list';shuffled.forEach(item=>{const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});el.addEventListener('dragend',()=>el.classList.remove('dragging'));el.addEventListener('dragover',e=>e.preventDefault());el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});list.appendChild(el);});area.appendChild(list);const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});area.appendChild(chk);}
+function finish(ok,q,extraMsg){const pts=calcPts(ok,q.type);if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;document.getElementById('fbmsg').textContent=msg;document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;const nb=document.getElementById('nextBtn');nb.className='next-btn show';const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};}
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+function startTimer(sec){S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';S.timer=setInterval(()=>{S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}},1000);}
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+function showResult(){clearInterval(S.timer);showScreen('result');const max=S.qs.length*6;const pct=max>0?S.score/max:0;let emoji,title,msg;if(pct>=.9){emoji='🏆';title='地理高手！';msg='第五冊歐洲、美洲、大洋洲掌握得非常好！繼續保持！';}else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點複習一下！';}else if(pct>=.5){emoji='📖';title='繼續加油！';msg='去錯題複習區針對弱點加強！';}else{emoji='💪';title='不要灰心！';msg='把筆記再仔細看一遍，再來挑戰！';}document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';document.getElementById('rMsg').textContent=msg;const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}else document.getElementById('rWeak').style.display='none';const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';if(pct>=.75)confetti();}
+function renderWP(){const bank=loadWB();const panel=document.getElementById('wrongPanel');const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;pw.style.display='block';cl.style.display='block';}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#2980b9','#1a6ea8','#156090','#5dade2','#cce4f7'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

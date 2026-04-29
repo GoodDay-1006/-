@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>國文闖關王 第四冊</title>
+<style>
+:root{
+  --bg:#faf0ff;--ink:#1a0a2a;--red:#c0392b;--gold:#e8a020;
+  --teal:#7b2fbe;--blue:#4a1a7a;--pink:#c0396b;--purple:#9b59b6;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(123,47,190,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(123,47,190,.08) 0%,transparent 70%),
+  radial-gradient(ellipse 50% 50% at 85% 75%,rgba(92,42,131,.06) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#ede0ff 0%,#faf0ff 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--teal);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--teal);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:660px;margin-bottom:16px;border-bottom:2px solid rgba(26,10,42,.1);padding-bottom:0;}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(26,10,42,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--teal);border-bottom-color:var(--teal);}
+.tab-panel{display:none;width:100%;max-width:660px;}
+.tab-panel.active{display:block;}
+
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(26,10,42,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(26,10,42,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--teal);border-color:var(--teal);color:white;font-weight:700;}
+
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(26,10,42,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--teal);background:#f0e8ff;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(26,10,42,.48);margin-top:3px;line-height:1.4;}
+
+.go-btn{background:var(--teal);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(123,47,190,.3);width:100%;max-width:660px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+.qty-row{display:flex;align-items:center;gap:10px;margin-top:6px;}
+.qty-btn{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--teal);background:white;color:var(--teal);font-size:1.1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.qty-val{font-weight:700;font-size:1rem;min-width:28px;text-align:center;}
+
+#game{padding:0;background:var(--bg);}
+.gbar{width:100%;background:white;padding:10px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px var(--shadow);position:sticky;top:0;z-index:10;}
+.gbar-left{flex:1;display:flex;flex-direction:column;gap:3px;}
+.prog-track{height:5px;background:#e8e0f0;border-radius:3px;overflow:hidden;width:100%;}
+.prog-fill{height:100%;background:var(--teal);border-radius:3px;transition:width .4s;}
+#gInfo{font-size:.72rem;color:rgba(26,10,42,.5);font-weight:600;}
+#gScore{font-size:1rem;font-weight:900;color:var(--teal);white-space:nowrap;}
+#gLives{font-size:.85rem;white-space:nowrap;}
+#gTimer{font-size:.85rem;font-weight:700;color:var(--red);min-width:32px;text-align:right;}
+
+.qwrap{width:100%;max-width:660px;padding:16px;}
+.qcard{background:white;border-radius:16px;padding:20px 18px;box-shadow:0 3px 14px var(--shadow);margin-bottom:14px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--teal);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;background:#f0e8ff;color:var(--teal);font-size:.68rem;font-weight:700;padding:2px 9px;border-radius:10px;margin-bottom:10px;letter-spacing:.06em;}
+.qera{font-size:.72rem;color:rgba(26,10,42,.4);margin-bottom:6px;}
+.qtext{font-size:1rem;font-weight:700;color:var(--ink);line-height:1.6;margin-bottom:4px;}
+
+/* FSY */
+.fsy-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;}
+.fsy-card{background:linear-gradient(135deg,#f0e8ff,#faf0ff);border:1.5px solid rgba(123,47,190,.15);border-radius:12px;padding:12px 8px;text-align:center;}
+.fsy-char{font-size:2rem;font-weight:900;color:var(--teal);}
+.fsy-ping{font-size:.75rem;color:var(--purple);margin:2px 0;}
+.fsy-def{font-size:.68rem;color:rgba(26,10,42,.55);line-height:1.3;}
+.fsy-ex{font-size:.65rem;color:rgba(123,47,190,.6);margin-top:3px;}
+.fsy-ask{font-size:.88rem;font-weight:700;color:var(--ink);margin:12px 0 8px;line-height:1.5;}
+
+/* Options */
+.opts{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+.opt{background:#f8f3ff;border:2px solid rgba(26,10,42,.08);border-radius:11px;padding:11px 14px;cursor:pointer;font-size:.9rem;color:var(--ink);transition:all .18s;text-align:left;font-weight:500;}
+.opt:hover{border-color:var(--teal);background:#ede0ff;}
+.opt.correct{border-color:#27ae60;background:#e8f8e8;color:#1a5c30;font-weight:700;}
+.opt.wrong{border-color:var(--red);background:#fde8e8;color:#7a1a1a;font-weight:700;}
+.opt:disabled{cursor:not-allowed;}
+
+/* TF */
+.tf-row{display:flex;gap:12px;margin-top:12px;}
+.tf-btn{flex:1;padding:14px;border-radius:11px;border:2px solid rgba(26,10,42,.1);background:#f8f3ff;font-size:1rem;font-weight:700;cursor:pointer;transition:all .18s;}
+.tf-btn:hover{border-color:var(--teal);}
+.tf-btn.correct{border-color:#27ae60;background:#e8f8e8;color:#1a5c30;}
+.tf-btn.wrong{border-color:var(--red);background:#fde8e8;color:#7a1a1a;}
+
+/* Fill */
+.fill-row{display:flex;gap:8px;margin-top:12px;align-items:center;}
+.fill-input{flex:1;border:2px solid rgba(123,47,190,.25);border-radius:10px;padding:10px 13px;font-size:1rem;font-family:inherit;outline:none;transition:border .2s;}
+.fill-input:focus{border-color:var(--teal);}
+.fill-input.correct{border-color:#27ae60;background:#e8f8e8;}
+.fill-input.wrong{border-color:var(--red);background:#fde8e8;}
+.fill-submit{background:var(--teal);color:white;border:none;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;white-space:nowrap;}
+
+/* Match */
+.match-area{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+.match-col{display:flex;flex-direction:column;gap:6px;}
+.match-item{background:#f8f3ff;border:2px solid rgba(26,10,42,.08);border-radius:10px;padding:9px 12px;font-size:.88rem;cursor:pointer;transition:all .18s;text-align:center;}
+.match-item.selected{border-color:var(--teal);background:#ede0ff;}
+.match-item.matched{border-color:#27ae60;background:#e8f8e8;cursor:default;}
+.match-item.wrong-flash{border-color:var(--red);background:#fde8e8;}
+.match-line{font-size:.8rem;color:rgba(26,10,42,.35);text-align:center;padding:4px;}
+
+/* Sort */
+.sort-area{display:flex;flex-direction:column;gap:6px;margin-top:12px;}
+.sort-item{background:#f8f3ff;border:2px solid rgba(26,10,42,.08);border-radius:10px;padding:10px 13px;font-size:.85rem;cursor:grab;display:flex;align-items:center;gap:8px;transition:all .18s;}
+.sort-item:active{cursor:grabbing;opacity:.7;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:rgba(123,47,190,.35);font-size:1rem;}
+.sort-check{background:var(--teal);color:white;border:none;border-radius:9px;padding:9px 16px;font-weight:700;cursor:pointer;margin-top:8px;width:100%;}
+
+/* Explain */
+.explain-box{background:#f0e8ff;border-left:3px solid var(--teal);border-radius:0 10px 10px 0;padding:10px 13px;margin-top:12px;font-size:.82rem;color:rgba(26,10,42,.7);line-height:1.6;}
+.next-btn{background:var(--teal);color:white;border:none;border-radius:11px;padding:12px 0;font-size:.95rem;font-weight:700;cursor:pointer;margin-top:10px;width:100%;box-shadow:0 3px 10px rgba(123,47,190,.3);}
+
+/* Wrong panel */
+.empty-wrong{text-align:center;padding:30px;color:rgba(26,10,42,.4);font-size:.9rem;line-height:1.8;}
+.wrong-summary{background:white;border-radius:13px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px var(--shadow);}
+.wrong-summary h3{font-size:.95rem;color:var(--ink);margin-bottom:10px;}
+.wrong-stats{display:flex;gap:16px;}
+.wstat{text-align:center;}
+.wnum{font-size:1.4rem;font-weight:900;color:var(--teal);}
+.wlbl{font-size:.7rem;color:rgba(26,10,42,.45);}
+.wrong-list{display:flex;flex-direction:column;gap:8px;}
+.wrong-item{background:white;border-radius:11px;padding:13px;box-shadow:0 2px 6px var(--shadow);}
+.wi-era{font-size:.68rem;color:var(--teal);font-weight:700;margin-bottom:4px;}
+.wi-q{font-size:.85rem;color:var(--ink);margin-bottom:4px;}
+.wi-ans{font-size:.78rem;color:#27ae60;font-weight:600;}
+.wrong-actions{display:flex;gap:8px;margin-top:12px;}
+.wrong-actions button{flex:1;padding:11px;border-radius:10px;border:none;font-weight:700;cursor:pointer;font-size:.85rem;}
+#practiceWrongBtn{background:var(--teal);color:white;}
+#clearWrongBtn{background:#fde8e8;color:var(--red);}
+
+/* Result */
+#result{padding:24px 16px;justify-content:center;background:linear-gradient(155deg,#ede0ff 0%,#faf0ff 60%);}
+.result-card{background:white;border-radius:20px;padding:28px 22px;max-width:480px;width:100%;box-shadow:0 6px 24px var(--shadow);text-align:center;}
+.result-emoji{font-size:3.2rem;margin-bottom:8px;}
+.result-title{font-size:1.4rem;font-weight:900;color:var(--ink);margin-bottom:4px;}
+.result-score{font-size:2.8rem;font-weight:900;color:var(--teal);margin:10px 0;}
+.result-detail{font-size:.82rem;color:rgba(26,10,42,.5);margin-bottom:16px;line-height:1.7;}
+#rSaved{font-size:.78rem;color:var(--purple);margin-bottom:10px;min-height:20px;}
+.result-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.result-btns button{flex:1;min-width:120px;padding:12px;border-radius:11px;border:none;font-weight:700;cursor:pointer;font-size:.88rem;}
+#restartBtn{background:var(--teal);color:white;}
+#homeBtn2{background:#f0e8ff;color:var(--teal);}
+#goWrongBtn{background:#fde8e8;color:var(--red);}
+
+/* Combo */
+.combo-pop{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:var(--teal);color:white;border-radius:50%;width:80px;height:80px;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:900;z-index:100;pointer-events:none;animation:comboPop .6s ease forwards;}
+@keyframes comboPop{0%{transform:translate(-50%,-50%) scale(0);opacity:1;}60%{transform:translate(-50%,-50%) scale(1.2);}100%{transform:translate(-50%,-50%) scale(0);opacity:0;}}
+.cf{position:fixed;top:-10px;width:10px;height:10px;border-radius:50%;animation:fall linear forwards;z-index:200;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">國文闖關王</div>
+    <div class="home-badge">第四冊・紫韻版</div>
+  </div>
+
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習</div>
+  </div>
+
+  <!-- 開始遊戲 tab -->
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇主題</div>
+    <div class="topic-row">
+      <div class="tchip on" data-t="fsy">🔤 形音義辨析</div>
+      <div class="tchip on" data-t="lesson">📖 課文重點</div>
+      <div class="tchip on" data-t="letter">✉️ 應用文</div>
+      <div class="tchip on" data-t="tici">🎊 題辭賀詞</div>
+      <div class="tchip on" data-t="idiom">🌸 成語詞語</div>
+      <div class="tchip on" data-t="rhetoric">🎭 修辭法</div>
+      <div class="tchip on" data-t="novel">📚 中國小說</div>
+      <div class="tchip on" data-t="xiehouyu">😄 歇後語</div>
+      <div class="tchip on" data-t="sort">🔢 文意排序</div>
+    </div>
+
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard picked" data-m="normal">
+        <span class="micon">📝</span>
+        <div class="mtitle">練習模式</div>
+        <div class="mdesc">不限時，答完顯示解析</div>
+      </div>
+      <div class="mcard" data-m="timed">
+        <span class="micon">⏱️</span>
+        <div class="mtitle">限時模式</div>
+        <div class="mdesc">每題20秒，速度是關鍵</div>
+      </div>
+      <div class="mcard" data-m="blitz">
+        <span class="micon">⚡</span>
+        <div class="mtitle">閃電模式</div>
+        <div class="mdesc">倒數60秒，搶答到底</div>
+      </div>
+      <div class="mcard" data-m="survival">
+        <span class="micon">❤️</span>
+        <div class="mtitle">生存模式</div>
+        <div class="mdesc">只有3條命，答錯就扣</div>
+      </div>
+    </div>
+
+    <div class="slabel">題數設定</div>
+    <div class="qty-row">
+      <button class="qty-btn" id="qtyMinus">－</button>
+      <span class="qty-val" id="qtyVal">10</span>
+      <button class="qty-btn" id="qtyPlus">＋</button>
+      <span style="font-size:.78rem;color:rgba(26,10,42,.4);">題（隨機抽題）</span>
+    </div>
+
+    <button class="go-btn" id="goBtn">開始闖關 ▶</button>
+  </div>
+
+  <!-- 錯題複習 tab -->
+  <div class="tab-panel" id="panel-wrong">
+    <div id="wrongPanel" style="margin-top:8px;"></div>
+    <div class="wrong-actions">
+      <button id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">練習錯題</button>
+      <button id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除記錄</button>
+    </div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="game">
+  <div class="gbar">
+    <div class="gbar-left">
+      <div id="gInfo">第 1 / 10 題</div>
+      <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+    <span id="gScore">0 分</span>
+    <span id="gLives"></span>
+    <span id="gTimer"></span>
+  </div>
+  <div class="qwrap" id="qwrap"></div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="result-emoji" id="rEmoji">🎉</div>
+    <div class="result-title" id="rTitle">闖關完成！</div>
+    <div class="result-score" id="rScore">0 分</div>
+    <div class="result-detail" id="rDetail"></div>
+    <div id="rSaved"></div>
+    <div class="result-btns">
+      <button id="restartBtn" onclick="restart()">再玩一次</button>
+      <button id="homeBtn2" onclick="goHome()">回首頁</button>
+      <button id="goWrongBtn" onclick="goWrong()">錯題複習</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const QB=[
+// ── 形音義辨析 ────────────────────────────────────────────
+{t:'fsy',era:'形音義・蒼/倉/滄',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'蒼',ping:'cāng',def:'蒼白、蒼茫',ex:'蒼天、蒼白'},
+   {char:'倉',ping:'cāng',def:'倉庫、倉促',ex:'倉庫、倉皇'},
+   {char:'滄',ping:'cāng',def:'滄海、滄桑',ex:'滄海、滄桑'},
+ ],
+ askQ:'「___海桑田，世事難料」應填入哪個字？',
+ opts:['蒼（天空）','倉（庫房）','滄（大海）','倡（提倡）'],ans:2,
+ explain:'「滄海桑田」的「滄」有三點水，指大海；比喻世事變化之大。'},
+{t:'fsy',era:'形音義・峻/竣/俊',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'峻',ping:'jùn',def:'嚴峻、陡峻',ex:'嚴峻、峻嶺'},
+   {char:'竣',ping:'jùn',def:'竣工、完竣',ex:'竣工、竣事'},
+   {char:'俊',ping:'jùn',def:'英俊、俊秀',ex:'英俊、俊美'},
+ ],
+ askQ:'「這項工程歷時三年終於___工，如期完成」應填入哪個字？',
+ opts:['峻（嚴峻）','竣（完工）','俊（英俊）','峰（山峰）'],ans:1,
+ explain:'「竣工」的「竣」意指工程完成，注意「竣」有「立」字旁，代表站立完成之意。'},
+{t:'fsy',era:'形音義・惻/側/廁',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'惻',ping:'cè',def:'惻隱、惻然',ex:'惻隱之心、惻然'},
+   {char:'側',ping:'cè',def:'側面、旁側',ex:'側面、側邊'},
+   {char:'廁',ping:'cè',def:'廁所、廁身',ex:'廁所、廁身其中'},
+ ],
+ askQ:'「看到受傷的小動物，心中升起___隱之心」應填哪字？',
+ opts:['惻（憐憫）','側（旁邊）','廁（廁所）','測（測量）'],ans:0,
+ explain:'「惻隱」的「惻」是心字旁，表示心中憐憫不忍的情感，即孟子所說的「不忍之心」。'},
+{t:'fsy',era:'形音義・漿/槳/獎',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'漿',ping:'jiāng',def:'豆漿、漿糊',ex:'豆漿、漿糊'},
+   {char:'槳',ping:'jiǎng',def:'木槳、划槳',ex:'船槳、划槳'},
+   {char:'獎',ping:'jiǎng',def:'獎勵、獎金',ex:'獎品、獎狀'},
+ ],
+ askQ:'「他手持___板，奮力划向對岸」應填入哪個字？',
+ opts:['漿（豆漿）','槳（划船）','獎（獎勵）','醬（醬料）'],ans:1,
+ explain:'「槳」是木製划船工具，有「木」字旁；與「漿」（液體）、「獎」（獎勵）字形相近但意義不同。'},
+{t:'fsy',era:'形音義・籠/攏/壟',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'籠',ping:'lóng',def:'籠罩、鳥籠',ex:'籠罩、籠統'},
+   {char:'攏',ping:'lǒng',def:'收攏、聚攏',ex:'收攏、靠攏'},
+   {char:'壟',ping:'lǒng',def:'壟斷、田壟',ex:'壟斷、壟溝'},
+ ],
+ askQ:'「晨霧___罩著山谷，朦朧而靜謐」應填入哪個字？',
+ opts:['籠（覆蓋）','攏（聚集）','壟（田埂）','龍（龍虎）'],ans:0,
+ explain:'「籠罩」的「籠」有竹字頭，引申為覆蓋、包圍；「攏」是用手聚集，「壟」是田地的土埂。'},
+{t:'fsy',era:'形音義・暇/瑕/遐',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'暇',ping:'xiá',def:'空暇、閒暇',ex:'閒暇、目不暇給'},
+   {char:'瑕',ping:'xiá',def:'瑕疵、白璧微瑕',ex:'瑕疵、瑕不掩瑜'},
+   {char:'遐',ping:'xiá',def:'遐想、遐邇',ex:'遐想、名聞遐邇'},
+ ],
+ askQ:'「這件作品幾乎完美，唯一的___疵是顏色略顯不均」應填哪字？',
+ opts:['暇（閒暇）','瑕（缺點）','遐（遙遠）','假（虛假）'],ans:1,
+ explain:'「瑕疵」的「瑕」是玉字旁，指玉上的斑點，引申為缺點；「暇」是空閒，「遐」是遙遠。'},
+{t:'fsy',era:'形音義・廟/廊/廳',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'廟',ping:'miào',def:'廟宇、寺廟',ex:'廟宇、廟堂'},
+   {char:'廊',ping:'láng',def:'走廊、廊道',ex:'走廊、迴廊'},
+   {char:'廳',ping:'tīng',def:'大廳、客廳',ex:'廳堂、客廳'},
+ ],
+ askQ:'「這座古老___宇已有三百年歷史，香火鼎盛」應填哪字？',
+ opts:['廟（寺廟）','廊（通道）','廳（大廳）','廓（廓清）'],ans:0,
+ explain:'「廟宇」供奉神明；「走廊」是有頂蓋的通道；「廳堂」是大型聚集空間；三者都有廣字頭。'},
+{t:'fsy',era:'形音義・慌/惶/惺',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'慌',ping:'huāng',def:'慌亂、慌張',ex:'慌亂、驚慌'},
+   {char:'惶',ping:'huáng',def:'惶恐、惶惶',ex:'惶恐、惶惶不安'},
+   {char:'惺',ping:'xīng',def:'惺忪、惺惺',ex:'惺忪、惺惺相惜'},
+ ],
+ askQ:'「面對突如其來的質問，他感到___恐不安，不知如何應對」應填哪字？',
+ opts:['慌（慌張）','惶（恐懼）','惺（清醒）','徨（彷徨）'],ans:1,
+ explain:'「惶恐」指恐懼不安；「惶惶不安」指心神不定；「慌」是慌亂，「惺」是清醒（惺忪）。'},
+{t:'fsy',era:'多音字・盛',type:'mc',
+ q:'「她從大鍋裡___出一碗熱騰騰的湯，端給生病的父親」，此處「盛」字的正確讀音為何？',
+ opts:['shèng（旺盛）','chéng（盛裝）','shēng（聲音）','chèng（秤重）'],ans:1,
+ explain:'盛（chéng）指把東西放入容器，如盛飯、盛湯；盛（shèng）指興旺繁盛，如旺盛、盛況空前。'},
+{t:'fsy',era:'多音字・著',type:'mc',
+ q:'「這位作家的___作等身，深受讀者喜愛」，此處「著」字的正確讀音為何？',
+ opts:['zhe（語助詞）','zhuó（著手）','zhù（著作）','zhāo（著數）'],ans:2,
+ explain:'著（zhù）指寫作的作品，如著作、著書；著（zhuó）指動作，如著手、著陸；著（zhe）是語助詞。'},
+{t:'fsy',era:'多音字・重',type:'mc',
+ q:'「他___新審視這份計畫，發現了幾個需要改進的地方」，此處「重」字的正確讀音為何？',
+ opts:['zhòng（重量）','chóng（再次）','zhōng（中間）','zòng（縱橫）'],ans:1,
+ explain:'重（chóng）指再次、重複，如重新、重做；重（zhòng）指重量或重要，如重量、重要。'},
+{t:'fsy',era:'多音字・供',type:'mc',
+ q:'「神桌上___奉著豐盛的祭品，香煙裊裊」，此處「供」字的正確讀音為何？',
+ opts:['gōng（提供）','gòng（供奉）','kōng（空白）','gǒng（拱手）'],ans:1,
+ explain:'供（gòng）指奉祀、陳列，如供奉、上供；供（gōng）指提供或供應，如提供、供給。'},
+
+// ── 課文重點 ────────────────────────────────────────────
+{t:'lesson',era:'課文・飛魚',type:'mc',
+ q:'〈飛魚〉一文的主要描寫內容為何？',
+ opts:['飛魚的生活習性與飛翔特色','魚類的種類介紹','海洋生態保育問題','漁民捕魚的艱辛故事'],ans:0,
+ explain:'〈飛魚〉是一篇記敘文，透過細膩的觀察描寫飛魚跳出水面、在空中滑翔的奇特習性，呈現自然之美。'},
+{t:'lesson',era:'課文・空城計',type:'mc',
+ q:'〈空城計〉中，諸葛亮用什麼方法退敵？',
+ opts:['親率兵馬出城迎戰','大開城門，鎮定地在城樓上彈琴','製造假軍隊迷惑敵人','向司馬懿求和談判'],ans:1,
+ explain:'〈空城計〉中，諸葛亮面對司馬懿大軍，以「大開城門、悠然彈琴」的鎮定姿態，令多疑的司馬懿懷疑有伏兵而退兵。'},
+{t:'lesson',era:'課文・空城計',type:'mc',
+ q:'〈空城計〉出自哪部古典小說？',
+ opts:['水滸傳','紅樓夢','三國演義','西遊記'],ans:2,
+ explain:'〈空城計〉是《三國演義》中的著名故事，作者羅貫中，描寫諸葛亮以心理戰術退敵的智謀故事。'},
+{t:'lesson',era:'課文・雪的日子',type:'mc',
+ q:'〈雪的日子〉這篇散文最主要的寫作特色為何？',
+ opts:['大量引用古詩詞描寫雪景','以童年記憶為主軸，融合感官描寫抒發情感','以科學角度說明降雪原因','以對話方式呈現雪天故事'],ans:1,
+ explain:'〈雪的日子〉以童年的雪天記憶為主軸，透過視覺、觸覺等感官描寫，抒發對過去美好時光的懷念之情。'},
+{t:'lesson',era:'課文・誤交友',type:'mc',
+ q:'〈誤交友〉的主旨為何？',
+ opts:['說明廣交朋友的好處','警惕世人交友需謹慎，勿被損友帶壞','描述珍貴友情的故事','介紹各種交友方式'],ans:1,
+ explain:'〈誤交友〉是勸誡類文章，主旨在警示人們交友要謹慎，「近朱者赤，近墨者黑」，交到損友可能誤入歧途。'},
+{t:'lesson',era:'課文・為學一首示子姪',type:'mc',
+ q:'〈為學一首示子姪〉的作者是誰？',
+ opts:['韓愈','歐陽修','彭端淑','王安石'],ans:2,
+ explain:'〈為學一首示子姪〉是清代彭端淑寫給子姪的勸學文，以「蜀鄙二僧」的故事說明有志者事竟成的道理。'},
+{t:'lesson',era:'課文・為學一首示子姪',type:'mc',
+ q:'〈為學一首示子姪〉中「蜀鄙二僧」的故事說明了什麼道理？',
+ opts:['地理距離決定成敗','金錢是成功的關鍵','立志努力比物質條件更重要','聰明的人才能成功'],ans:2,
+ explain:'貧僧憑意志步行到達南海，富僧卻因猶豫遲疑終未成行，說明「立志努力」比物質條件更重要，有志者事竟成。'},
+{t:'lesson',era:'課文・塔尖上的思路',type:'mc',
+ q:'〈塔尖上的思路〉這篇文章的主要論點為何？',
+ opts:['登高望遠可以看到更多風景','從不同角度思考問題，能找到意外的解決方案','高塔建築的歷史演進','人要勇於攀登，克服恐懼'],ans:1,
+ explain:'〈塔尖上的思路〉以塔頂的視角為喻，強調突破慣性思維、換個角度看問題，往往能找到創新的解決方式。'},
+{t:'lesson',era:'課文・深藍的憂鬱',type:'tf',
+ q:'〈深藍的憂鬱〉是一篇以第一人稱敘述的散文，作者透過對深藍色的聯想，抒發內心的情感。',
+ ans:true,
+ explain:'〈深藍的憂鬱〉以第一人稱書寫，透過對特定顏色的聯想與感受，抒發主觀的心理情感，屬於抒情散文。'},
+{t:'lesson',era:'課文・替代死亡',type:'tf',
+ q:'〈替代死亡〉透過觀察自然界「替代」的現象，引發對生命消逝與更新循環的哲學省思。',
+ ans:true,
+ explain:'〈替代死亡〉以自然界新舊更替的現象為切入點，探討生命、死亡與循環的哲學命題，屬於哲理性散文。'},
+{t:'lesson',era:'課文・論說文三要素',type:'tf',
+ q:'論說文的三要素為「論點、論據、論證」，論點是作者的主張，論據是支持論點的材料。',
+ ans:true,
+ explain:'論說文三要素：論點（主張）、論據（理由與材料）、論證（推理方式），三者缺一不可，共同構成完整的論述。'},
+{t:'lesson',era:'課文・體裁辨析',type:'mc',
+ q:'下列哪篇課文屬於「文言文」體裁？',
+ opts:['飛魚','雪的日子','為學一首示子姪','深藍的憂鬱'],ans:2,
+ explain:'〈為學一首示子姪〉使用文言文寫成，其餘三篇均為現代白話文。'},
+
+// ── 應用文 ────────────────────────────────────────────
+{t:'letter',era:'應用文・書信格式',type:'mc',
+ q:'書信的基本格式中，寫信人自稱的簽名部分稱為什麼？',
+ opts:['稱謂','問候語','署名','敬語'],ans:2,
+ explain:'書信要素：稱謂（對收信人的稱呼）→ 問候語 → 正文 → 結尾語 → 署名（寫信人）→ 日期。'},
+{t:'letter',era:'應用文・書信稱謂',type:'mc',
+ q:'寫信給師長或長輩，稱謂後常接哪種提稱語（尊稱）？',
+ opts:['台鑒','大鑒','惠鑒','道鑒'],ans:0,
+ explain:'「台鑒」用於長輩或師長；「道鑒」用於道教人士；「惠鑒」用於平輩；「大鑒」用於尊貴人士。'},
+{t:'letter',era:'應用文・書信格式',type:'mc',
+ q:'書信結尾祝頌語「敬祝　健康快樂」中，「敬祝」和「健康快樂」之間為什麼要空格？',
+ opts:['是排版習慣，沒有特別意義','表示尊敬，提到對方相關字詞前需空格（抬頭）','表示換行','加上收信人的名字'],ans:1,
+ explain:'書信中，提到與收信人相關的字詞（稱謂、祝頌語）前需空一格或另起新行，稱為「抬頭」，以示尊重。'},
+{t:'letter',era:'應用文・信封格式',type:'mc',
+ q:'傳統信封的格式中，收件人的地址和姓名應寫在哪個位置？',
+ opts:['信封左上角','信封中央偏右','信封右側','信封背面'],ans:1,
+ explain:'信封格式：左上角寫寄件人地址，中央（稍偏右）寫收件人地址與姓名，右上角貼郵票。'},
+{t:'letter',era:'應用文・書信格式',type:'tf',
+ q:'書信中的「問候語」應緊接在稱謂之後，置於正文之前，用以表達對收信人的關心。',
+ ans:true,
+ explain:'書信結構順序：稱謂 → 問候語（如：近來身體是否安康？）→ 正文 → 結尾語 → 署名 → 日期。'},
+{t:'letter',era:'應用文・書信格式',type:'tf',
+ q:'電子郵件（Email）與傳統書信的格式完全相同，所有規範一致。',
+ ans:false,
+ explain:'電子郵件可參考書信格式，但不需要嚴格的「抬頭」空格等格式，也不需要信封；傳統書信對格式要求更嚴謹。'},
+{t:'letter',era:'應用文・題辭格式',type:'mc',
+ q:'下列關於「題辭」的說明，何者正確？',
+ opts:['題辭只能用於婚禮場合','題辭通常為四字一句，講究對仗與韻律','題辭可以隨意書寫，沒有格式規範','題辭只能由長輩贈給晚輩'],ans:1,
+ explain:'題辭（賀詞）通常為四字一句，講究對仗、韻律，用於各種喜慶場合（喬遷、生日、婚禮等），有固定的使用規範。'},
+{t:'letter',era:'應用文・東帖',type:'mc',
+ q:'「東帖」（柬帖）是什麼用途的應用文？',
+ opts:['一般書信往來','邀請親友出席喜慶活動的邀請函','考試通知書','商業合約'],ans:1,
+ explain:'「東帖」（紅帖、柬帖）用於通知親友出席喜慶活動（如婚禮、壽宴等），相當於現代的喜帖或邀請函。'},
+{t:'letter',era:'應用文・東帖格式',type:'mc',
+ q:'婚禮東帖（喜帖）的必要格式要素，下列何者正確？',
+ opts:['僅需填寫婚禮時間地點即可','需有稱謂、敬語、婚禮資訊（時間地點）、署名等','只需寫新郎新娘名字','需要說明禮金行情'],ans:1,
+ explain:'婚禮東帖必要元素：對受邀者的稱謂、敬語、喜事說明、時間地點、邀請語、主人署名，缺一不可。'},
+{t:'letter',era:'應用文・訃聞',type:'mc',
+ q:'「訃聞」是哪種場合使用的應用文？',
+ opts:['婚禮請帖','生日壽宴通知','告知親友喪事的通知','喬遷慶賀'],ans:2,
+ explain:'「訃聞」（訃告）是告知親友某人去世的通知；性質與「喜帖」、「壽帖」完全不同，使用場合也不同，不可混淆。'},
+
+// ── 題辭賀詞 ────────────────────────────────────────────
+{t:'tici',era:'題辭・喬遷',type:'mc',
+ q:'朋友搬入新居，應送哪句題辭最為恰當？',
+ opts:['旗開得勝','喬遷之喜','金榜題名','百年好合'],ans:1,
+ explain:'「喬遷之喜」源自「鶯遷喬木」，指喬遷到更好的居所，是搬新家時最常用的賀詞。'},
+{t:'tici',era:'題辭・婚禮',type:'mc',
+ q:'參加婚禮，下列哪個題辭最恰當？',
+ opts:['松柏長青','百年好合','天倫永樂','文采斐然'],ans:1,
+ explain:'「百年好合」祝賀新婚夫妻白頭偕老；「松柏長青」用於壽宴；「文采斐然」用於寫作比賽，不可混用。'},
+{t:'tici',era:'題辭・生日',type:'mc',
+ q:'祝賀長輩壽宴，下列哪個題辭最適合？',
+ opts:['青春永駐','壽比南山','旗開得勝','學業進步'],ans:1,
+ explain:'「壽比南山」祝長輩長壽如南山；「青春永駐」用於年輕人；「旗開得勝」用於競賽，場合要正確區分。'},
+{t:'tici',era:'題辭・開業',type:'mc',
+ q:'朋友新店開業，下列哪個題辭最恰當？',
+ opts:['節哀順變','大展鴻圖','金榜題名','福壽雙全'],ans:1,
+ explain:'「大展鴻圖」意指大有作為、事業蓬勃，是開業慶典最常用的賀詞之一，也可用「開業大吉」、「鴻圖大展」。'},
+{t:'tici',era:'題辭・喪事',type:'mc',
+ q:'親友家有喪事，應送哪種弔辭最為恰當？',
+ opts:['百年好合','喜氣洋洋','節哀順變','永結同心'],ans:2,
+ explain:'「節哀順變」表達對喪家的慰問，勸其節制哀傷；「百年好合」、「永結同心」是婚禮用語，切勿用錯場合。'},
+{t:'tici',era:'題辭・書法',type:'mc',
+ q:'朋友舉辦書法展，下列哪個題辭最貼切？',
+ opts:['歌喉圓潤','揮毫有力','五子登科','旗開得勝'],ans:1,
+ explain:'「揮毫有力」讚美書法筆力雄健，最適用於書法展；「歌喉圓潤」用於歌唱場合，不同才藝有不同的題辭。'},
+{t:'tici',era:'題辭・升學',type:'mc',
+ q:'朋友考上理想大學，最適合送哪個題辭？',
+ opts:['大展鴻圖','金榜題名','松柏長青','婚姻美滿'],ans:1,
+ explain:'「金榜題名」指考試上榜，是升學、考試成功時最常用的賀詞；「大展鴻圖」用於事業開創，兩者不同。'},
+{t:'tici',era:'題辭・格式特色',type:'mc',
+ q:'關於題辭的格式，以下何者正確？',
+ opts:['題辭必須五字一句','題辭通常四字一句，並講究對仗押韻','題辭可長可短，沒有字數限制','題辭只能用毛筆書寫'],ans:1,
+ explain:'題辭的特色是四字一句、講究對仗和押韻，語言精練，字字珠璣，展現中文的韻律之美。'},
+{t:'tici',era:'題辭・壽宴',type:'mc',
+ q:'「松柏長青」這個題辭最適合用在哪個場合？',
+ opts:['婚禮喜慶','長輩壽宴','新居落成','開業慶典'],ans:1,
+ explain:'「松柏長青」以松柏長年不凋比喻長壽健康，最適合用於祝賀長輩壽宴或祈求健康長壽的場合。'},
+{t:'tici',era:'題辭・弔詞辨析',type:'mc',
+ q:'弔唁男性（父親）逝世，送給喪家的弔辭應使用哪一句？',
+ opts:['嚴翁仙逝','慈母仙逝','仁者離去','天人永隔'],ans:0,
+ explain:'「嚴翁仙逝」用於父親去世（嚴翁指別人的父親）；「慈母仙逝」用於母親去世（慈母指別人的母親），稱謂要正確區分。'},
+
+// ── 成語詞語 ────────────────────────────────────────────
+{t:'idiom',era:'成語・反義詞',type:'mc',
+ q:'「物盡其用」的反義詞是？',
+ opts:['取之不盡','暴殄天物','廢物利用','物以稀為貴'],ans:1,
+ explain:'「物盡其用」指充分利用每樣東西；反義是「暴殄天物」，指不知珍惜、任意糟蹋物品。'},
+{t:'idiom',era:'成語・反義詞',type:'mc',
+ q:'「半途而廢」的反義詞是？',
+ opts:['功虧一簣','前功盡棄','持之以恆','知難而退'],ans:2,
+ explain:'「半途而廢」指做事沒做完就放棄；反義「持之以恆」指始終如一地堅持下去，兩者意思相反。'},
+{t:'idiom',era:'成語・近義詞',type:'mc',
+ q:'「五花八門」的近義詞是？',
+ opts:['形形色色','井然有序','一成不變','單調乏味'],ans:0,
+ explain:'「五花八門」形容種類繁多、各式各樣；近義「形形色色」同樣表示種類繁多，兩者可互相替換。'},
+{t:'idiom',era:'成語・意義',type:'mc',
+ q:'「熟能生巧」這個成語的意思是？',
+ opts:['天才才能成功','反覆練習，自然能掌握技巧','生活熟悉才能帶來快樂','熟識的人才有辦法'],ans:1,
+ explain:'「熟能生巧」意思是：透過不斷的練習，熟練了自然就會產生技巧，強調勤奮練習的重要性。'},
+{t:'idiom',era:'成語・意義',type:'mc',
+ q:'「事必躬親」這個成語形容什麼樣的人？',
+ opts:['什麼事都叫別人做的人','每件事都親自去做、不假手他人的人','做事非常粗心的人','喜歡到處旅行的人'],ans:1,
+ explain:'「事必躬親」形容每件事都親力親為，不假手他人；「躬」是親身的意思，帶有認真負責的意涵。'},
+{t:'idiom',era:'成語・意義',type:'mc',
+ q:'「功虧一簣」比喻什麼情況？',
+ opts:['從頭開始重做','差最後一步卻前功盡棄','輕易就達到目標','合作成功的喜悅'],ans:1,
+ explain:'「功虧一簣」出自《書經》，「簣」是裝土的筐；比喻差最後一步就能成功，卻前功盡棄，強調堅持到底的重要。'},
+{t:'idiom',era:'成語・近義詞辨析',type:'mc',
+ q:'「沉著冷靜」與下列哪個成語意思最相近？',
+ opts:['驚慌失措','臨危不懼','手忙腳亂','措手不及'],ans:1,
+ explain:'「沉著冷靜」與「臨危不懼」都形容在危急時仍能保持冷靜從容；相反的是「驚慌失措」、「手忙腳亂」。'},
+{t:'idiom',era:'成語・近義詞',type:'mc',
+ q:'「一石二鳥」的意思與下列哪個選項最相近？',
+ opts:['一箭雙鵰','單刀直入','見縫插針','乘勝追擊'],ans:0,
+ explain:'「一石二鳥」與「一箭雙鵰」都表示一個行動同時達到兩個目的，兩者互為近義成語。'},
+{t:'idiom',era:'成語・意義',type:'mc',
+ q:'「瞻前顧後」的意思是？',
+ opts:['做事積極向前','做事畏首畏尾、顧慮太多','向前看後面的路','仔細觀察四面八方'],ans:1,
+ explain:'「瞻前顧後」形容做事時過度顧慮、畏首畏尾，不敢果斷行動；帶有貶義，強調過分猶豫的缺點。'},
+{t:'idiom',era:'成語・填空',type:'fill',
+ q:'「___相惜」中空格應填入哪兩個字？（提示：形容才能相似的人互相欣賞）',
+ ans:'惺惺',
+ explain:'「惺惺相惜」指才能相似的人互相欣賞，「惺惺」形容聰明機敏。'},
+{t:'idiom',era:'成語・近義詞',type:'mc',
+ q:'下列哪組成語互為近義詞？',
+ opts:['虎頭蛇尾 / 持之以恆','一鳴驚人 / 默默無聞','勤能補拙 / 笨鳥先飛','半途而廢 / 堅持到底'],ans:2,
+ explain:'「勤能補拙」指用勤奮彌補資質不足；「笨鳥先飛」指能力差的人更要早起努力，兩者同樣強調勤奮的重要，為近義詞。'},
+{t:'idiom',era:'成語・辨析',type:'mc',
+ q:'「日積月累」強調的是什麼概念？',
+ opts:['一天比一天懶散','每天每月不斷積累，量變帶動質變','積累大量財富','月亮每天改變形狀'],ans:1,
+ explain:'「日積月累」指一天天、一月月不斷積累，時間一久就有顯著成果，強調「量變產生質變」的道理。'},
+
+// ── 修辭法 ────────────────────────────────────────────
+{t:'rhetoric',era:'修辭・明喻',type:'mc',
+ q:'「她的笑容如春天的陽光般溫暖」，這句話使用了哪種修辭法？',
+ opts:['暗喻','明喻','借喻','擬人'],ans:1,
+ explain:'這句話用「如……般」連接，清楚表達本體（笑容）和喻體（春天的陽光），屬於「明喻」。明喻有明顯的比喻詞（如、像、似）。'},
+{t:'rhetoric',era:'修辭・暗喻',type:'mc',
+ q:'「時間是一把無情的剪刀，剪去了青春的年華」，這句話使用了哪種修辭法？',
+ opts:['明喻','借喻','暗喻','誇飾'],ans:2,
+ explain:'這句話用「是」連接本體（時間）和喻體（剪刀），沒有「如、像」等明喻詞，屬於「暗喻」（隱喻）。'},
+{t:'rhetoric',era:'修辭・誇飾',type:'mc',
+ q:'「飛流直下三千尺，疑是銀河落九天」，這句詩使用的修辭法是？',
+ opts:['比喻','頂真','誇飾','對偶'],ans:2,
+ explain:'「三千尺」、「銀河落九天」為誇大的描寫，屬於「誇飾」（誇張）修辭，用以強調瀑布的壯觀與高度。'},
+{t:'rhetoric',era:'修辭・頂真',type:'mc',
+ q:'「春風吹，吹綠了大地；大地染，染紅了山花」，這段文字使用了哪種修辭法？',
+ opts:['排比','頂真','回文','對偶'],ans:1,
+ explain:'「頂真」是前一句的末尾詞語作為下一句的開頭，如「吹綠了大地；大地染」，前後句首尾相接，形成連貫的節奏。'},
+{t:'rhetoric',era:'修辭・排比',type:'mc',
+ q:'「我愛祖國的山，我愛祖國的水，我愛祖國的每一寸土地」，這段文字用了什麼修辭法？',
+ opts:['頂真','對偶','排比','設問'],ans:2,
+ explain:'「排比」是用三個以上結構相同或相似的句式，表達相關的多個意思，增強語氣和節奏感。此三句均以「我愛祖國的」開頭。'},
+{t:'rhetoric',era:'修辭・擬人',type:'mc',
+ q:'「小草害羞地低著頭，不敢接受太陽的讚美」，這句話使用了哪種修辭法？',
+ opts:['比喻','擬人','誇飾','借代'],ans:1,
+ explain:'「擬人」是把無生命的事物當作有人的動作或感情來描寫，如「害羞地低著頭」是人的行為，賦予小草人的特質。'},
+{t:'rhetoric',era:'修辭・反問',type:'mc',
+ q:'「難道我們能坐視不管嗎？」，這句話使用的修辭法是？',
+ opts:['設問（自問自答）','反問（以問代答）','感嘆','排比'],ans:1,
+ explain:'「反問」是用問句形式表達肯定的意思，不需要回答，以強調語氣；「設問」則是自問自答。「難道……嗎？」是反問句型。'},
+{t:'rhetoric',era:'修辭・對偶',type:'mc',
+ q:'「春蠶到死絲方盡，蠟炬成灰淚始乾」，這兩句詩用了哪種修辭法？',
+ opts:['排比','頂真','對偶','借喻'],ans:2,
+ explain:'「對偶」是兩句字數相同、詞性相對、意義相關的句子。「春蠶/蠟炬」、「到死/成灰」、「絲方盡/淚始乾」兩兩相對。'},
+{t:'rhetoric',era:'修辭・借代',type:'mc',
+ q:'「不要讓白髮替代黑髮後才後悔年輕時的虛度」，這句話中「白髮」代替什麼意思？',
+ opts:['白色的頭髮本身','老年時光','年輕時的記憶','努力的象徵'],ans:1,
+ explain:'「借代」是用某事物的特徵代替事物本身，「白髮」是老年人的特徵，這裡用「白髮」代指「老年時光」。'},
+{t:'rhetoric',era:'修辭・綜合辨析',type:'mc',
+ q:'下列哪一句使用了「誇飾」修辭法？',
+ opts:['他的聲音如洪鐘般響亮','她哭了很久很久','飢餓的感覺讓我能吞下一頭大象','冬天來了，春天還會遠嗎'],ans:2,
+ explain:'「能吞下一頭大象」是極度誇張的說法，用以強調飢餓的程度，屬於誇飾修辭法。選項(A)是明喻，(D)是反問。'},
+
+// ── 中國小說 ────────────────────────────────────────────
+{t:'novel',era:'中國小說・水滸傳',type:'mc',
+ q:'《水滸傳》的作者是誰？',
+ opts:['吳承恩','施耐庵','羅貫中','曹雪芹'],ans:1,
+ explain:'《水滸傳》作者施耐庵，描述宋朝以宋江為首的一百零八位好漢聚義梁山泊、反抗腐敗官府的故事。'},
+{t:'novel',era:'中國小說・西遊記',type:'mc',
+ q:'《西遊記》的作者是誰？唐僧師徒一行人取經的目的地是哪裡？',
+ opts:['施耐庵，印度','吳承恩，天竺（西天）','羅貫中，西域','曹雪芹，南海'],ans:1,
+ explain:'《西遊記》作者吳承恩，描述唐僧（玄奘）率孫悟空、豬八戒、沙悟淨前往天竺（今印度）取回佛經的故事。'},
+{t:'novel',era:'中國小說・三國演義',type:'mc',
+ q:'《三國演義》描述哪個時代的故事？作者是誰？',
+ opts:['春秋戰國，左丘明','東漢末年至三國時期，羅貫中','唐朝衰亡，吳承恩','宋代，施耐庵'],ans:1,
+ explain:'《三國演義》作者羅貫中，描述東漢末年至三國時期魏（曹操）、蜀（劉備）、吳（孫權）三國鼎立的歷史故事。'},
+{t:'novel',era:'中國小說・紅樓夢',type:'mc',
+ q:'《紅樓夢》的作者是誰？主要描寫哪兩位主角的愛情故事？',
+ opts:['施耐庵，宋江與林黛玉','吳承恩，唐僧與女兒國王','曹雪芹，賈寶玉與林黛玉','劉鶚，老殘與翠環'],ans:2,
+ explain:'《紅樓夢》作者曹雪芹，描述賈寶玉與林黛玉的愛情悲劇，以及賈府由盛而衰的故事，反映封建社會的種種問題。'},
+{t:'novel',era:'中國小說・封神演義',type:'mc',
+ q:'《封神演義》描述的是哪個朝代交替時期的故事？',
+ opts:['夏商之際','商周之際','秦漢之際','隋唐之際'],ans:1,
+ explain:'《封神演義》（許仲琳著）描述商朝末年，周武王伐紂的故事，大量神仙鬼怪出現，充滿神話與奇幻色彩。'},
+{t:'novel',era:'中國小說・老殘遊記',type:'mc',
+ q:'《老殘遊記》的作者是誰？這部小說主要諷刺什麼？',
+ opts:['施耐庵，梁山好漢的私心','劉鶚，清朝末年的官場腐敗','吳敬梓，科舉制度','曹雪芹，封建貴族'],ans:1,
+ explain:'《老殘遊記》作者劉鶚，主角「老殘」以走方郎中身份遊歷各地，揭露清末官場腐敗貪汙的黑暗現實。'},
+{t:'novel',era:'中國小說・四大名著',type:'mc',
+ q:'中國古典文學「四大名著」包含哪四部？',
+ opts:['水滸傳、西遊記、三國演義、封神演義','水滸傳、西遊記、三國演義、紅樓夢','西遊記、紅樓夢、封神演義、老殘遊記','三國演義、紅樓夢、老殘遊記、金瓶梅'],ans:1,
+ explain:'中國四大名著為：《三國演義》（羅貫中）、《水滸傳》（施耐庵）、《西遊記》（吳承恩）、《紅樓夢》（曹雪芹）。'},
+{t:'novel',era:'中國小說・人物辨析',type:'mc',
+ q:'「臥龍先生」是哪部小說中的人物？他的真名是什麼？',
+ opts:['西遊記・孫悟空','三國演義・諸葛亮','水滸傳・宋江','封神演義・姜子牙'],ans:1,
+ explain:'「臥龍先生」是《三國演義》中諸葛亮的號，足智多謀，輔佐劉備建立蜀漢，是古典小說中最著名的謀士。'},
+{t:'novel',era:'中國小說・水滸傳',type:'tf',
+ q:'《水滸傳》中，梁山好漢共有一百零八位，以宋江為首領。',
+ ans:true,
+ explain:'《水滸傳》中，梁山泊共有一百零八位好漢（天罡三十六員、地煞七十二員），以宋江為首領，人稱「及時雨」。'},
+{t:'novel',era:'中國小說・西遊記',type:'mc',
+ q:'《西遊記》中，唐僧師徒取經路上，孫悟空擁有什麼神通？',
+ opts:['點石成金','七十二變與觔斗雲','呼風喚雨','隱身術'],ans:1,
+ explain:'孫悟空（美猴王、齊天大聖）擁有七十二變（可變化成各種形態）和觔斗雲（一個觔斗十萬八千里），是保護唐僧的核心人物。'},
+
+// ── 歇後語 ────────────────────────────────────────────
+{t:'xiehouyu',era:'歇後語・泥菩薩過河',type:'mc',
+ q:'「泥菩薩過河」這句歇後語的後半部是什麼？',
+ opts:['普渡眾生','自身難保','平安渡過','神通廣大'],ans:1,
+ explain:'「泥菩薩過河——自身難保」，泥製的菩薩遇水就會溶化，連自己都保不住，比喻自顧不暇的人無法幫助別人。'},
+{t:'xiehouyu',era:'歇後語・八仙過海',type:'mc',
+ q:'「八仙過海」這句歇後語的後半部是什麼？',
+ opts:['各顯神通','平安抵達','順風順水','眾志成城'],ans:0,
+ explain:'「八仙過海——各顯神通」，八位神仙各用不同方法渡海，比喻每個人用自己的方式解決問題、發揮才能。'},
+{t:'xiehouyu',era:'歇後語・貓哭老鼠',type:'mc',
+ q:'「貓哭老鼠」這句歇後語的後半部是什麼？',
+ opts:['真情流露','假慈悲','真心誠意','悲傷難捨'],ans:1,
+ explain:'「貓哭老鼠——假慈悲」，貓是老鼠的天敵，假裝哭泣，比喻表面同情，實際上是虛情假意。'},
+{t:'xiehouyu',era:'歇後語・狗拿耗子',type:'mc',
+ q:'「狗拿耗子」這句歇後語的後半部是什麼？',
+ opts:['忠心耿耿','多管閒事','一網打盡','各司其職'],ans:1,
+ explain:'「狗拿耗子——多管閒事」，捉老鼠是貓的職責，狗去管這件事，比喻管不該自己管的閒事。'},
+{t:'xiehouyu',era:'歇後語・千里送鵝毛',type:'mc',
+ q:'「千里送鵝毛」這句歇後語的後半部是什麼？',
+ opts:['禮輕情意重','人輕言微','一毛不拔','羽毛輕飄'],ans:0,
+ explain:'「千里送鵝毛——禮輕情意重」，從遠方不遠千里送來的鵝毛雖輕，但代表了深厚的情誼，禮物輕但心意重。'},
+{t:'xiehouyu',era:'歇後語・瞎子點燈',type:'mc',
+ q:'「瞎子點燈」這句歇後語的後半部是什麼？',
+ opts:['照亮前方','白費蠟','借光而行','一片漆黑'],ans:1,
+ explain:'「瞎子點燈——白費蠟」，視障者點燈看不見，白白消耗蠟燭，比喻做了無用功、白費力氣。'},
+{t:'xiehouyu',era:'歇後語・半路出家',type:'mc',
+ q:'「半路出家」這句話的意思是什麼？',
+ opts:['非常虔誠的僧侶','中途才改行，非本科班出身','在路上遇見出家人','提前退休'],ans:1,
+ explain:'「半路出家」指中途才出家為僧，引申為非本科班出身、半途改行，暗示缺少系統的基礎訓練。'},
+{t:'xiehouyu',era:'歇後語・格式認識',type:'mc',
+ q:'下列關於「歇後語」的說明，何者正確？',
+ opts:['歇後語只有後半段，前半段是省略的','歇後語分前後兩部分，前部是比喻（引子），後部是解說（後語）','歇後語必須押韻','歇後語等同於諺語'],ans:1,
+ explain:'歇後語由兩部分組成：前部分是引子（具體的比喻情境），後部分是解說（意義所在）。使用時常只說前半，讓人猜後半，故稱「歇後」。'},
+
+// ── 文意排序 ────────────────────────────────────────────
+{t:'sort',era:'排序・論說文',type:'sort',
+ q:'以下四個句子，請依照正確的文章邏輯順序排列（由首到尾）：',
+ items:[
+   '(甲) 因此，我們應該養成每天閱讀的好習慣。',
+   '(乙) 閱讀可以增廣見聞，豐富我們的知識。',
+   '(丙) 不僅如此，閱讀還能培養思考能力與創造力。',
+   '(丁) 書籍是人類智慧的結晶，是知識的寶庫。',
+ ],
+ ans:[3,1,2,0],
+ explain:'正確順序：丁（總說書的價值）→ 乙（第一個好處）→ 丙（更多好處）→ 甲（結論呼籲）。'},
+{t:'sort',era:'排序・記敘文',type:'sort',
+ q:'以下四個句子，請依照故事發展順序排列（由首到尾）：',
+ items:[
+   '(甲) 他深深吸了口氣，鼓起勇氣走到臺前。',
+   '(乙) 臺下響起熱烈的掌聲，他露出了開心的笑容。',
+   '(丙) 演講比賽開始了，輪到他上台，心跳加速。',
+   '(丁) 他流暢地完成演講，聲音堅定而有力。',
+ ],
+ ans:[2,0,3,1],
+ explain:'正確順序：丙（比賽開始，心跳加速）→ 甲（鼓起勇氣走上臺）→ 丁（流暢完成演講）→ 乙（贏得掌聲）。'},
+{t:'sort',era:'排序・議論結構',type:'sort',
+ q:'以下是一段議論文，請依照「論點→論據→結論」的順序排列：',
+ items:[
+   '(甲) 由此可見，勤奮努力才是通往成功的不二法門。',
+   '(乙) 勤奮是成功的關鍵要素之一。',
+   '(丙) 愛迪生曾說：「天才是百分之一的靈感，加上百分之九十九的汗水。」',
+   '(丁) 許多成功的科學家、藝術家，無不是透過長期苦練才達到頂峰。',
+ ],
+ ans:[1,2,3,0],
+ explain:'正確順序：乙（論點）→ 丙（論據：名言）→ 丁（論據：事例）→ 甲（結論）。'},
+{t:'sort',era:'排序・書信格式',type:'sort',
+ q:'以下是書信的各組成部分，請依照正確的書寫順序排列：',
+ items:[
+   '(甲) 結尾敬語，如「敬祝　健康快樂」。',
+   '(乙) 開頭稱謂，如「親愛的老師」。',
+   '(丙) 署名與日期，寫明寫信者姓名與寫信時間。',
+   '(丁) 正文，陳述書信的主要內容。',
+ ],
+ ans:[1,3,0,2],
+ explain:'書信正確順序：乙（稱謂）→ 丁（正文）→ 甲（結尾敬語）→ 丙（署名與日期）。'},
+{t:'sort',era:'排序・成語故事',type:'sort',
+ q:'「精衛填海」的故事，請依照情節順序排列：',
+ items:[
+   '(甲) 牠每天從西山銜來石頭和樹枝，投入大海。',
+   '(乙) 炎帝之女女娃到東海遊玩，不幸溺水而死。',
+   '(丙) 女娃的魂魄化為一隻叫「精衛」的鳥。',
+   '(丁) 精衛立志要填平大海，以防止更多人溺死。',
+ ],
+ ans:[1,2,3,0],
+ explain:'故事順序：乙（女娃溺死）→ 丙（魂化精衛鳥）→ 丁（立志填海）→ 甲（日日填海的行動）。'},
+];
+
+// ── State ───────────────────────────────────────────
+const WB_KEY='cw4_wrong_v1';
+let S={qs:[],cur:0,score:0,combo:0,mode:'normal',lives:3,timer:null,timeLeft:0,blitzLeft:60,answered:false,isWP:false};
+let qtyTarget=10,selTopics=new Set(QB.map(q=>q.t)),selMode='normal';
+
+function loadWB(){try{return JSON.parse(localStorage.getItem(WB_KEY)||'[]');}catch{return[];}}
+function saveWB(a){localStorage.setItem(WB_KEY,JSON.stringify(a));}
+function addWrong(q){
+  const bank=loadWB();const idx=bank.findIndex(x=>x.era===q.era&&x.q===q.q);
+  if(idx>=0){bank[idx].wrongCount=(bank[idx].wrongCount||1)+1;}
+  else{bank.push({...q,wrongCount:1});}
+  saveWB(bank);
+}
+function removeWrong(q){const bank=loadWB().filter(x=>!(x.era===q.era&&x.q===q.q));saveWB(bank);}
+
+// ── Init ────────────────────────────────────────────
+document.querySelectorAll('.nav-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.panel).classList.add('active');
+    if(tab.dataset.panel==='wrong')renderWP();
+  });
+});
+document.querySelectorAll('.tchip').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    chip.classList.toggle('on');
+    if(chip.classList.contains('on'))selTopics.add(chip.dataset.t);
+    else selTopics.delete(chip.dataset.t);
+    updateGoBtn();
+  });
+});
+document.querySelectorAll('.mcard').forEach(card=>{
+  card.addEventListener('click',()=>{
+    document.querySelectorAll('.mcard').forEach(c=>c.classList.remove('picked'));
+    card.classList.add('picked');selMode=card.dataset.m;
+  });
+});
+let qty=10;
+document.getElementById('qtyMinus').addEventListener('click',()=>{qty=Math.max(5,qty-5);document.getElementById('qtyVal').textContent=qty;});
+document.getElementById('qtyPlus').addEventListener('click',()=>{qty=Math.min(50,qty+5);document.getElementById('qtyVal').textContent=qty;});
+document.getElementById('goBtn').addEventListener('click',()=>startGame());
+function updateGoBtn(){document.getElementById('goBtn').disabled=selTopics.size===0;}
+
+function startGame(fromWrong=false){
+  let pool;
+  if(fromWrong){
+    pool=[...loadWB()];S.isWP=true;
+  } else {
+    pool=QB.filter(q=>selTopics.has(q.t));S.isWP=false;
+  }
+  if(!pool.length)return;
+  shuffle(pool);
+  S.qs=pool.slice(0,fromWrong?pool.length:qty);
+  S.cur=0;S.score=0;S.combo=0;S.mode=fromWrong?'normal':selMode;S.lives=3;S.answered=false;
+  clearInterval(S.timer);
+  showScreen('game');
+  renderQ();
+  if(S.mode==='blitz'){S.blitzLeft=60;startBlitz();}
+}
+function startWrongPractice(){startGame(true);}
+
+function startTimer(){
+  S.timeLeft=20;document.getElementById('gTimer').textContent='20s';
+  S.timer=setInterval(()=>{
+    S.timeLeft--;document.getElementById('gTimer').textContent=S.timeLeft+'s';
+    if(S.timeLeft<=0){clearInterval(S.timer);if(!S.answered)autoFail();}
+  },1000);
+}
+function startBlitz(){
+  document.getElementById('gTimer').textContent=S.blitzLeft+'s';
+  S.timer=setInterval(()=>{
+    S.blitzLeft--;document.getElementById('gTimer').textContent=S.blitzLeft+'s';
+    if(S.blitzLeft<=0){clearInterval(S.timer);finish();}
+  },1000);
+}
+function autoFail(){
+  S.answered=true;S.combo=0;
+  const q=S.qs[S.cur];
+  if(S.mode==='survival'){S.lives--;if(S.lives<=0){clearInterval(S.timer);setTimeout(finish,900);return;}}
+  if(q.type==='mc'||q.type==='fsy'){
+    document.querySelectorAll('.opt').forEach((o,i)=>{o.disabled=true;if(i===q.ans)o.classList.add('correct');});
+  } else if(q.type==='tf'){
+    document.querySelectorAll('.tf-btn').forEach(b=>{b.disabled=true;if((b.dataset.val==='true')===q.ans)b.classList.add('correct');});
+  }
+  showExplain(q);addWrong(q);
+}
+
+function renderQ(){
+  if(S.cur>=S.qs.length){showResult();return;}
+  const q=S.qs[S.cur];S.answered=false;
+  const total=S.qs.length;
+  document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;
+  document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;
+  document.getElementById('gScore').textContent=`${S.score} 分`;
+  if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));
+  else document.getElementById('gLives').textContent='';
+  const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題',fsy:'形音義辨析'};
+  if(S.mode==='timed'){clearInterval(S.timer);startTimer();}
+  if(S.mode!=='blitz')document.getElementById('gTimer').textContent='';
+
+  const wrap=document.getElementById('qwrap');
+  wrap.innerHTML=`<div class="qcard"><span class="qtag" id="qtag">${tMap[q.type]||'題目'}</span><div class="qera">${q.era}</div><div class="qtext">${q.q}</div><div id="qbody"></div></div>`;
+
+  if(q.type==='fsy')renderFSY(q);
+  else if(q.type==='mc')renderMC(q);
+  else if(q.type==='tf')renderTF(q);
+  else if(q.type==='fill')renderFill(q);
+  else if(q.type==='match')renderMatch(q);
+  else if(q.type==='sort')renderSort(q);
+}
+
+function renderFSY(q){
+  const body=document.getElementById('qbody');
+  body.innerHTML=`<div class="fsy-grid">${q.chars.map(c=>`<div class="fsy-card"><div class="fsy-char">${c.char}</div><div class="fsy-ping">${c.ping}</div><div class="fsy-def">${c.def}</div><div class="fsy-ex">${c.ex}</div></div>`).join('')}</div><div class="fsy-ask">${q.askQ}</div><div class="opts" id="opts"></div>`;
+  renderMCOpts(q);
+}
+function renderMC(q){
+  const body=document.getElementById('qbody');
+  body.innerHTML=`<div class="opts" id="opts"></div>`;
+  renderMCOpts(q);
+}
+function renderMCOpts(q){
+  const opts=document.getElementById('opts');
+  opts.innerHTML=q.opts.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('');
+  opts.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(S.answered)return;S.answered=true;
+      clearInterval(S.mode==='timed'?S.timer:null);
+      const i=+btn.dataset.i;const correct=i===q.ans;
+      btn.classList.add(correct?'correct':'wrong');
+      opts.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+      if(!correct){opts.querySelectorAll('.opt')[q.ans].classList.add('correct');addWrong(q);}
+      handleScore(correct,q);
+      showExplain(q);
+    });
+  });
+}
+function renderTF(q){
+  const body=document.getElementById('qbody');
+  body.innerHTML=`<div class="tf-row"><button class="tf-btn" data-val="true">⭕ 正確</button><button class="tf-btn" data-val="false">❌ 錯誤</button></div>`;
+  body.querySelectorAll('.tf-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(S.answered)return;S.answered=true;
+      clearInterval(S.mode==='timed'?S.timer:null);
+      const val=btn.dataset.val==='true';const correct=val===q.ans;
+      btn.classList.add(correct?'correct':'wrong');
+      body.querySelectorAll('.tf-btn').forEach(b=>{b.disabled=true;if((b.dataset.val==='true')===q.ans)b.classList.add('correct');});
+      if(!correct)addWrong(q);
+      handleScore(correct,q);showExplain(q);
+    });
+  });
+}
+function renderFill(q){
+  const body=document.getElementById('qbody');
+  body.innerHTML=`<div class="fill-row"><input class="fill-input" id="fillInp" placeholder="請輸入答案…" autocomplete="off"><button class="fill-submit" id="fillBtn">確認</button></div>`;
+  const inp=document.getElementById('fillInp');const btn=document.getElementById('fillBtn');
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')btn.click();});
+  btn.addEventListener('click',()=>{
+    if(S.answered)return;
+    const val=inp.value.trim();if(!val)return;
+    S.answered=true;clearInterval(S.mode==='timed'?S.timer:null);
+    const correct=val===q.ans||val.replace(/\s/g,'')===(q.ans+'').replace(/\s/g,'');
+    inp.classList.add(correct?'correct':'wrong');btn.disabled=true;inp.disabled=true;
+    if(!correct){addWrong(q);const hint=document.createElement('div');hint.style.cssText='font-size:.82rem;color:#c0392b;margin-top:6px;';hint.textContent='正確答案：'+q.ans;body.appendChild(hint);}
+    handleScore(correct,q);showExplain(q);
+  });
+}
+function renderMatch(q){
+  const body=document.getElementById('qbody');
+  const pairs=q.pairs;const shuffledB=[...pairs.map(p=>p.b)];shuffle(shuffledB);
+  body.innerHTML=`<div class="match-area"><div class="match-col" id="colA">${pairs.map((p,i)=>`<div class="match-item" data-ai="${i}">${p.a}</div>`).join('')}</div><div class="match-col" id="colB">${shuffledB.map((b,i)=>`<div class="match-item" data-bi="${i}" data-bval="${b}">${b}</div>`).join('')}</div></div>`;
+  let selA=null,matched=0;
+  body.querySelectorAll('[data-ai]').forEach(el=>{el.addEventListener('click',()=>{if(el.classList.contains('matched'))return;body.querySelectorAll('[data-ai]').forEach(x=>x.classList.remove('selected'));el.classList.add('selected');selA=el;});});
+  body.querySelectorAll('[data-bval]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      if(!selA||el.classList.contains('matched'))return;
+      const ai=+selA.dataset.ai;const correct=el.dataset.bval===pairs[ai].b;
+      if(correct){selA.classList.remove('selected');selA.classList.add('matched');el.classList.add('matched');selA=null;matched++;
+        if(matched===pairs.length){S.answered=true;handleScore(true,q);showExplain(q);}
+      } else {
+        el.classList.add('wrong-flash');setTimeout(()=>el.classList.remove('wrong-flash'),500);
+        S.combo=0;addWrong(q);
+      }
+    });
+  });
+}
+function renderSort(q){
+  const body=document.getElementById('qbody');
+  let order=[...Array(q.items.length).keys()];shuffle(order);
+  let displayItems=order.map(i=>({orig:i,text:q.items[i]}));
+  function renderItems(){
+    const area=document.getElementById('sortArea');
+    area.innerHTML=displayItems.map((item,pos)=>`<div class="sort-item" draggable="true" data-pos="${pos}"><span class="sort-handle">☰</span><span>${item.text}</span></div>`).join('');
+    area.querySelectorAll('.sort-item').forEach(el=>{
+      el.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',el.dataset.pos);el.classList.add('dragging');});
+      el.addEventListener('dragend',()=>el.classList.remove('dragging'));
+      el.addEventListener('dragover',e=>e.preventDefault());
+      el.addEventListener('drop',e=>{
+        e.preventDefault();const from=+e.dataTransfer.getData('text/plain');const to=+el.dataset.pos;
+        if(from===to)return;const tmp=displayItems[from];displayItems[from]=displayItems[to];displayItems[to]=tmp;renderItems();
+      });
+    });
+  }
+  body.innerHTML=`<div class="sort-area" id="sortArea"></div><button class="sort-check" id="sortCheck">確認順序</button>`;
+  renderItems();
+  document.getElementById('sortCheck').addEventListener('click',()=>{
+    if(S.answered)return;S.answered=true;
+    const userOrder=displayItems.map(item=>item.orig);
+    const correct=userOrder.every((v,i)=>v===q.ans[i]);
+    if(!correct)addWrong(q);
+    handleScore(correct,q);showExplain(q);
+  });
+}
+
+function showExplain(q){
+  const qcard=document.querySelector('.qcard');
+  if(!qcard)return;
+  const box=document.createElement('div');box.className='explain-box';box.textContent='📝 '+q.explain;
+  const nbtn=document.createElement('button');nbtn.className='next-btn';
+  nbtn.textContent=S.cur+1>=S.qs.length?'查看結果 🎉':'下一題 ▶';
+  nbtn.addEventListener('click',()=>{S.cur++;renderQ();});
+  qcard.appendChild(box);qcard.appendChild(nbtn);
+}
+
+function handleScore(correct,q){
+  clearInterval(S.mode==='timed'?S.timer:null);
+  if(correct){
+    S.combo++;const pts=calcPts();S.score+=pts;
+    if(S.combo>=3){const pop=document.createElement('div');pop.className='combo-pop';pop.textContent=`COMBO\n×${S.combo}`;document.body.appendChild(pop);setTimeout(()=>pop.remove(),700);}
+    if(S.isWP)removeWrong(q);
+  } else {
+    S.combo=0;
+    if(S.mode==='survival'){S.lives--;if(S.lives<=0){S.answered=true;clearInterval(S.timer);setTimeout(finish,900);}}
+  }
+  document.getElementById('gScore').textContent=`${S.score} 分`;
+  if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));
+}
+function calcPts(){
+  const base=S.mode==='timed'?Math.max(5,S.timeLeft*5):10;
+  const combo=S.combo>=5?2:S.combo>=3?1.5:1;
+  return Math.round(base*combo);
+}
+
+function finish(){showResult();}
+function showResult(){
+  clearInterval(S.timer);
+  const total=S.qs.length;const pct=total?S.score/(total*(S.mode==='timed'?100:10)):0;
+  const grade=pct>=.9?['🏆','超級英雄！']:pct>=.75?['🌟','太厲害了！']:pct>=.6?['👍','表現不錯！']:pct>=.4?['📚','繼續加油！']:['💪','再接再厲！'];
+  document.getElementById('rEmoji').textContent=grade[0];
+  document.getElementById('rTitle').textContent=grade[1];
+  document.getElementById('rScore').textContent=S.score+' 分';
+  document.getElementById('rDetail').textContent=`共 ${total} 題・答對 ${S.qs.filter((_,i)=>i<S.cur).length>0?'':''} ${Math.round(pct*100)}%・最高連擊 ${S.combo}`;
+  showScreen('result');
+  const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強練習`:'';
+  if(pct>=.75)confetti();
+}
+
+function renderWP(){
+  const bank=loadWB();const panel=document.getElementById('wrongPanel');
+  const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');
+  if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}
+  const top=bank.sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));
+  panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--gold);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;
+  pw.style.display='block';cl.style.display='block';
+}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#7b2fbe','#e8a020','#c0392b','#9b59b6','#faf0ff'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>複習闖關王 · 我的課程</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+
+  :root {
+    --bg: #0d1117;
+    --bg-card: rgba(22, 30, 46, 0.9);
+    --border: rgba(99, 210, 190, 0.15);
+    --teal: #63d2be;
+    --text: #e2e8f0;
+    --text-muted: #7a8a9a;
+    --accent: #f0b429;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    color: var(--text);
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 80% 0%, rgba(99,210,190,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 10% 100%, rgba(99,120,210,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* ── Navbar ── */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(13,17,23,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 28px;
+    display: flex; align-items: center; height: 60px; gap: 14px;
+  }
+  .nav-brand {
+    font-family: 'Noto Serif TC', serif;
+    font-weight: 900; font-size: 1.05rem; letter-spacing: .06em;
+    text-decoration: none; color: var(--text); flex-shrink: 0;
+  }
+  .nav-brand span { color: var(--teal); }
+  .nav-divider { width: 1px; height: 22px; background: var(--border); flex-shrink: 0; }
+  .plan-badge {
+    font-size: .62rem; letter-spacing: .12em; color: var(--accent);
+    border: 1px solid rgba(240,180,41,0.35); border-radius: 20px;
+    padding: 3px 11px; flex-shrink: 0; text-transform: uppercase;
+    background: rgba(240,180,41,0.06);
+  }
+  .nav-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .nav-email {
+    font-size: .78rem; color: var(--text-muted);
+    max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .logout-btn {
+    background: transparent; border: 1px solid rgba(99,210,190,0.25);
+    border-radius: 7px; padding: 5px 14px; font-size: .72rem;
+    color: var(--teal); cursor: pointer; font-family: inherit;
+    letter-spacing: .08em; transition: background 0.2s, border-color 0.2s; white-space: nowrap;
+  }
+  .logout-btn:hover { background: rgba(99,210,190,0.08); border-color: rgba(99,210,190,0.45); }
+
+  /* ── Main ── */
+  .main {
+    position: relative; z-index: 1;
+    max-width: 1060px; margin: 0 auto; padding: 40px 24px 80px;
+  }
+
+  /* ── Welcome ── */
+  .welcome { margin-bottom: 30px; animation: fadeUp 0.45s ease both; }
+  .welcome-tag {
+    font-size: .67rem; letter-spacing: .22em; color: var(--teal);
+    text-transform: uppercase; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .welcome-tag::before {
+    content: ''; display: inline-block; width: 20px; height: 1px; background: var(--teal);
+  }
+  .welcome-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: clamp(1.4rem, 4vw, 1.8rem);
+    font-weight: 900; color: var(--text); line-height: 1.3; margin-bottom: 6px;
+  }
+  .welcome-sub { font-size: .84rem; color: var(--text-muted); }
+
+  /* ── Stats bar ── */
+  .stats-bar {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 0;
+    display: flex; margin-bottom: 28px;
+    animation: fadeUp 0.5s ease both; overflow: hidden;
+  }
+  .stat { flex: 1; text-align: center; position: relative; padding: 0 16px; }
+  .stat:not(:last-child)::after {
+    content: ''; position: absolute; right: 0; top: 10%; bottom: 10%;
+    width: 1px; background: var(--border);
+  }
+  .stat-num {
+    font-size: 1.55rem; font-weight: 700; color: var(--teal);
+    display: block; font-family: 'Noto Serif TC', serif;
+  }
+  .stat-label { font-size: .67rem; color: var(--text-muted); letter-spacing: .08em; display: block; margin-top: 2px; }
+
+  /* ── Filter tabs ── */
+  .filter-wrap {
+    margin-bottom: 32px; animation: fadeUp 0.55s ease both;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .filter-wrap::-webkit-scrollbar { display: none; }
+  .filter-tabs { display: flex; gap: 8px; padding-bottom: 4px; min-width: max-content; }
+  .filter-tab {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 30px; padding: 7px 18px; font-size: .77rem;
+    color: var(--text-muted); cursor: pointer; font-family: inherit;
+    letter-spacing: .05em; transition: all 0.2s; white-space: nowrap;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .filter-tab:hover { color: var(--text); border-color: rgba(99,210,190,0.3); }
+  .filter-tab.active {
+    background: rgba(99,210,190,0.1); border-color: rgba(99,210,190,0.5);
+    color: var(--teal); font-weight: 500;
+  }
+  .tab-count {
+    font-size: .62rem; background: rgba(255,255,255,0.06);
+    border-radius: 10px; padding: 1px 7px; color: var(--text-muted);
+  }
+  .filter-tab.active .tab-count { background: rgba(99,210,190,0.15); color: var(--teal); }
+
+  /* ── Subject sections ── */
+  .subject-group { margin-bottom: 40px; }
+  .subject-group.hidden { display: none; }
+
+  .section-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+  }
+  .section-icon { font-size: 1rem; }
+  .section-name {
+    font-size: .72rem; font-weight: 700; letter-spacing: .15em;
+    color: var(--text-muted); text-transform: uppercase; white-space: nowrap;
+  }
+  .section-line { flex: 1; height: 1px; background: var(--border); }
+  .section-count {
+    font-size: .65rem; color: var(--text-muted);
+    background: rgba(255,255,255,0.05); border-radius: 10px;
+    padding: 2px 9px; white-space: nowrap;
+  }
+
+  /* ── Course grid ── */
+  .course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 12px;
+  }
+
+  .course-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 18px 14px;
+    cursor: pointer; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    text-decoration: none; display: flex; flex-direction: column;
+    position: relative; overflow: hidden;
+  }
+  .course-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(99,210,190,0.35);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  }
+  .course-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--card-color, var(--teal)); opacity: 0; transition: opacity 0.2s;
+  }
+  .course-card:hover::before { opacity: 1; }
+
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+  .card-icon { font-size: 1.7rem; line-height: 1; }
+  .card-num {
+    font-size: .62rem; color: var(--text-muted);
+    background: rgba(255,255,255,0.05); border-radius: 6px; padding: 3px 8px;
+  }
+  .card-subject {
+    font-size: .62rem; letter-spacing: .15em; color: var(--card-color, var(--teal));
+    text-transform: uppercase; margin-bottom: 3px; font-weight: 600;
+  }
+  .card-title {
+    font-family: 'Noto Serif TC', serif; font-size: .92rem;
+    font-weight: 700; color: var(--text); margin-bottom: 7px; line-height: 1.4;
+  }
+  .card-desc {
+    font-size: .71rem; color: var(--text-muted); line-height: 1.65; margin-bottom: 14px; flex: 1;
+  }
+  .card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 11px; border-top: 1px solid rgba(255,255,255,0.05); margin-top: auto;
+  }
+  .card-meta { display: flex; gap: 5px; flex-wrap: wrap; }
+  .meta-tag {
+    font-size: .62rem; padding: 2px 7px; border-radius: 20px;
+    background: rgba(255,255,255,0.05); color: var(--text-muted);
+  }
+  .card-arrow {
+    color: var(--text-muted); font-size: .9rem;
+    transition: transform 0.2s, color 0.2s; flex-shrink: 0;
+  }
+  .course-card:hover .card-arrow { transform: translateX(3px); color: var(--card-color, var(--teal)); }
+
+  /* ── Loading ── */
+  #loadingOverlay {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center; z-index: 200;
+    transition: opacity 0.4s;
+  }
+  .loading-icon { font-size: 2.5rem; margin-bottom: 12px; animation: spin 1.2s linear infinite; display: block; }
+  .loading-text { font-size: .85rem; color: var(--text-muted); text-align: center; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 640px) {
+    .nav { padding: 0 16px; gap: 10px; }
+    .nav-email { display: none; }
+    .main { padding: 24px 16px 60px; }
+    .stats-bar { padding: 14px 0; }
+    .stat-num { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loadingOverlay">
+  <div style="text-align:center">
+    <span class="loading-icon">⚙️</span>
+    <div class="loading-text">驗證學員身份中…</div>
+  </div>
+</div>
+
+<nav class="nav">
+  <a class="nav-brand" href="#">複習<span>闖關王</span></a>
+  <div class="nav-divider"></div>
+  <div class="plan-badge">全科方案</div>
+  <div class="nav-right">
+    <span class="nav-email" id="userEmail">載入中…</span>
+    <button class="logout-btn" onclick="logout()">登出</button>
+  </div>
+</nav>
+
+<main class="main">
+
+  <div class="welcome">
+    <div class="welcome-tag">學員專區</div>
+    <h1 class="welcome-title">選擇你要複習的科目</h1>
+    <p class="welcome-sub">共 30 堂課 · 1,600＋ 題題庫 · 全方位備戰 115 年國中會考</p>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="stat-num">30</span>
+      <span class="stat-label">堂課程</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">1,600+</span>
+      <span class="stat-label">題題庫</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">5</span>
+      <span class="stat-label">種題型</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">∞</span>
+      <span class="stat-label">次練習</span>
+    </div>
+  </div>
+
+  <div class="filter-wrap">
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-filter="all">全部科目 <span class="tab-count">30</span></button>
+      <button class="filter-tab" data-filter="bio">🧬 生物 <span class="tab-count">2</span></button>
+      <button class="filter-tab" data-filter="chem">⚗️ 理化 <span class="tab-count">4</span></button>
+      <button class="filter-tab" data-filter="geo">🗺️ 地理 <span class="tab-count">6</span></button>
+      <button class="filter-tab" data-filter="hist">📜 歷史 <span class="tab-count">6</span></button>
+      <button class="filter-tab" data-filter="civic">🏛️ 公民 <span class="tab-count">6</span></button>
+      <button class="filter-tab" data-filter="chi">📖 國文 <span class="tab-count">6</span></button>
+    </div>
+  </div>
+
+  <!-- 生物 -->
+  <div class="subject-group" data-subject="bio">
+    <div class="section-header">
+      <span class="section-icon">🧬</span>
+      <span class="section-name">自然科 · 生物</span>
+      <div class="section-line"></div>
+      <span class="section-count">2 冊</span>
+    </div>
+    <div class="course-grid">
+      <a class="course-card" href="生物/第一冊/index.html" style="--card-color:#2ecc71;">
+        <div class="card-top"><span class="card-icon">🧬</span><span class="card-num">生物 01</span></div>
+        <div class="card-subject">生物</div>
+        <div class="card-title">生物闖關王<br>第一冊</div>
+        <div class="card-desc">細胞・光合呼吸・消化循環・神經感覺・免疫恆定</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">66 題</span><span class="meta-tag">單元 1–5</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="生物/第二冊/index.html" style="--card-color:#2ecc71;">
+        <div class="card-top"><span class="card-icon">🔬</span><span class="card-num">生物 02</span></div>
+        <div class="card-subject">生物</div>
+        <div class="card-title">生物闖關王<br>第二冊</div>
+        <div class="card-desc">遺傳・生殖・生物分類・生態系・環境保護・生物技術</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">87 題</span><span class="meta-tag">單元 6–10</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- 理化 -->
+  <div class="subject-group" data-subject="chem">
+    <div class="section-header">
+      <span class="section-icon">⚗️</span>
+      <span class="section-name">自然科 · 理化</span>
+      <div class="section-line"></div>
+      <span class="section-count">4 冊</span>
+    </div>
+    <div class="course-grid">
+      <a class="course-card" href="理化/第一冊/index.html" style="--card-color:#e67e22;">
+        <div class="card-top"><span class="card-icon">⚗️</span><span class="card-num">理化 01</span></div>
+        <div class="card-subject">理化</div>
+        <div class="card-title">理化闖關王<br>第一冊</div>
+        <div class="card-desc">測量・物質・光・聲音・波動・溫度・熱・元素・溶液</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">52 題</span><span class="meta-tag">單元 1–5</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="理化/第二冊/index.html" style="--card-color:#e67e22;">
+        <div class="card-top"><span class="card-icon">🧪</span><span class="card-num">理化 02</span></div>
+        <div class="card-subject">理化</div>
+        <div class="card-title">理化闖關王<br>第二冊</div>
+        <div class="card-desc">力・浮力・壓力・化學反應・酸鹼鹽・氧化還原・有機物</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">55 題</span><span class="meta-tag">單元 6–10</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="理化/第三冊/index.html" style="--card-color:#e67e22;">
+        <div class="card-top"><span class="card-icon">⚡</span><span class="card-num">理化 03</span></div>
+        <div class="card-subject">理化</div>
+        <div class="card-title">理化闖關王<br>第三冊</div>
+        <div class="card-desc">速度・加速度・牛頓定律・功・能量・電流・電路・靜電</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">44 題</span><span class="meta-tag">單元 11–15</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="理化/第四冊/index.html" style="--card-color:#e67e22;">
+        <div class="card-top"><span class="card-icon">🔋</span><span class="card-num">理化 04</span></div>
+        <div class="card-subject">理化</div>
+        <div class="card-title">理化闖關王<br>第四冊</div>
+        <div class="card-desc">磁場・電流磁效應・電磁感應・電功率・電池・電解・家用電</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">37 題</span><span class="meta-tag">單元 16–19</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- 地理 -->
+  <div class="subject-group" data-subject="geo">
+    <div class="section-header">
+      <span class="section-icon">🗺️</span>
+      <span class="section-name">社會科 · 地理</span>
+      <div class="section-line"></div>
+      <span class="section-count">6 冊</span>
+    </div>
+    <div class="course-grid">
+      <a class="course-card" href="地理/第一冊/index.html" style="--card-color:#27ae60;">
+        <div class="card-top"><span class="card-icon">🗺️</span><span class="card-num">地理 01</span></div>
+        <div class="card-subject">地理</div>
+        <div class="card-title">地理闖關王<br>第一冊</div>
+        <div class="card-desc">地圖・地形・臺灣地理・氣候・水文・海岸・時差・經緯度</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">72 題</span><span class="meta-tag">單元 1–4</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="地理/第二冊/index.html" style="--card-color:#27ae60;">
+        <div class="card-top"><span class="card-icon">🏙️</span><span class="card-num">地理 02</span></div>
+        <div class="card-subject">地理</div>
+        <div class="card-title">地理闖關王<br>第二冊</div>
+        <div class="card-desc">人口・聚落・產業・交通・臺灣區域發展・多元文化</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">61 題</span><span class="meta-tag">單元 5–8</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="地理/第三冊/index.html" style="--card-color:#27ae60;">
+        <div class="card-top"><span class="card-icon">🌏</span><span class="card-num">地理 03</span></div>
+        <div class="card-subject">地理</div>
+        <div class="card-title">地理闖關王<br>第三冊</div>
+        <div class="card-desc">東亞・東南亞・中國地理・全球氣候類型</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">58 題</span><span class="meta-tag">單元 9–12</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="地理/第四冊/index.html" style="--card-color:#27ae60;">
+        <div class="card-top"><span class="card-icon">🕌</span><span class="card-num">地理 04</span></div>
+        <div class="card-subject">地理</div>
+        <div class="card-title">地理闖關王<br>第四冊</div>
+        <div class="card-desc">南亞・西亞北非・漠南非洲・伊斯蘭文化</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">39 題</span><span class="meta-tag">單元 13–16</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="地理/第五冊/index.html" style="--card-color:#27ae60;">
+        <div class="card-top"><span class="card-icon">🌍</span><span class="card-num">地理 05</span></div>
+        <div class="card-subject">地理</div>
+        <div class="card-title">地理闖關王<br>第五冊</div>
+        <div class="card-desc">北美・中南美・歐洲・俄羅斯・大洋洲・氣候變遷</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">45 題</span><span class="meta-tag">單元 17–20</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="地理/第六冊/index.html" style="--card-color:#27ae60;">
+        <div class="card-top"><span class="card-icon">🌾</span><span class="card-num">地理 06</span></div>
+        <div class="card-subject">地理</div>
+        <div class="card-title">地理闖關王<br>第六冊</div>
+        <div class="card-desc">地名演變・農業發展・食品安全・食物運銷・地產地消</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">39 題</span><span class="meta-tag">單元 21–24</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- 歷史 -->
+  <div class="subject-group" data-subject="hist">
+    <div class="section-header">
+      <span class="section-icon">📜</span>
+      <span class="section-name">社會科 · 歷史</span>
+      <div class="section-line"></div>
+      <span class="section-count">6 冊</span>
+    </div>
+    <div class="course-grid">
+      <a class="course-card" href="歷史/第一冊/index.html" style="--card-color:#9b59b6;">
+        <div class="card-top"><span class="card-icon">🏯</span><span class="card-num">歷史 01</span></div>
+        <div class="card-subject">歷史</div>
+        <div class="card-title">歷史闖關王<br>第一冊</div>
+        <div class="card-desc">史前・大航海・鄭氏・清代・臺灣原住民</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">33 題</span><span class="meta-tag">單元 1–5</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="歷史/第二冊/index.html" style="--card-color:#9b59b6;">
+        <div class="card-top"><span class="card-icon">🗼</span><span class="card-num">歷史 02</span></div>
+        <div class="card-subject">歷史</div>
+        <div class="card-title">歷史闖關王<br>第二冊</div>
+        <div class="card-desc">日治時期・戰後臺灣・民主化・外交轉折</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">34 題</span><span class="meta-tag">單元 6–10</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="歷史/第三冊/index.html" style="--card-color:#9b59b6;">
+        <div class="card-top"><span class="card-icon">🐉</span><span class="card-num">歷史 03</span></div>
+        <div class="card-subject">歷史</div>
+        <div class="card-title">歷史闖關王<br>第三冊</div>
+        <div class="card-desc">封建・帝制・宋元・明清・晚清・文化傳播</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">28 題</span><span class="meta-tag">單元 11–15</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="歷史/第四冊/index.html" style="--card-color:#9b59b6;">
+        <div class="card-top"><span class="card-icon">⚔️</span><span class="card-num">歷史 04</span></div>
+        <div class="card-subject">歷史</div>
+        <div class="card-title">歷史闖關王<br>第四冊</div>
+        <div class="card-desc">辛亥革命・袁世凱・北伐・中日戰爭・中共建國</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">24 題</span><span class="meta-tag">單元 16–19</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="歷史/第五冊/index.html" style="--card-color:#9b59b6;">
+        <div class="card-top"><span class="card-icon">🏛️</span><span class="card-num">歷史 05</span></div>
+        <div class="card-subject">歷史</div>
+        <div class="card-title">歷史闖關王<br>第五冊</div>
+        <div class="card-desc">古文明・希臘羅馬・文藝復興・宗教改革・啟蒙・工業革命</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">63 題</span><span class="meta-tag">單元 1–5</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="歷史/第六冊/index.html" style="--card-color:#9b59b6;">
+        <div class="card-top"><span class="card-icon">🌐</span><span class="card-num">歷史 06</span></div>
+        <div class="card-subject">歷史</div>
+        <div class="card-title">歷史闖關王<br>第六冊</div>
+        <div class="card-desc">法國大革命・美國獨立・帝國主義・世界大戰・冷戰</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">49 題</span><span class="meta-tag">單元 6–10</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- 公民 -->
+  <div class="subject-group" data-subject="civic">
+    <div class="section-header">
+      <span class="section-icon">🏛️</span>
+      <span class="section-name">社會科 · 公民</span>
+      <div class="section-line"></div>
+      <span class="section-count">6 冊</span>
+    </div>
+    <div class="course-grid">
+      <a class="course-card" href="公民/第一冊/index.html" style="--card-color:#3498db;">
+        <div class="card-top"><span class="card-icon">👤</span><span class="card-num">公民 01</span></div>
+        <div class="card-subject">公民</div>
+        <div class="card-title">公民闖關王<br>第一冊</div>
+        <div class="card-desc">公民身分・文化・社會規範・家庭・性別平等・人性尊嚴</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">53 題</span><span class="meta-tag">單元 1–5</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="公民/第二冊/index.html" style="--card-color:#3498db;">
+        <div class="card-top"><span class="card-icon">⚖️</span><span class="card-num">公民 02</span></div>
+        <div class="card-subject">公民</div>
+        <div class="card-title">公民闖關王<br>第二冊</div>
+        <div class="card-desc">公平正義・文化不平等・社會福利・社會安全制度</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">43 題</span><span class="meta-tag">單元 6–10</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="公民/第三冊/index.html" style="--card-color:#3498db;">
+        <div class="card-top"><span class="card-icon">🗳️</span><span class="card-num">公民 03</span></div>
+        <div class="card-subject">公民</div>
+        <div class="card-title">公民闖關王<br>第三冊</div>
+        <div class="card-desc">民主治理・國家與政府・地方制度・基本權利・選舉・媒體</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">62 題</span><span class="meta-tag">單元 11–15</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="公民/第四冊/index.html" style="--card-color:#3498db;">
+        <div class="card-top"><span class="card-icon">📋</span><span class="card-num">公民 04</span></div>
+        <div class="card-subject">公民</div>
+        <div class="card-title">公民闖關王<br>第四冊</div>
+        <div class="card-desc">民法・刑法・行政法・訴訟程序・兒少保護・行為能力</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">48 題</span><span class="meta-tag">單元 16–20</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="公民/第五冊/index.html" style="--card-color:#3498db;">
+        <div class="card-top"><span class="card-icon">💰</span><span class="card-num">公民 05</span></div>
+        <div class="card-subject">公民</div>
+        <div class="card-title">公民闖關王<br>第五冊</div>
+        <div class="card-desc">消費・生產・市場競爭・勞動・貨幣・國際貿易・外匯</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">39 題</span><span class="meta-tag">單元 21–25</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="公民/第六冊/index.html" style="--card-color:#3498db;">
+        <div class="card-top"><span class="card-icon">🌐</span><span class="card-num">公民 06</span></div>
+        <div class="card-subject">公民</div>
+        <div class="card-title">公民闖關王<br>第六冊</div>
+        <div class="card-desc">全球化・國際組織・智財權・科技倫理・兩岸關係</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">28 題</span><span class="meta-tag">單元 26–30</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- 國文 -->
+  <div class="subject-group" data-subject="chi">
+    <div class="section-header">
+      <span class="section-icon">📖</span>
+      <span class="section-name">語文 · 國文</span>
+      <div class="section-line"></div>
+      <span class="section-count">6 冊</span>
+    </div>
+    <div class="course-grid">
+      <a class="course-card" href="國文/第一冊/index.html" style="--card-color:#e74c3c;">
+        <div class="card-top"><span class="card-icon">📖</span><span class="card-num">國文 01</span></div>
+        <div class="card-subject">國文</div>
+        <div class="card-title">國文闖關王<br>第一冊</div>
+        <div class="card-desc">修辭・形音義辨析・成語・量詞・標點符號・論語</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">74 題</span><span class="meta-tag">單元 1–4</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="國文/第二冊/index.html" style="--card-color:#e74c3c;">
+        <div class="card-top"><span class="card-icon">✍️</span><span class="card-num">國文 02</span></div>
+        <div class="card-subject">國文</div>
+        <div class="card-title">國文闖關王<br>第二冊</div>
+        <div class="card-desc">修辭・六書・成語・語意結構・多義字・書法</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">74 題</span><span class="meta-tag">單元 5–8</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="國文/第三冊/index.html" style="--card-color:#e74c3c;">
+        <div class="card-top"><span class="card-icon">📝</span><span class="card-num">國文 03</span></div>
+        <div class="card-subject">國文</div>
+        <div class="card-title">國文闖關王<br>第三冊</div>
+        <div class="card-desc">修辭・句型・詞類・連詞・聯綿詞・方位詞・顏色字</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">95 題</span><span class="meta-tag">單元 9–12</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="國文/第四冊/index.html" style="--card-color:#e74c3c;">
+        <div class="card-top"><span class="card-icon">📚</span><span class="card-num">國文 04</span></div>
+        <div class="card-subject">國文</div>
+        <div class="card-title">國文闖關王<br>第四冊</div>
+        <div class="card-desc">修辭・應用文・中國小說・成語・題辭・歇後語</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">89 題</span><span class="meta-tag">單元 13–16</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="國文/第五冊/index.html" style="--card-color:#e74c3c;">
+        <div class="card-top"><span class="card-icon">🎋</span><span class="card-num">國文 05</span></div>
+        <div class="card-subject">國文</div>
+        <div class="card-title">國文闖關王<br>第五冊</div>
+        <div class="card-desc">修辭・形音義・成語・宋詞・詩詞主題・對聯</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">62 題</span><span class="meta-tag">單元 17–20</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+      <a class="course-card" href="國文/第六冊/index.html" style="--card-color:#e74c3c;">
+        <div class="card-top"><span class="card-icon">🖋️</span><span class="card-num">國文 06</span></div>
+        <div class="card-subject">國文</div>
+        <div class="card-title">國文闖關王<br>第六冊</div>
+        <div class="card-desc">修辭・古籍・俗諺・中外名言・散文・韻文常識</div>
+        <div class="card-footer">
+          <div class="card-meta"><span class="meta-tag">52 題</span><span class="meta-tag">單元 21–24</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // =============================================
+  // ⚙️ 請填入同一組 Supabase 設定
+  // =============================================
+  const SUPABASE_URL = 'https://你的專案ID.supabase.co'
+  const SUPABASE_ANON_KEY = '你的 anon public key'
+  // =============================================
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  async function init() {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      window.location.href = '/登入頁_index.html'
+      return
+    }
+    document.getElementById('userEmail').textContent = session.user.email
+    const overlay = document.getElementById('loadingOverlay')
+    overlay.style.opacity = '0'
+    setTimeout(() => overlay.style.display = 'none', 400)
+  }
+
+  async function logout() {
+    await supabase.auth.signOut()
+    window.location.href = '/登入頁_index.html'
+  }
+
+  // Filter tabs
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'))
+      tab.classList.add('active')
+      const filter = tab.dataset.filter
+      document.querySelectorAll('.subject-group').forEach(group => {
+        if (filter === 'all' || group.dataset.subject === filter) {
+          group.classList.remove('hidden')
+        } else {
+          group.classList.add('hidden')
+        }
+      })
+    })
+  })
+
+  init()
+</script>
+</body>
+</html>

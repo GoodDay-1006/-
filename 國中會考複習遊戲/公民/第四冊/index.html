@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>公民闖關王 第四冊</title>
+<style>
+:root{
+  --bg:#fff5f0;--ink:#2a0a0a;--red:#c0392b;--gold:#8e3a0a;
+  --teal:#7d3c0a;--blue:#6b2d0a;--accent:#d35400;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(42,10,10,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(211,84,0,.08) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(192,57,43,.06) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#fde8d8 0%,#fff5f0 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(42,10,10,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(42,10,10,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(42,10,10,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(42,10,10,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(42,10,10,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#fde8d8;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(42,10,10,.48);margin-top:3px;line-height:1.4;}
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(42,10,10,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(42,10,10,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(42,10,10,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(42,10,10,.38);border:1px solid rgba(42,10,10,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:var(--red);animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#fde8d8;color:var(--teal);}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:var(--green);}
+.qtag.match{background:#fce8d0;color:#b06010;}
+.qtag.sort{background:#fde8d0;color:#d35400;}
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(42,10,10,.43);margin-bottom:11px;font-style:italic;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#fdf0eb;border:2px solid #f5c9b0;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#fde8d8;}
+.opt.ok{background:#d4f5e2;border-color:var(--green);color:var(--green);font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #f5c9b0;background:#fdf0eb;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:var(--green);}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:var(--green);background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--blue);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#fdf0eb;border:2px solid #f5c9b0;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:var(--gold);background:#fde8d8;font-weight:700;}
+.match-item.matched{border-color:var(--green);background:#d4f5e2;color:var(--green);font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#fde8d8;border:2px solid #f5c9b0;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--teal);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:var(--green);border-left:4px solid var(--green);}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+#result{background:linear-gradient(155deg,#fde8d8 0%,#fff5f0 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(42,10,10,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(42,10,10,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(42,10,10,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#fdf0eb;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">公民闖關王</div>
+    <div class="home-badge">公民 第四冊 · 單元8-10 · 會考複習</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip on" data-t="u8a">⚖️ 民法與契約</div>
+      <div class="tchip on" data-t="u8b">🧒 民法行為能力</div>
+      <div class="tchip on" data-t="u8c">⚔️ 刑法概念與刑罰</div>
+      <div class="tchip on" data-t="u8d">🏛️ 行政法</div>
+      <div class="tchip on" data-t="u9a">🤝 民事糾紛處理</div>
+      <div class="tchip on" data-t="u9b">👮 刑事訴訟</div>
+      <div class="tchip on" data-t="u9c">📋 行政救濟</div>
+      <div class="tchip on" data-t="u10">👦 青少年法律</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+
+<div class="screen" id="game">
+  <div class="gbar">
+    <div><div class="gbar-left" id="gInfo">第 1 / 50 題</div><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;"><div class="gbar-timer" id="gTimer" style="display:none;">20</div><div><div class="gbar-score" id="gScore">0 分</div><div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox"><div class="fb-title" id="fbtitle"></div><div id="fbmsg"></div></div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div><div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div><div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div><div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+<div class="combo" id="combo"></div>
+
+<script>
+const SK='civ4_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+
+// ══ 單元8a：民法與契約 ══
+{t:'u8a',era:'民法・意義範疇',type:'mc',
+ q:'民法主要規範哪兩大類關係？',
+ opts:['A 公法關係與私法關係','B 財產關係與身分關係','C 刑事責任與民事責任','D 行政關係與司法關係'],ans:1,
+ explain:'民法規範私人間日常生活上的權利義務關係，分兩大類：①財產關係（買賣、租賃、借貸等）②身分關係（親屬、婚姻、繼承等）。'},
+
+{t:'u8a',era:'民法・契約原則',type:'mc',
+ q:'「簽訂契約時，雙方當事人必須誠實，若有欺騙行為導致契約無效」，這體現了契約的哪項原則？',
+ opts:['A 契約自由原則','B 誠實信用原則','C 罪刑法定原則','D 依法行政原則'],ans:1,
+ explain:'契約兩大原則：①誠實信用原則（誠信交易，欺騙可致契約無效）②契約自由原則（當事人可自由決定是否訂約、與何人訂約、訂約內容，但不得違反公共秩序、善良風俗或法律強制規定）。'},
+
+{t:'u8a',era:'民法・契約原則',type:'mc',
+ q:'「勞動契約不可違反勞動基準法的規定」，這是契約自由原則的哪項限制？',
+ opts:['A 不得違反誠實信用原則','B 不得違反公共秩序、善良風俗或法律的強制規定','C 不得以口頭方式訂約','D 不得與未成年人訂約'],ans:1,
+ explain:'契約自由原則有限制：契約內容不得違反公共秩序、善良風俗，或法律的強制規定（如勞基法、消保法）。違反者契約無效。'},
+
+{t:'u8a',era:'民法・契約形式',type:'mc',
+ q:'一般契約只需要當事人彼此合意，就可以成立，下列何者屬於「一般契約」？',
+ opts:['A 結婚','B 房屋買賣','C 購買飲料','D 房屋租賃一年以上'],ans:2,
+ explain:'一般契約：當事人意思一致即可成立，口頭即有效（如購物、叫計程車）。特別規定之契約需特定形式：結婚需書面+2人以上簽名+戶政登記；房屋買賣需書面；一年以上房屋租賃需書面。'},
+
+{t:'u8a',era:'民法・契約形式',type:'match',
+ q:'請將契約類型與其成立要件配對：',
+ pairs:[
+   ['一般契約','當事人意思一致即可，口頭同意即有效'],
+   ['書面契約','以文字記錄契約內容，雙方簽名蓋章，效力較強'],
+   ['結婚（特別規定之契約）','需書面、二人以上簽名，依法向戶政機關登記'],
+   ['房屋買賣（特別規定之契約）','須書面並依法辦理產權移轉登記'],
+ ],
+ explain:'一般契約口頭有效；書面契約有助明確內容；結婚及不動產買賣屬法定要式契約，必須完成登記才生效。'},
+
+{t:'u8a',era:'民法・民事責任',type:'mc',
+ q:'「甲因故意撞傷乙，造成乙受傷住院」，甲應負的民事責任類型是？',
+ opts:['A 債務不履行','B 侵權行為','C 刑事責任','D 行政責任'],ans:1,
+ explain:'民事責任兩大類型：①債務不履行：私人間所訂契約，一方違約不履行；②侵權行為：故意或過失不法侵害他人權益，造成損失。甲故意撞傷乙屬侵權行為。'},
+
+{t:'u8a',era:'民法・民事責任',type:'mc',
+ q:'民事責任的主要處理方式，以何者為原則？',
+ opts:['A 以金錢賠償損失為原則','B 以刑事追訴為原則','C 以行政處罰為原則','D 以回復原狀為原則'],ans:3,
+ explain:'民事責任處理方式：①損害賠償（以回復原狀為原則，否則以金錢賠償損失）；②解除契約（不依約履行，另一方可解除）；③剝奪親權（子女受父母虐待，法院可剝奪其親權）。'},
+
+{t:'u8a',era:'民法・民事責任',type:'tf',
+ q:'無行為能力人造成他人損害，由於其本身無責任能力，完全不需負任何賠償責任。',
+ ans:false,
+ explain:'無行為能力人造成他人損害，雖自身不負責任，但「由法定代理人負連帶賠償責任」。限制行為能力人也是由法定代理人負連帶賠償責任。完全行為能力人則自行負責。'},
+
+// ══ 單元8b：民法行為能力 ══
+{t:'u8b',era:'行為能力・三種類型',type:'mc',
+ q:'「未滿7歲的兒童」屬於哪種民法行為能力人？',
+ opts:['A 完全行為能力人','B 限制行為能力人','C 無行為能力人','D 部分行為能力人'],ans:2,
+ explain:'民法行為能力三類：①無行為能力人：未滿7歲的未成年人及受監護宣告者，法律行為無效，須由法定代理人代為；②限制行為能力人：7歲以上未滿18歲的未成年人；③完全行為能力人：年滿18歲且精神健全者。'},
+
+{t:'u8b',era:'行為能力・三種類型',type:'sort',
+ q:'請將民法行為能力從限制最多到最少排列：',
+ items:['完全行為能力人（18歲以上精神健全）','無行為能力人（未滿7歲或受監護宣告）','限制行為能力人（7歲以上未滿18歲）'],
+ correctOrder:[1,2,0],
+ explain:'限制最多→無行為能力人（法律行為一律無效）→限制行為能力人（部分有效，部分需代理人同意）→完全行為能力人（自行完全負責）。'},
+
+{t:'u8b',era:'行為能力・限制行為能力人',type:'mc',
+ q:'限制行為能力人（7歲以上未滿18歲）「不須」法定代理人同意，可自行完成的行為是？',
+ opts:['A 購買手機','B 訂立租賃契約','C 純獲法律上利益的行為（如接受贈與、領獎學金）','D 中辦信用卡'],ans:2,
+ explain:'限制行為能力人的法律行為「部分有效」（不須代理人同意）：①純獲法律上利益（接受贈與、領獎學金）；②依其年齡及身分在日常生活所必需者（用零用錢買文具、搭車）。其他重要法律行為需法定代理人事前允許或事後承認。'},
+
+{t:'u8b',era:'行為能力・限制行為能力人',type:'match',
+ q:'請將限制行為能力人的行為與其效力配對：',
+ pairs:[
+   ['接受贈與（純獲利益）','不須法定代理人同意，直接有效'],
+   ['用零用錢買日常文具（日常所必需）','不須法定代理人同意，直接有效'],
+   ['購買手機（重要法律行為）','須法定代理人事前允許或事後承認'],
+   ['訂立租賃契約（重要法律行為）','須法定代理人事前允許或事後承認'],
+ ],
+ explain:'限制行為能力人：純獲利益與日常必需→直接有效；其他重要行為→需代理人同意。法定代理人通常是父母或法院選定的監護人。'},
+
+{t:'u8b',era:'行為能力・民法vs刑法',type:'mc',
+ q:'「民法行為能力」與「刑法責任能力」的年齡分界點有何不同？',
+ opts:[
+   'A 兩者完全相同',
+   'B 民法：7歲/18歲；刑法：14歲/18歲/80歲',
+   'C 民法：14歲/18歲；刑法：7歲/18歲',
+   'D 民法：6歲/18歲；刑法：12歲/18歲'
+ ],ans:1,
+ explain:'民法行為能力分界：7歲（無→限制）、18歲（限制→完全）。刑法責任能力分界：未滿14歲（無責任能力，不罰）、14歲以上未滿18歲（限制責任能力，得減輕）、18歲以上未滿80歲（完全責任）、80歲以上（得減輕）。'},
+
+{t:'u8b',era:'行為能力・民法vs刑法',type:'sort',
+ q:'請依年齡從小到大，排列民法行為能力與刑法責任能力的重要分界點：',
+ items:['18歲（民法完全行為能力人；刑法完全責任能力人）','7歲（民法限制行為能力人起始）','14歲（刑法限制責任能力人起始）','80歲（刑法得減輕其刑）'],
+ correctOrder:[1,2,0,3],
+ explain:'7歲（民法限制行為能力）→14歲（刑法限制責任能力）→18歲（民法完全行為能力 & 刑法完全責任能力）→80歲（刑法得減輕）。'},
+
+// ══ 單元8c：刑法概念與刑罰 ══
+{t:'u8c',era:'刑法・基本概念',type:'mc',
+ q:'刑法的「罪刑法定原則」是指？',
+ opts:[
+   'A 犯罪越嚴重，刑罰越重',
+   'B 犯罪行為的成立及其處罰，都必須依法律的明文規定',
+   'C 法官可依自由心證決定刑罰',
+   'D 政府可隨時修改刑法增加新罪'
+ ],ans:1,
+ explain:'罪刑法定原則：刑法第1條「行為之處罰，以行為時有明文規定者為限」。意思是：沒有法律明文規定為犯罪的行為，不得以犯罪論處；也沒有法律明文規定的刑罰，不得加以處罰。保障人民的行為自由。'},
+
+{t:'u8c',era:'刑法・制定目的',type:'mc',
+ q:'刑法的三大目的中，「藉由受刑人在獄中接受教化過程，使其有改過向善的機會」屬於哪項目的？',
+ opts:['A 懲罰犯罪','B 預防犯罪','C 矯正犯罪','D 嚇阻犯罪'],ans:2,
+ explain:'刑法三大目的：①懲罰犯罪（對犯罪者施予刑罰）②預防犯罪（藉由刑罰的威嚇，強化社會正義）③矯正犯罪（讓受刑人在獄中受教化，有機會改過，達到預防再犯目的）。'},
+
+{t:'u8c',era:'刑法・刑罰種類',type:'match',
+ q:'請將刑罰種類與其說明配對：',
+ pairs:[
+   ['死刑','剝奪生命的主刑，可單獨科處'],
+   ['無期徒刑','終身監禁的主刑，可單獨科處'],
+   ['有期徒刑','限制自由的主刑，期間不等'],
+   ['罰金','剝奪財產的主刑，須經法院宣告'],
+   ['褫奪公權','剝奪擔任公職、行使政治權利的從刑'],
+ ],
+ explain:'主刑（可單獨科處）：死刑、無期徒刑、有期徒刑、拘役、罰金。從刑（須附加於主刑）：褫奪公權（剝奪公職資格）、沒收（剝奪犯罪所得）。單獨宣告：沒收即使未判決也可單獨宣告。'},
+
+{t:'u8c',era:'刑法・違法vs犯罪',type:'mc',
+ q:'「違法」和「犯罪」的最主要差異是？',
+ opts:[
+   'A 兩者完全相同',
+   'B 違法是指違反任何法律規範；犯罪是指行為已觸犯刑法相關規定',
+   'C 犯罪一定涉及金錢損失',
+   'D 違法只有民事責任'
+ ],ans:1,
+ explain:'違法：違反任何法律規範（民法、刑法、行政法等），法律責任包含民事、刑事、行政責任。犯罪：行為已觸犯刑法相關規定，承擔刑事責任。關係：違法不一定是犯罪，但犯罪一定是違法行為。'},
+
+{t:'u8c',era:'刑法・刑事責任能力',type:'mc',
+ q:'「年滿14歲未滿18歲」的少年犯罪，其刑事責任為？',
+ opts:['A 不以刑罰處罰','B 得減輕其刑','C 負完全刑事責任','D 由父母代為承擔責任'],ans:1,
+ explain:'刑事責任能力：未滿14歲（無責任能力，不以刑罰處罰）；14歲以上未滿18歲（限制責任能力，得減輕其刑）；18歲以上未滿80歲（完全責任能力，負完全刑事責任）；80歲以上（得減輕其刑）。'},
+
+{t:'u8c',era:'刑法・刑事責任能力',type:'tf',
+ q:'「受監護宣告」的人，不論其年齡為何，在刑法上一律不以刑罰處罰。',
+ ans:false,
+ explain:'刑法責任能力的判斷標準有兩個維度：①年齡②精神狀態。「行為時因精神障礙或其他心智缺陷，導致無法辨識行為違法性或欠缺控制能力者」得不罰或減輕。受監護宣告是民法概念，不等同於完全免除刑事責任。需看個案判斷。'},
+
+// ══ 單元8d：行政法 ══
+{t:'u8d',era:'行政法・意義',type:'mc',
+ q:'行政法與民法、刑法最大的不同是？',
+ opts:[
+   'A 行政法規範刑事犯罪',
+   'B 行政法並非一部獨立的法典，而是所有國家行政機關行使行政權時所遵循的法規總稱',
+   'C 行政法只規範中央政府',
+   'D 行政法由立法院單獨制定'
+ ],ans:1,
+ explain:'行政法：並非一部獨立法典，而是涉及行政機關執行行政職務時所依據的法規總稱，包含社會秩序維護法、公平交易法、道路交通管理處罰條例、各種稅法等。'},
+
+{t:'u8d',era:'行政法・制定目的',type:'match',
+ q:'請將行政法的兩大制定目的與說明配對：',
+ pairs:[
+   ['憲法的具體化','將國家機關組織、人民權利義務規定在憲法中，以維持政府職權的明確性與穩定性'],
+   ['避免政府濫權','規範政府的行政行為，避免因政府濫權而侵害人民的財產權'],
+ ],
+ explain:'行政法兩大目的：①具體化憲法（讓抽象憲法原則在行政法中落實）②避免政府濫權（限制行政機關的作為，確保保障人民權益）。'},
+
+{t:'u8d',era:'行政法・行政管制處分責任',type:'mc',
+ q:'「行政機關對特定人民直接產生法律效果的行為」，這屬於行政法中的哪個概念？',
+ opts:['A 行政行為','B 行政管制','C 行政處分','D 行政責任'],ans:2,
+ explain:'行政三概念：①行政行為：行政機關提供服務或採取措施；②行政管制：行政機關以公權力涉或限制人民行為；③行政處分：行政機關對特定人民直接發生法律效果的行為（如吊銷駕照、開罰單）。行政責任：違反行政法規須負的法律責任。'},
+
+{t:'u8d',era:'行政法・行政管制處分責任',type:'match',
+ q:'請將行政法三大概念與例子配對：',
+ pairs:[
+   ['行政行為','各縣市政府發放社會津貼、警察機關進行交通管制'],
+   ['行政管制','限制車速、禁止在特定路段停車的規定'],
+   ['行政處分','警察開罰單、政府吊銷駕照、停止營業'],
+   ['行政責任','違反行政法規，需承受罰鍰、吊銷執照等後果'],
+ ],
+ explain:'行政行為（提供服務）→行政管制（限制規定）→行政處分（對特定人發生效力）→行政責任（違規後果）。'},
+
+{t:'u8d',era:'行政法・罰金vs罰鍰',type:'mc',
+ q:'「罰金」和「罰鍰」最主要的差異是？',
+ opts:[
+   'A 金額不同，罰金較高',
+   'B 罰金屬刑事責任須經法院宣告；罰鍰屬行政責任由行政機關裁決',
+   'C 兩者完全相同',
+   'D 罰鍰比罰金嚴重'
+ ],ans:1,
+ explain:'罰金：刑事責任，須經法院宣告，屬主刑之一。罰鍰：行政責任，由行政機關裁決，不須經法院。兩者都是剝奪財產，但罰鍰金額不必罰金高，且都屬國庫收入（不是賠償被害人）。'},
+
+{t:'u8d',era:'行政法・依法行政',type:'mc',
+ q:'「依法行政」的核心意義是？',
+ opts:[
+   'A 行政機關可依自己判斷行事',
+   'B 行政機關的行政行為必須符合合法性規範，須有法律的授權',
+   'C 只要對人民有利的行政行為就可以做',
+   'D 行政命令的位階高於法律'
+ ],ans:1,
+ explain:'依法行政：行政機關的行政行為必須符合合法性，須有法律授權才能對人民採取限制或課予義務的措施。目的是限制行政機關的作為、確保保障人民的權益，以法治國家為重要原則。'},
+
+// ══ 單元9a：民事糾紛處理 ══
+{t:'u9a',era:'民事糾紛・三種途徑',type:'mc',
+ q:'民事糾紛解決途徑由快到慢、由簡到繁，正確順序為？',
+ opts:[
+   'A 訴訟→調解→和解',
+   'B 和解→調解→訴訟',
+   'C 調解→和解→訴訟',
+   'D 訴訟→和解→調解'
+ ],ans:1,
+ explain:'民事糾紛解決途徑：①和解（最快，私下協議）→②調解（透過第三方居中協調，免費）→③訴訟（最後手段，程序繁瑣但效力最強）。應先嘗試和解或調解，避免浪費司法資源。'},
+
+{t:'u9a',era:'民事糾紛・和解vs調解',type:'match',
+ q:'請將「訴訟外和解」與「訴訟上和解」的特徵配對：',
+ pairs:[
+   ['訴訟外和解（私下和解）','當事人自行議步，不具強制執行力，若不履行仍須起訴'],
+   ['訴訟上和解','在法官面前達成和解，具強制執行力，與確定判決同效力'],
+   ['調解','透過調解委員居中協調，調解成立送法院核定後具強制執行力'],
+ ],
+ explain:'私下和解不具強制執行力；訴訟上和解與調解成立後送法院核定，才具強制執行力。調解的特點：免費、程序簡便，但當事人不接受就無法成立。'},
+
+{t:'u9a',era:'民事糾紛・民事訴訟',type:'mc',
+ q:'民事訴訟依據哪項原則，法院通常不主動介入，須當事人主動起訴才開始審理？',
+ opts:['A 無罪推定原則','B 當事人原則','C 罪刑法定原則','D 依法行政原則'],ans:1,
+ explain:'民事訴訟遵循「當事人原則」：訴訟程序的開始、結束，以當事人為主，當事人有權向法院提起、和解或撤回訴訟。民事訴訟不一定要委任律師（但刑事訴訟若是公訴，一定要由律師代理）。'},
+
+{t:'u9a',era:'民事糾紛・法庭人員',type:'mc',
+ q:'民事訴訟中，「原告」和「被告」分別指的是？',
+ opts:[
+   'A 原告是犯罪者，被告是受害者',
+   'B 原告是在訴訟中首先提起訴訟的一方；被告是接受當事人委託並在法院受理後還原告請求者',
+   'C 原告是訴訟程序中首先提起訴訟的一方；被告是在訴訟中接受原告之訴的一方',
+   'D 原告是法官，被告是律師'
+ ],ans:2,
+ explain:'民事訴訟相關人員：原告（首先提起訴訟的一方）、被告（在訴訟中被訴的一方）、律師（代理訴訟）、法官（獨立審判）、書記官（製作書面記錄）、通譯（翻譯）。'},
+
+// ══ 單元9b：刑事訴訟 ══
+{t:'u9b',era:'刑事訴訟・無罪推定',type:'mc',
+ q:'「無罪推定原則」的意義是？',
+ opts:[
+   'A 犯罪嫌疑人一定是無辜的',
+   'B 被告在審判確定有罪之前，應推定其為無罪，不得視其為有罪',
+   'C 檢察官必須在24小時內決定是否起訴',
+   'D 法官不需要理由就可以判決無罪'
+ ],ans:1,
+ explain:'無罪推定原則：刑事訴訟法規定「被告未經審判確定有罪，推定其為無罪」。保護被告人權，確保司法公正。在法院審判確定之前，不能說被告有罪，也不得剝奪其應有的法律保障。'},
+
+{t:'u9b',era:'刑事訴訟・告訴告發',type:'mc',
+ q:'「任何人都可以向警察或檢察官提出，目的是檢舉犯罪行為」，這是屬於？',
+ opts:['A 告訴','B 告發','C 自訴','D 公訴'],ans:1,
+ explain:'告訴vs告發：①告訴：具有告訴權的人（被害人或其家屬）向警察或司法機關提出，請求追究犯罪；②告發：任何人（包含一般民眾）均可向警察或司法機關提出，目的是檢舉犯罪行為。'},
+
+{t:'u9b',era:'刑事訴訟・告訴乃論',type:'mc',
+ q:'「妨害名譽、普通傷害、毀損罪」屬於哪種犯罪類型？',
+ opts:['A 非告訴乃論之罪','B 告訴乃論之罪','C 公訴罪','D 行政違規'],ans:1,
+ explain:'告訴乃論之罪：須由告訴人提起告訴，檢察官才能追究。例：妨害名譽、普通傷害、毀損等。特點：可因和解或調解而放棄告訴，訴訟終止。非告訴乃論之罪：殺人罪、竊盜罪等，不須告訴，檢察官依法追究，且不可因和解而終止訴訟。'},
+
+{t:'u9b',era:'刑事訴訟・偵查流程',type:'sort',
+ q:'請將刑事案件的基本偵查流程依正確順序排列：',
+ items:['移送→檢察官依偵查結果決定起訴或不起訴','發現犯罪事實（被害人告訴、任何人告發、犯嫌自首或主動偵查）','警察受理報案、進行調查蒐集證據','法院審判→判決→執行'],
+ correctOrder:[1,2,0,3],
+ explain:'刑事流程：發現犯罪→警察受理調查→移送檢察官→起訴或不起訴→法院審判→判決→執行。檢察官是偵查主體，警察是輔助。'},
+
+{t:'u9b',era:'刑事訴訟・法庭人員',type:'match',
+ q:'請將刑事訴訟法庭人員與其職責配對：',
+ pairs:[
+   ['法官','法庭的審判者，依法獨立審判，不受外力干涉'],
+   ['檢察官','代表國家偵查犯罪，依偵查結果決定起訴或不起訴'],
+   ['律師','接受當事人委託，取得執業證書，提供法律服務，維護當事人權益'],
+   ['書記官','在法庭負責製作書面記錄'],
+ ],
+ explain:'法官→審判；檢察官→偵查代表國家；律師→代理當事人；書記官→記錄。警察是調查犯罪事實，蒐集證據，受檢察官指揮。'},
+
+{t:'u9b',era:'刑事訴訟・偵查不公開',type:'tf',
+ q:'「偵查不公開原則」的目的是保護犯罪嫌疑人，讓他們可以在偵查期間逃跑或湮滅證據。',
+ ans:false,
+ explain:'偵查不公開原則的正確目的：①避免犯罪嫌疑人逃跑、滅證②保障犯罪被害人與犯罪嫌疑人的隱私及人身安全。是為了確保偵查順利進行和保護相關人員，而非讓嫌疑人逃脫。'},
+
+// ══ 單元9c：行政救濟 ══
+{t:'u9c',era:'行政救濟・意義流程',type:'mc',
+ q:'人民對行政機關的行政處分不服，應先進行哪個程序？',
+ opts:['A 直接提行政訴訟','B 先向訴願管轄機關提起訴願（訴願先行原則）','C 向立法院陳情','D 向監察院申訴'],ans:1,
+ explain:'行政救濟遵循「訴願先行原則」：人民對行政機關的行政處分不服，須先向訴願管轄機關提起訴願；若對訴願結果仍不服，才能提起行政訴訟（向行政法院）。訴願→行政訴訟，不可跳過。'},
+
+{t:'u9c',era:'行政救濟・訴願vs行政訴訟',type:'match',
+ q:'請將「訴願」與「行政訴訟」的特徵配對：',
+ pairs:[
+   ['訴願','向訴願管轄機關（原處分機關的上級機關）提出，在行政體系內部解決'],
+   ['行政訴訟','訴願結果仍不服，向行政法院提起，透過司法機關解決'],
+   ['訴願管轄機關','原則上為原處分機關的上級機關；若無上級機關則為原處分機關'],
+ ],
+ explain:'訴願：行政體系內部救濟；行政訴訟：司法途徑救濟。兩者都是行政救濟的方式，訴願是前置程序，不滿訴願結果才能提行政訴訟。'},
+
+{t:'u9c',era:'行政救濟・三種訴訟比較',type:'mc',
+ q:'「民事訴訟」「刑事訴訟」「行政訴訟」，其中哪個的目的是「請求撤銷或變更行政處分」？',
+ opts:['A 民事訴訟','B 刑事訴訟','C 行政訴訟','D 三者皆可'],ans:2,
+ explain:'三種訴訟目的：①民事訴訟→解決私人財產、身分上的紛爭；②刑事訴訟→追訴犯罪行為，使犯罪者承擔刑事責任；③行政訴訟→請求撤銷或變更違法或不當的行政處分（人民向國家機關尋求行政救濟）。'},
+
+// ══ 單元10：青少年法律 ══
+{t:'u10',era:'兒少法・保護對象',type:'mc',
+ q:'依《兒童及少年福利與權益保障法》，「少年」的定義是？',
+ opts:['A 未滿12歲','B 12歲以上未滿18歲','C 未滿18歲','D 18歲以上未滿20歲'],ans:1,
+ explain:'兒童及少年福利與權益保障法的保護對象：①兒童：未滿12歲；②少年：12歲以上未滿18歲。而《兒童權利公約》（國際法）規定兒童是指未滿18歲者。'},
+
+{t:'u10',era:'兒少法・保護措施',type:'mc',
+ q:'依《兒童及少年福利與權益保障法》，下列哪項行為是被明確禁止的？',
+ opts:[
+   'A 讓未滿12歲的兒童獨自在家',
+   'B 禁止讓兒童出入不良場所、吸菸飲酒',
+   'C 提供兒童職業訓練',
+   'D 為兒童辦理醫療照顧'
+ ],ans:1,
+ explain:'兒少法禁止事項：①禁止讓任何人讓兒童吸菸、飲酒、嚼檳榔、吸毒②禁止讓未成年出入不良場所③不得讓6歲以下兒童單獨在家④各類出版品及遊戲軟體須依規定分級。父母未盡保護之責，處罰鍰、親職教育、公布姓名等行政分。'},
+
+{t:'u10',era:'兒少法・童工規定',type:'mc',
+ q:'依《勞動基準法》，「童工」的定義是幾歲？',
+ opts:['A 未滿12歲','B 15歲以上未滿16歲','C 未滿18歲','D 16歲以上未滿18歲'],ans:1,
+ explain:'勞基法童工規定：①15歲以上未滿16歲為童工②原則上不得僱用未滿15歲者（國中畢業或有技術士執照者例外，須經法定代理人同意）③童工每日工時不超過8小時，不得從事危險性或有害性工作，例假日不得工作。'},
+
+{t:'u10',era:'兒少法・兒童權利公約',type:'match',
+ q:'請將兒童權利相關法律與其性質配對：',
+ pairs:[
+   ['兒童權利宣言','聯合國通過，宣示性質，不具法律約束力'],
+   ['兒童權利公約','聯合國通過，具有法律約束力（國際法）'],
+   ['兒童權利公約施行法','我國立法院制定通過，使公約在我國具國內法效力'],
+ ],
+ explain:'宣言（宣示，無拘束力）→公約（國際法，有拘束力）→施行法（我國將公約轉化為國內法）。兒童權利公約四大原則：不歧視、尊重兒童意見、保護兒童生存發展、維護兒童最佳利益。'},
+
+{t:'u10',era:'少年犯罪・事件處理法',type:'mc',
+ q:'《少年事件處理法》的適用對象是？',
+ opts:['A 未滿14歲','B 12歲以上未滿18歲','C 未滿18歲','D 14歲以上未滿20歲'],ans:1,
+ explain:'少年事件處理法適用對象：12歲以上未滿18歲之少年。立法目的：①保障少年健全的自我成長，調整其成長環境，矯治其性格②修法後落實少年犯罪行為以保護教化優先於刑事懲罰的精神。'},
+
+{t:'u10',era:'少年犯罪・三種情況',type:'match',
+ q:'請將少年事件處理法的三種情況與適用條件配對：',
+ pairs:[
+   ['曝險少年','12歲以上未滿18歲，有無正當理由攜帶危險器械、施用毒品等危險行為但尚未犯罪'],
+   ['少年保護事件','12歲以上未滿14歲有犯罪行為，或14歲以上未滿18歲少年犯罪情節輕微者'],
+   ['少年刑事案件','14歲以上未滿18歲，且犯刑法中最輕本刑5年以上有期徒刑的犯罪'],
+ ],
+ explain:'三類情況：曝險少年（危險行為未犯罪）→少年保護事件（輕微犯罪或未滿14歲）→少年刑事案件（嚴重犯罪）。處理原則：保護教化優先。'},
+
+{t:'u10',era:'少年犯罪・保護處分',type:'mc',
+ q:'少年法院（庭）對少年犯罪可以做出的「保護處分」中，哪一種是以隔離式學校教育調整少年生活環境？',
+ opts:['A 訓誡','B 假日生活輔導','C 保護管束','D 感化教育'],ans:3,
+ explain:'少年保護處分五種：①訓誡（告誡指明不良行為）②假日生活輔導（品德教育、勞動服務）③保護管束（少年保護官隨時關注）④安置輔導（放置福利、教養機構）⑤感化教育（隔離式學校，調整生活環境）。嚴重程度依序遞增。'},
+
+{t:'u10',era:'少年犯罪・法律年齡整合',type:'sort',
+ q:'請依年齡從小到大，排列少年相關法律的重要年齡分界：',
+ items:['18歲（少年事件處理法結束；成為完全行為能力人）','12歲（少年事件處理法開始適用；兒童變為少年）','14歲（刑法限制責任能力起始；少年保護事件與刑事案件分界）','15歲（勞基法：可受僱，但未滿16歲為童工）'],
+ correctOrder:[1,2,3,0],
+ explain:'12歲→14歲→15歲→18歲，是青少年相關法律最重要的四個年齡分界點。其中12歲和18歲是少年事件處理法的適用範圍，14歲是刑法責任能力的重要分界，15歲是勞基法僱用的最低年齡。'},
+
+{t:'u10',era:'兒少法・性剝削防制',type:'mc',
+ q:'《兒童及少年性剝削防制條例》的立法目的是？',
+ opts:[
+   'A 保護兒童免受性剝削，促進兒童及少年的身心健康',
+   'B 管制色情網站',
+   'C 規範成年人的性行為',
+   'D 懲處兒童不當行為'
+ ],ans:0,
+ explain:'兒童及少年性剝削防制條例：對兒童或少年進行任何形式之性剝削，保護其身心健全發展。規定：拍攝、製造兒童色情屬違法；網路平臺業者須移除相關內容。對少年的保護措施：提供被性剝削少年必要的保護、安置或其他協助。'},
+
+];
+
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.panel).classList.add('active');if(tab.dataset.panel==='wrong')renderWP();});});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+function updateGo(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);const btn=document.getElementById('goBtn');if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}else{btn.disabled=true;btn.textContent='請選擇單元與模式';}}
+document.getElementById('goBtn').addEventListener('click',startGame);
+function startGame(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;const isLong=S.mode==='normal'||S.mode==='timed';let pool=QB.filter(q=>S.topics.includes(q.t));pool=shuffle(pool);S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));S.cur=0;showScreen('game');renderQ();}
+function startWrongPractice(){const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();}
+function renderQ(){if(S.cur>=S.qs.length){showResult();return;}const q=S.qs[S.cur];S.answered=false;const total=S.qs.length;document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));else document.getElementById('gLives').textContent='';const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort'};document.getElementById('qtag').textContent=tMap[q.type]||'題目';document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;document.getElementById('qtext').textContent=q.q;document.getElementById('qsub').textContent=q.hint||'';const area=document.getElementById('ans-area');area.innerHTML='';document.getElementById('fbbox').className='fb-box';document.getElementById('nextBtn').className='next-btn';if(q.type==='mc')renderMC(q,area);else if(q.type==='tf')renderTF(q,area);else if(q.type==='fill')renderFillQ(q,area);else if(q.type==='match')renderMatch(q,area);else if(q.type==='sort')renderSort(q,area);clearInterval(S.timer);const te=document.getElementById('gTimer');if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}else te.style.display='none';}
+function renderMC(q,area){const grid=document.createElement('div');grid.className='opts';q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt';btn.textContent=o;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const ok=i===q.ans;grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});finish(ok,q);});grid.appendChild(btn);});area.appendChild(grid);}
+function renderTF(q,area){const row=document.createElement('div');row.className='tf-row';['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const userT=i===0,ok=userT===q.ans;row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});finish(ok,q);});row.appendChild(btn);});area.appendChild(row);}
+function renderFillQ(q,area){const row=document.createElement('div');row.className='fill-row';const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確：${q.ans}`);};btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});row.append(inp,btn);area.appendChild(row);}
+function renderMatch(q,area){const wrap=document.createElement('div');wrap.className='match-wrap';const lCol=document.createElement('div');lCol.className='match-col';const rCol=document.createElement('div');rCol.className='match-col';const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);let lPicked=null,rPicked=null,matched=0;pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});wrap.append(lCol,rCol);area.appendChild(wrap);function tryM(){if(!lPicked||!rPicked)return;const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}lPicked=null;rPicked=null;}wrap.addEventListener('click',e=>{if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}tryM();});}
+let dragEl=null;
+function renderSort(q,area){const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));const list=document.createElement('div');list.className='sort-list';shuffled.forEach(item=>{const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});el.addEventListener('dragend',()=>el.classList.remove('dragging'));el.addEventListener('dragover',e=>e.preventDefault());el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});list.appendChild(el);});area.appendChild(list);const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});area.appendChild(chk);}
+function finish(ok,q,extraMsg){const pts=calcPts(ok,q.type);if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;document.getElementById('fbmsg').textContent=msg;document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;const nb=document.getElementById('nextBtn');nb.className='next-btn show';const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};}
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+function startTimer(sec){S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';S.timer=setInterval(()=>{S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}},1000);}
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+function showResult(){clearInterval(S.timer);showScreen('result');const max=S.qs.length*6;const pct=max>0?S.score/max:0;let emoji,title,msg;if(pct>=.9){emoji='🏆';title='公民高手！';msg='公民第四冊掌握得非常好！繼續保持！';}else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點複習！';}else if(pct>=.5){emoji='📖';title='繼續加油！';msg='去錯題複習區針對弱點加強！';}else{emoji='💪';title='不要灰心！';msg='把講義再仔細看一遍，再來挑戰！';}document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';document.getElementById('rMsg').textContent=msg;const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}else document.getElementById('rWeak').style.display='none';const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';if(pct>=.75)confetti();}
+function renderWP(){const bank=loadWB();const panel=document.getElementById('wrongPanel');const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;pw.style.display='block';cl.style.display='block';}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#d35400','#8e3a0a','#7d3c0a','#c0392b','#fde8d8'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

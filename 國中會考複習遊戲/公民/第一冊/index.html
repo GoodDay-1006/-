@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>公民闖關王 第一冊</title>
+<style>
+:root{
+  --bg:#f0f4ff;--ink:#0a1a3a;--red:#c0392b;--gold:#2980b9;
+  --teal:#1a5a8a;--blue:#154360;--pink:#8e44ad;--purple:#6c3483;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(10,26,58,.12);
+  --accent:#2471a3;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(36,113,163,.07) 0%,transparent 70%),
+  radial-gradient(ellipse 50% 50% at 85% 75%,rgba(108,52,131,.06) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#d6eaf8 0%,#f0f4ff 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(10,26,58,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(10,26,58,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(10,26,58,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(10,26,58,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(10,26,58,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#d6eaf8;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(10,26,58,.48);margin-top:3px;line-height:1.4;}
+
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(10,26,58,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(10,26,58,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(10,26,58,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(10,26,58,.38);border:1px solid rgba(10,26,58,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:var(--red);animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#d6eaf8;color:var(--teal);}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:var(--green);}
+.qtag.match{background:#fce8d0;color:#b06010;}
+.qtag.sort{background:#f5e6fd;color:var(--purple);}
+
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(10,26,58,.43);margin-bottom:11px;font-style:italic;}
+
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#f5f7fb;border:2px solid #d6e4f0;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#d6eaf8;}
+.opt.ok{background:#d4f5e2;border-color:var(--green);color:var(--green);font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #d6e4f0;background:#f5f7fb;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:var(--green);}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:var(--green);background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--blue);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#f5f7fb;border:2px solid #d6e4f0;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:var(--gold);background:#d6eaf8;font-weight:700;}
+.match-item.matched{border-color:var(--green);background:#d4f5e2;color:var(--green);font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#eef0ff;border:2px solid #c5c8e9;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--teal);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:var(--green);border-left:4px solid var(--green);}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+
+#result{background:linear-gradient(155deg,#d6eaf8 0%,#f0f4ff 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(10,26,58,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(10,26,58,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(10,26,58,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#eef2f8;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+
+/* 法條標示 */
+.law-tag{display:inline-block;background:#fff3cd;border:1px solid #ffc107;border-radius:5px;font-size:.72rem;padding:1px 6px;margin-left:4px;color:#7d5a00;}
+</style>
+</head>
+<body>
+
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">公民闖關王</div>
+    <div class="home-badge">公民 第一冊 · 單元1-3 · 會考複習</div>
+  </div>
+
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip on" data-t="u1a">👤 公民身分</div>
+      <div class="tchip on" data-t="u1b">🧍 人性尊嚴與人權</div>
+      <div class="tchip on" data-t="u1c">⚖️ 性別平等</div>
+      <div class="tchip on" data-t="u2a">🏠 家庭與親屬</div>
+      <div class="tchip on" data-t="u2b">🏫 學校與學生權利</div>
+      <div class="tchip on" data-t="u2c">🏔️ 部落與社區</div>
+      <div class="tchip on" data-t="u3a">🌐 文化特性</div>
+      <div class="tchip on" data-t="u3b">📋 社會規範</div>
+      <div class="tchip on" data-t="u3c">🤝 結社與集會</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+
+<div class="screen" id="game">
+  <div class="gbar">
+    <div>
+      <div class="gbar-left" id="gInfo">第 1 / 50 題</div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div class="gbar-timer" id="gTimer" style="display:none;">20</div>
+      <div>
+        <div class="gbar-score" id="gScore">0 分</div>
+        <div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div>
+      </div>
+    </div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox">
+      <div class="fb-title" id="fbtitle"></div>
+      <div id="fbmsg"></div>
+    </div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div>
+    <div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div>
+    <div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div>
+    <div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+
+<div class="combo" id="combo"></div>
+
+<script>
+const SK='civ1_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+// ══════════════════════════════════════
+//  單元1：公民身分、人性尊嚴與性別
+// ══════════════════════════════════════
+
+// ── 公民身分 ──
+{t:'u1a',era:'公民身分・國民vs公民',type:'mc',
+ q:'下列何者是「廣義公民（國民）」和「狹義公民（公民）」最主要的差別？',
+ opts:['A 是否具有中華民國國籍','B 是否達到法定年齡，能行使參政權','C 是否在台灣出生','D 是否有納稅義務'],ans:1,
+ explain:'國民（廣義公民）：具有國籍即可。公民（狹義公民）：國民中達到法定年齡、有權行使參政權的人（如選舉、罷免等）。'},
+
+{t:'u1a',era:'公民身分・參政權年齡',type:'mc',
+ q:'依中華民國憲法，幾歲才有選舉權（投票權）？',
+ opts:['A 16歲','B 18歲','C 20歲','D 23歲'],ans:1,
+ explain:'依中華民國憲法修正案，國民年滿18歲即有公民投票權與選舉權。（注意：原為20歲，2023年修憲後降為18歲）'},
+
+{t:'u1a',era:'公民身分・國籍取得',type:'mc',
+ q:'依「屬人原則」取得國籍，指的是什麼？',
+ opts:['A 只要在該國領土出生即可取得','B 父母為該國籍，子女就取得該國籍','C 透過申請歸化取得','D 在該國居住滿一定年限'],ans:1,
+ explain:'屬人原則（血統規則）：父母為本國人，子女即取得國籍，與出生地點無關。我國採屬人為主原則。'},
+
+{t:'u1a',era:'公民身分・屬地原則',type:'mc',
+ q:'「屬地原則」指的是？',
+ opts:['A 父母血統決定國籍','B 只要出生在該國領土內，就自動取得該國國籍','C 由政府主動授予','D 透過婚姻取得'],ans:1,
+ explain:'屬地原則：只要出生在該國領土內，即取得該國國籍。例如美國採屬地原則，在美國土地出生即為美國公民。'},
+
+{t:'u1a',era:'公民身分・公民基本德性',type:'mc',
+ q:'「理性思考批判」這項公民德性，主要強調什麼能力？',
+ opts:['A 服從多數人的意見','B 了解自己的各種管道所提供的內容，判斷政府或政治人物取材或說法的能力','C 積極參與公共事務','D 遵守所有法律規定'],ans:1,
+ explain:'理性思考批判：能理解各種管道（媒體/政府/政治人物）的訊息，具備判斷分析而非盲目接受的能力。'},
+
+{t:'u1a',era:'公民身分・公民德性',type:'match',
+ q:'請將公民基本德性與說明配對：',
+ pairs:[
+   ['參與公共事務','關心並參與影響大家利益的公共政策'],
+   ['遵守法律規範','了解並遵守法律與規範所要求的內容'],
+   ['和平尊重包容','應尊重他人，達成共識，並接受合理的差異'],
+   ['捍衛公平正義','為弱勢群體爭取權益，從事志工或公益活動'],
+ ],
+ explain:'五大公民德性：參與公共事務、遵守法律規範、理性思考批判、和平尊重包容、捍衛公平正義。'},
+
+{t:'u1a',era:'公民身分・人民vs國民vs公民',type:'mc',
+ q:'下列關於「人民」、「國民」、「公民」的說明，何者正確？',
+ opts:[
+   'A 三者完全相同',
+   'B 人民範圍最廣，泛指任何生活在境內的人；國民必須具備國籍；公民是具備參政權的國民',
+   'C 公民範圍最廣',
+   'D 國民等於公民'
+ ],ans:1,
+ explain:'人民（最廣）：泛指境內任何人，不分國籍。國民：具有國籍的人。公民（最窄）：具備參政資格的國民。'},
+
+// ── 人性尊嚴與人權 ──
+{t:'u1b',era:'人性尊嚴・定義',type:'mc',
+ q:'「人性尊嚴」強調什麼？',
+ opts:['A 每個人的地位與財富','B 每個人都有作為人的尊嚴，對個人的尊重是抽象概念','C 每個人都應平等地享有物質財富','D 法律面前人人平等'],ans:1,
+ explain:'人性尊嚴：強調「對個人的尊重」是抽象概念，即每個人作為人本身所具有的不可剝奪的尊嚴。'},
+
+{t:'u1b',era:'人性尊嚴・人性尊嚴vs人權',type:'mc',
+ q:'下列何者是「人性尊嚴」和「人權」最主要的區別？',
+ opts:[
+   'A 人性尊嚴是具體的，人權是抽象的',
+   'B 人性尊嚴強調對個人尊重（抽象概念），人權是人與生俱來的各種具體權利',
+   'C 兩者完全相同',
+   'D 人性尊嚴由法律保障，人權由道德保障'
+ ],ans:1,
+ explain:'人性尊嚴：抽象概念，強調對個人的尊重。人權：具體權利，包括生命、自由、意見自由、工作等各種具體的權利。'},
+
+{t:'u1b',era:'人性尊嚴・人權特性',type:'mc',
+ q:'人權的三項特質是？',
+ opts:[
+   'A 限制性、差別性、可讓渡性',
+   'B 普世性、平等性、不可剝奪性',
+   'C 國家性、地域性、有條件性',
+   'D 可轉讓性、有條件性、有期限性'
+ ],ans:1,
+ explain:'人權三項特質：①普世性（不分國籍、種族等）②平等性（人人平等享有）③不可剝奪性（不可被任意剝奪）。'},
+
+{t:'u1b',era:'世界人權宣言',type:'mc',
+ q:'《世界人權宣言》是由哪個機構在何時通過的？',
+ opts:['A 聯合國，1948年','B 聯合國，1945年','C 世界法庭，1948年','D 聯合國，1966年'],ans:0,
+ explain:'《世界人權宣言》由聯合國於1948年通過，列出人權的具體內容，被視為國際人權保障的重要里程碑。'},
+
+{t:'u1b',era:'人性尊嚴・兩者關係',type:'tf',
+ q:'人性尊嚴是人權的核心概念：保障人權才能維護人性尊嚴，唯有普世人權才能確保人人享有人性尊嚴。',
+ ans:true,
+ explain:'兩者密不可分：人性尊嚴（抽象）需靠保障人權（具體）來實現；有普世人權才能確保每個人的尊嚴。'},
+
+{t:'u1b',era:'公民德性・公德vs公益vs社會正義',type:'mc',
+ q:'「公德」、「公益」、「社會正義」三者中，下列說明何者正確？',
+ opts:[
+   'A 三者完全相同',
+   'B 公德是維護他人同享資源的態度；公益是個人主動付出、貢獻社會；社會正義是扶助弱勢、追求其福利',
+   'C 公德強調個人利益優先',
+   'D 公益由政府負責推動'
+ ],ans:1,
+ explain:'公德：維護他人同享資源的態度（消極面）。公益：個人主動付出貢獻社會。社會正義：為弱勢群體爭取利益和福利（積極面）。'},
+
+// ── 性別平等 ──
+{t:'u1c',era:'性別・生理vs社會性別',type:'mc',
+ q:'「生理性別」和「社會性別（性別角色）」最大的差異是？',
+ opts:[
+   'A 兩者都是天生的',
+   'B 生理性別是天生的（由身體結構決定）；社會性別是社會文化對不同性別的行為期待，是後天學習的',
+   'C 兩者都是後天學習的',
+   'D 生理性別由後天決定'
+ ],ans:1,
+ explain:'生理性別：天生的，由身體結構決定。社會性別（性別角色）：後天習得，來自社會對不同性別的行為期待和規範。'},
+
+{t:'u1c',era:'性別不平等・三種概念',type:'mc',
+ q:'「性別刻板印象」、「性別偏見」、「性別歧視」三者的關係是？',
+ opts:[
+   'A 三者沒有關聯',
+   'B 刻板印象（觀念/認知）→偏見（情感評價）→歧視（行動/制度），逐漸從想法發展到行動',
+   'C 歧視是觀念，刻板印象是行動',
+   'D 三者完全相同'
+ ],ans:1,
+ explain:'性別刻板印象：對性別固定化的看法（觀念層面）。性別偏見：基於刻板印象的負面評價（情感層面）。性別歧視：付諸行動、制度的不公平對待（行動/制度層面）。'},
+
+{t:'u1c',era:'性別不平等・例子辨認',type:'mc',
+ q:'「女性工程師起薪37,000元，男性工程師起薪40,000元」屬於哪種性別不平等？',
+ opts:['A 性別刻板印象','B 性別偏見','C 性別歧視','D 性別角色'],ans:2,
+ explain:'這是具體的薪資差距，已付諸制度層面的不公平待遇，屬於「性別歧視」，違反性別平等工作法。'},
+
+{t:'u1c',era:'性別平等・性平三法',type:'mc',
+ q:'「性別平等工作法」主要規範哪個場域的性別平等？',
+ opts:['A 校園','B 職場（雇主與受僱者）','C 所有公共場所','D 家庭'],ans:1,
+ explain:'性平三法：①性別平等工作法（職場）②性別平等教育法（校園）③性騷擾防治法（其他場域）。各法規範不同的場域。'},
+
+{t:'u1c',era:'性別平等・性平三法比較',type:'match',
+ q:'請將性平三法與其適用範圍配對：',
+ pairs:[
+   ['性別平等工作法','職場，規範雇主與受僱者'],
+   ['性別平等教育法','校園，保障受教育者的性別平等'],
+   ['性騷擾防治法','其他場域，各機關設申訴處理機制'],
+   ['家庭暴力防治法','規範家庭成員間的暴力行為'],
+ ],
+ explain:'三法各有適用場域：工作法→職場、教育法→校園、防治法→其他場域。家暴法另行規範家庭暴力。'},
+
+{t:'u1c',era:'性別平等・校園申訴流程',type:'sort',
+ q:'請依序排列校園性平事件的處理流程：',
+ items:['被害人（或其父母）/檢舉人提出申請','學生事務處受理','性別平等教育委員會進行調查','教育主管機關審議結案'],
+ correctOrder:[0,1,2,3],
+ explain:'校園性平處理流程：提出申請→學務處受理→性平委員會調查→教育主管機關審議結案。'},
+
+{t:'u1c',era:'不平等檢視原則',type:'mc',
+ q:'「不平等檢視原則」中的「責任承擔」是指什麼？',
+ opts:['A 是否受到公平肯定','B 負擔事務是否公平','C 利益是否平等分配','D 個人需求是否滿足'],ans:1,
+ explain:'不平等檢視四原則：①責任承擔（負擔公平嗎？）②貢獻肯定（是否受到公平肯定？）③利益分配（利益平等嗎？）④需求滿足（需求是否得到滿足？）'},
+
+// ══════════════════════════════════════
+//  單元2：家庭、學校與部落
+// ══════════════════════════════════════
+
+// ── 家庭與親屬 ──
+{t:'u2a',era:'家庭・親屬關係',type:'mc',
+ q:'「姻親」是指什麼關係？',
+ opts:['A 直接有血緣的親屬','B 旁系血親','C 血親的配偶，或配偶的血親，或配偶的血親的配偶','D 法定血親（收養）'],ans:2,
+ explain:'姻親：血親的配偶（如嫂嫂）、配偶的血親（如岳父母）、配偶的血親的配偶（如連襟）。與血親不同，姻親非血緣關係。'},
+
+{t:'u2a',era:'家庭・親屬關係',type:'mc',
+ q:'「收養」關係中，養父母與養子女之間是哪種親屬關係？',
+ opts:['A 自然血親','B 旁系血親','C 法定血親','D 姻親'],ans:2,
+ explain:'收養成立後，養父母與養子女之間形成「法定血親」（擬制血親），享有相同於自然血親的法律地位和義務。'},
+
+{t:'u2a',era:'家庭・家庭型態',type:'mc',
+ q:'「折衷家庭（主幹家庭）」的組成是？',
+ opts:['A 一對夫妻及其未婚子女','B 小家庭的成員加上其直系尊親屬','C 數個具血緣關係的小家庭組成','D 只有一個人的家庭'],ans:1,
+ explain:'折衷家庭（主幹家庭）：小家庭（夫妻+未婚子女）＋直系尊親屬（如父母或祖父母），是三代同堂的常見形式。'},
+
+{t:'u2a',era:'家庭・家庭功能轉變',type:'mc',
+ q:'傳統家庭生育功能的轉變，主要導致什麼現象？',
+ opts:['A 家庭人口越來越多','B 生育率下降，產生少子化現象','C 家庭型態更多元','D 離婚率上升'],ans:1,
+ explain:'傳統家庭生育功能：生兒育女、延續家族血脈。現代轉變：社會觀念和經濟條件改變，生育率下降，產生少子化現象。'},
+
+{t:'u2a',era:'家庭・少子化vs高齡化',type:'mc',
+ q:'下列何者是「高齡社會」的定義？',
+ opts:['A 65歲以上老年人口達總人口7%','B 65歲以上老年人口達總人口14%','C 65歲以上老年人口達總人口20%','D 65歲以上老年人口達總人口10%'],ans:1,
+ explain:'國際定義：老年人口7%→高齡化社會、14%→高齡社會、20%以上→超高齡社會。台灣已達高齡社會。'},
+
+{t:'u2a',era:'家庭・保護令vs停止親權',type:'mc',
+ q:'「保護令」和「停止親權」最主要的差別是？',
+ opts:[
+   'A 兩者完全相同',
+   'B 保護令是發生家庭暴力時，法院約束加害者的行為保障被害者；停止親權是父母濫用親權時，法院停止其對子女的權利與義務',
+   'C 保護令由警察核發，停止親權由法院核發',
+   'D 兩者都由警察處理'
+ ],ans:1,
+ explain:'保護令（家暴法）：發生家暴→向法院聲請→保障被害者安全。停止親權（民法）：父母濫用親權→法院宣告停止→保障子女利益。'},
+
+{t:'u2a',era:'家庭・民法修正',type:'mc',
+ q:'民法家庭平權規定修法後，關於「夫妻財產」的重要改變是？',
+ opts:['A 一律由丈夫管理','B 可在法律規範範圍內，自由約定雙方財產的分配模式','C 一律平均分配','D 由妻子管理'],ans:1,
+ explain:'民法修法（性別平權）：夫妻財產由原本丈夫管理，改為可在法律規範內自由約定分配方式，尊重夫妻自主。'},
+
+// ── 學校與學生權利 ──
+{t:'u2b',era:'學校・學生權利',type:'mc',
+ q:'學生的「受教權與學習權」包含哪些面向？',
+ opts:['A 只有接受教育的機會','B 受教權（接受教育的管道與機會）＋學習權（有效學習、重視學習需求與成效）','C 只有學習成效','D 只有考試的權利'],ans:1,
+ explain:'受教權：接受教育的管道和機會（教師教學與學校活動應考量學生的受教需求）。學習權：學生能有效學習，重視個人學習需求與成效。'},
+
+{t:'u2b',era:'學校・零體罰vs零霸凌',type:'mc',
+ q:'「零體罰」和「零霸凌」的法律依據各是什麼？',
+ opts:[
+   'A 都是教育基本法',
+   'B 零體罰：教育基本法；零霸凌：國家應保障學生不受身心侵害，由教育基本法及其他規定共同保障',
+   'C 都是刑法',
+   'D 零體罰：民法；零霸凌：刑法'
+ ],ans:1,
+ explain:'零體罰：教育基本法明定教師不得體罰。零霸凌：學生應不受任何形式的霸凌，由教育基本法及相關法規保障。'},
+
+{t:'u2b',era:'學校・學生自治',type:'mc',
+ q:'「學生自治」的主要目的是什麼？',
+ opts:[
+   'A 讓學生管理學校所有事務',
+   'B 培養民主精神（服從多數尊重少數）、學習自我管理、解決共同問題，以理性態度求共識',
+   'C 讓學生代替老師處理學校行政',
+   'D 讓學生制定校規'
+ ],ans:1,
+ explain:'學生自治目的：①培養民主精神②學習自我管理③解決共同問題。範圍僅限於學生本身的公共事務，非校園內所有事務。'},
+
+{t:'u2b',era:'學校・班會程序',type:'mc',
+ q:'班會中，「臨時動議」可以在什麼時候提出？',
+ opts:['A 班長宣布開會時','B 報告事項結束後','C 討論事項結束後，散會前（非會議中的議題，可在此時提出）','D 散會後'],ans:2,
+ explain:'班會程序：①選出主席（班長）→②主席宣布開會→③報告事項→④討論事項（提案）→⑤臨時動議→⑥散會。臨時動議在討論事項結束後提出。'},
+
+{t:'u2b',era:'學校・兒童權利公約',type:'mc',
+ q:'《兒童權利公約》四大權利是？',
+ opts:['A 生存、教育、就業、投票','B 生存、發展、受保護、參與（表達意見）','C 自由、平等、博愛、安全','D 生命、財產、名譽、隱私'],ans:1,
+ explain:'兒童權利公約四大權利：①生存權②發展權（教育、醫療等）③受保護權（不受虐待）④參與權（兒童有表達意見的權利）。'},
+
+// ── 部落與社區 ──
+{t:'u2c',era:'部落・原住民族部落',type:'mc',
+ q:'台灣原住民族部落的法律依據是？',
+ opts:['A 憲法','B 原住民族基本法，由行政院原住民族委員會核定','C 部落自行決定','D 地方政府核定'],ans:1,
+ explain:'依據原住民族基本法，由行政院原住民族主管機關（原民會）核定，目前台灣官方認定有16族740個部落。'},
+
+{t:'u2c',era:'部落・社區vs部落比較',type:'mc',
+ q:'「社區」和「部落」最主要的差別是？',
+ opts:[
+   'A 完全相同',
+   'B 社區是自然形成，沒有硬性規定，居民未必有血緣；部落由原住民族基本法規定，成員大多有血緣關係',
+   'C 部落比社區大',
+   'D 社區有政府管理，部落沒有'
+ ],ans:1,
+ explain:'社區：自然形成，沒有硬性規定，居民是社區住戶（不一定有血緣）。部落：依法規定，成員大多來自相同祖先，有血緣關係。'},
+
+{t:'u2c',era:'部落・原住民族基本法',type:'mc',
+ q:'《原住民族基本法》的立法目的是？',
+ opts:['A 限制原住民族的活動範圍','B 保障原住民族基本權利，促進原住民族生存發展，建立共榮共生之族群關係','C 統一原住民族語言','D 保護原住民族商業活動'],ans:1,
+ explain:'原住民族基本法：保障基本權利、促進生存發展、建立共榮共生族群關係，並規定原民族自治、部落會議決定部落事務等。'},
+
+{t:'u2c',era:'部落・社會變遷下的部落',type:'mc',
+ q:'現代社會變遷對原住民族部落的衝擊，主要包含哪些？',
+ opts:[
+   'A 只有語言流失',
+   'B 傳統文化的斷層、部落凝聚力降低、傳統領域爭議、文化與法律衝突等多面向衝擊',
+   'C 只有經濟問題',
+   'D 問題不嚴重'
+ ],ans:1,
+ explain:'部落面臨：①傳統文化斷層（都市原住民與部落文化脫節）②部落凝聚力降低③傳統領域爭議④傳統文化與現代法律衝突。'},
+
+// ══════════════════════════════════════
+//  單元3：文化、社會規範與結社
+// ══════════════════════════════════════
+
+// ── 文化特性 ──
+{t:'u3a',era:'文化・文化的意義',type:'mc',
+ q:'下列何者屬於「文化」的範疇？',
+ opts:['A 山川河流等自然景觀','B 人類為了生存，適應或改變環境而創造或學習而來的成果，包括器物、制度、理念','C 動物的本能行為','D 基因遺傳'],ans:1,
+ explain:'文化是人類社會特有的現象，自然界景物不是文化，文化須為人為創造，包含器物（工具）、制度（規範）、理念（價值觀）。'},
+
+{t:'u3a',era:'文化・四大特性',type:'mc',
+ q:'文化「制約性」的意思是？',
+ opts:['A 文化在每個社會都有共通點','B 各社會文化各有其獨特的特色','C 文化有約束的力量，使同一文化的人表現出符合該文化的行為','D 文化會不斷創新改變'],ans:2,
+ explain:'制約性：文化有約束（制約）的力量，讓同一文化群體的人表現出符合該文化的行為，不自覺地遵守文化規範。'},
+
+{t:'u3a',era:'文化・四大特性',type:'mc',
+ q:'文化「累積性」的意思是？',
+ opts:['A 文化在每個社會都有','B 各社會有不同文化','C 文化的約束力','D 隨著文化的發展，文化會逐漸從簡單到複雜，不斷累積'],ans:3,
+ explain:'累積性：文化不斷創新、改變，隨著文化的發展，從簡單到複雜逐漸累積，使人類文明越來越豐富。'},
+
+{t:'u3a',era:'文化・多元文化',type:'mc',
+ q:'「主流文化」和「次文化」的關係是？',
+ opts:[
+   'A 兩者互相排斥，無法共存',
+   'B 主流文化是多數人認同的文化；次文化是因年齡、宗教、民族等屬於個別團體的獨特文化，兩者可以並存',
+   'C 次文化高於主流文化',
+   'D 兩者完全相同'
+ ],ans:1,
+ explain:'主流文化：多數人認同的文化。次文化：因年齡、宗教、民族等屬於特定團體的獨特文化。兩者可並存，有某些共通點，不一定互相排斥。'},
+
+{t:'u3a',era:'文化・文化現象',type:'mc',
+ q:'「文化衝突」是指什麼？',
+ opts:['A 不同文化相互學習','B 不同文化接觸後，相互排斥或產生對立和緊張的情況','C 文化融合創造新內容','D 文化保存傳統'],ans:1,
+ explain:'文化衝突：不同文化接觸時，因價值觀、習俗不同而相互排斥，產生衝突。如強勢文化擴張可能引發被侵略者的抵抗。'},
+
+{t:'u3a',era:'文化・多元文化社會',type:'mc',
+ q:'「多元文化精神」強調哪些面向？',
+ opts:[
+   'A 只認同自己的文化',
+   'B 減少文化衝突、肯定自我文化、維護文化多樣性',
+   'C 讓強勢文化主導一切',
+   'D 消除文化差異'
+ ],ans:1,
+ explain:'多元文化社會三大精神：①減少文化衝突（充分了解溝通）②肯定自我文化（珍惜傳統文化）③維護文化多樣性（讓各文化創造力不因單一化而衰減）。'},
+
+// ── 社會規範 ──
+{t:'u3b',era:'社會規範・四種類型',type:'mc',
+ q:'「法律」與「風俗習慣」最主要的差別是？',
+ opts:[
+   'A 風俗習慣比法律更嚴格',
+   'B 法律由立法機關依一定程序制定，有公權力為後盾，強制力強；風俗習慣是社會長久累積形成，無強制力',
+   'C 兩者完全相同',
+   'D 風俗習慣比法律更有效果'
+ ],ans:1,
+ explain:'法律（正式規範）：立法機關制定，有公權力為後盾，強制性最高。風俗習慣（非正式規範）：長久累積形成，無強制力，靠社會輿論和習俗維持。'},
+
+{t:'u3b',era:'社會規範・非正式vs正式',type:'mc',
+ q:'「非正式規範」和「正式規範（法律）」的相互影響是？',
+ opts:[
+   'A 兩者互不影響',
+   'B 非正式規範可成為正式規範的基礎；正式規範也可以改變非正式規範',
+   'C 只有法律影響非正式規範',
+   'D 非正式規範比法律重要'
+ ],ans:1,
+ explain:'相互影響：①非正式規範（如倫理道德）是法律制定的基礎。②正式規範（法律）也可以改變非正式規範（如法律禁止放鞭炮，改變傳統習俗）。'},
+
+{t:'u3b',era:'社會規範・五倫vs第六倫',type:'mc',
+ q:'「第六倫」指的是什麼？',
+ opts:['A 家庭中的親子關係','B 個人與社會廣大群眾的關係，強調群己關係','C 師生之間的關係','D 朋友之間的關係'],ans:1,
+ explain:'五倫（私德）：君臣、父子、夫妻、長幼、朋友。第六倫：個人與社會廣大群眾的關係（群己倫理），強調對陌生人、社會整體的責任。'},
+
+{t:'u3b',era:'社會規範・環境倫理',type:'mc',
+ q:'「環境倫理」強調什麼？',
+ opts:['A 人類凌駕自然之上','B 重視人與自然環境的關係，強調所有物種都有平等的生存權利','C 自然服從人類需求','D 只保護瀕臨絕種的物種'],ans:1,
+ explain:'環境倫理：重視人與自然的關係，強調所有物種（非僅人類）都有平等的生存權利，應以生態保育為重要考量。'},
+
+{t:'u3b',era:'社會規範・四種類型配對',type:'match',
+ q:'請將社會規範類型與特徵配對：',
+ pairs:[
+   ['風俗習慣','社會長久累積的生活規矩，無強制力'],
+   ['倫理道德','人與人間關係的是非善惡標準'],
+   ['宗教信仰','透過信仰超自然力量約束行為'],
+   ['法律','由立法機關制定，有公權力為後盾'],
+ ],
+ explain:'四類社會規範：風俗習慣（習慣）、倫理道德（善惡標準）、宗教信仰（超自然力量）、法律（公權力）。'},
+
+// ── 結社與集會 ──
+{t:'u3c',era:'結社・集會vs結社比較',type:'mc',
+ q:'「集會」和「結社」最主要的差別是？',
+ opts:[
+   'A 兩者完全相同',
+   'B 集會是三人以上臨時性聚集、舉行活動；結社是基於共同目的組成具有永久性的團體',
+   'C 結社是臨時的，集會是永久的',
+   'D 集會需要政府批准，結社不需要'
+ ],ans:1,
+ explain:'集會：三人以上，具共同目的，臨時性聚集，沒有長效性。結社：基於共同目的，具永久性的組織性團體。'},
+
+{t:'u3c',era:'結社・志願結社特徵',type:'mc',
+ q:'志願結社的「民間性」特徵是指？',
+ opts:['A 由政府主導成立','B 屬於非政府組織，不具公權力，對違規事件只能勸導','C 以營利為目的','D 由強制加入的方式組成'],ans:1,
+ explain:'民間性：志願結社屬於非政府組織，不具公權力，無法強制執法，對違規行為只能透過勸導或輿論施壓。'},
+
+{t:'u3c',era:'結社・志願結社特徵',type:'mc',
+ q:'志願結社的「非營利性」是指？',
+ opts:['A 完全不能收任何費用','B 強調非營利質，即使有盈餘也是用來投入公益，達成組織目標','C 政府出資支持','D 成員免費加入'],ans:1,
+ explain:'非營利性：強調非以營利為目的，可以透過收費或募款維持運作，但盈餘必須用於達成組織目標（公益），不可分配給成員。'},
+
+{t:'u3c',era:'結社・影響公共生活',type:'mc',
+ q:'志願結社影響公共生活的方式包含哪些？',
+ opts:[
+   'A 只有募款',
+   'B 擴大個人影響力、促使公共意見形成、增進公共利益、監督政府施政',
+   'C 只有監督政府',
+   'D 只有提供服務'
+ ],ans:1,
+ explain:'志願結社對公共生活的影響：①擴大個人影響力②促使公共意見形成③增進公共利益④監督政府施政。是公民參與的重要管道。'},
+
+{t:'u3c',era:'結社・職業工會vs同業公會',type:'mc',
+ q:'「職業工會」和「同業公會」最主要的差別是？',
+ opts:[
+   'A 兩者都是勞工組成',
+   'B 職業工會由同一企業的勞工組成，爭取勞工福利；同業公會由同一行業的經營者組成，協調同業關係',
+   'C 職業工會由政府設立',
+   'D 同業公會限制競爭'
+ ],ans:1,
+ explain:'職業工會：同一企業的勞工（勞方）組成，目的是爭取勞工福利。同業公會：同一行業的經營者（資方）組成，目的是協調同業、改善營業。'},
+
+{t:'u3c',era:'結社・志願結社的影響',type:'tf',
+ q:'志願結社是公民社會的基礎，是由下而上建構公民社會的力量，是現代國家民主化、自由化的指標。',
+ ans:true,
+ explain:'志願結社是由下而上的力量，體現公民自主參與，是公民參與公共事務的最佳管道，也是民主社會發展程度的重要指標。'},
+];
+
+// ══ STATE & LOGIC ══
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+
+document.querySelectorAll('.nav-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.panel).classList.add('active');
+    if(tab.dataset.panel==='wrong')renderWP();
+  });
+});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+
+function updateGo(){
+  S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);
+  const btn=document.getElementById('goBtn');
+  if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}
+  else{btn.disabled=true;btn.textContent='請選擇單元與模式';}
+}
+document.getElementById('goBtn').addEventListener('click',startGame);
+
+function startGame(){
+  S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);
+  S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;
+  const isLong=S.mode==='normal'||S.mode==='timed';
+  let pool=QB.filter(q=>S.topics.includes(q.t));
+  pool=shuffle(pool);
+  S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));
+  S.cur=0;showScreen('game');renderQ();
+}
+function startWrongPractice(){
+  const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}
+  S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';
+  S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();
+}
+
+function renderQ(){
+  if(S.cur>=S.qs.length){showResult();return;}
+  const q=S.qs[S.cur];S.answered=false;
+  const total=S.qs.length;
+  document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;
+  document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;
+  document.getElementById('gScore').textContent=`${S.score} 分`;
+  if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));
+  else document.getElementById('gLives').textContent='';
+  const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};
+  const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort'};
+  document.getElementById('qtag').textContent=tMap[q.type]||'題目';
+  document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;
+  document.getElementById('qtext').textContent=q.q;
+  document.getElementById('qsub').textContent=q.hint||'';
+  const area=document.getElementById('ans-area');area.innerHTML='';
+  document.getElementById('fbbox').className='fb-box';
+  document.getElementById('nextBtn').className='next-btn';
+  if(q.type==='mc')renderMC(q,area);
+  else if(q.type==='tf')renderTF(q,area);
+  else if(q.type==='fill')renderFill(q,area);
+  else if(q.type==='match')renderMatch(q,area);
+  else if(q.type==='sort')renderSort(q,area);
+  clearInterval(S.timer);
+  const te=document.getElementById('gTimer');
+  if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}
+  else te.style.display='none';
+}
+
+function renderMC(q,area){
+  const grid=document.createElement('div');grid.className='opts';
+  q.opts.forEach((o,i)=>{
+    const btn=document.createElement('button');btn.className='opt';btn.textContent=o;
+    btn.addEventListener('click',()=>{
+      if(S.answered)return;S.answered=true;clearInterval(S.timer);
+      const ok=i===q.ans;
+      grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});
+      finish(ok,q);
+    });
+    grid.appendChild(btn);
+  });
+  area.appendChild(grid);
+}
+
+function renderTF(q,area){
+  const row=document.createElement('div');row.className='tf-row';
+  ['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{
+    const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;
+    btn.addEventListener('click',()=>{
+      if(S.answered)return;S.answered=true;clearInterval(S.timer);
+      const userT=i===0,ok=userT===q.ans;
+      row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});
+      finish(ok,q);
+    });
+    row.appendChild(btn);
+  });
+  area.appendChild(row);
+}
+
+function renderFill(q,area){
+  const row=document.createElement('div');row.className='fill-row';
+  const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';
+  const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';
+  const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確：${q.ans}`);};
+  btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});
+  row.append(inp,btn);area.appendChild(row);
+}
+
+function renderMatch(q,area){
+  const wrap=document.createElement('div');wrap.className='match-wrap';
+  const lCol=document.createElement('div');lCol.className='match-col';
+  const rCol=document.createElement('div');rCol.className='match-col';
+  const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);
+  let lPicked=null,rPicked=null,matched=0;
+  pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});
+  shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});
+  wrap.append(lCol,rCol);area.appendChild(wrap);
+  function tryM(){
+    if(!lPicked||!rPicked)return;
+    const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);
+    if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}
+    else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}
+    lPicked=null;rPicked=null;
+  }
+  wrap.addEventListener('click',e=>{
+    if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;
+    if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}
+    else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}
+    tryM();
+  });
+}
+
+let dragEl=null;
+function renderSort(q,area){
+  const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));
+  const list=document.createElement('div');list.className='sort-list';
+  shuffled.forEach(item=>{
+    const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;
+    el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;
+    el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});
+    el.addEventListener('dragend',()=>el.classList.remove('dragging'));
+    el.addEventListener('dragover',e=>e.preventDefault());
+    el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});
+    list.appendChild(el);
+  });
+  area.appendChild(list);
+  const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';
+  chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});
+  area.appendChild(chk);
+}
+
+function finish(ok,q,extraMsg){
+  const pts=calcPts(ok,q.type);
+  if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}
+  else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}
+  document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';
+  let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;
+  document.getElementById('fbmsg').textContent=msg;
+  document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;
+  const nb=document.getElementById('nextBtn');nb.className='next-btn show';
+  const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;
+  nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';
+  nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};
+}
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+
+function startTimer(sec){
+  S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';
+  S.timer=setInterval(()=>{
+    S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';
+    if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];
+      document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';
+      document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);
+      if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);
+      const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}
+  },1000);
+}
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+
+function showResult(){
+  clearInterval(S.timer);showScreen('result');
+  const max=S.qs.length*6;const pct=max>0?S.score/max:0;
+  let emoji,title,msg;
+  if(pct>=.9){emoji='🏆';title='公民滿分！';msg='公民第一冊的內容你掌握得非常好！';}
+  else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點多複習！';}
+  else if(pct>=.5){emoji='📖';title='繼續加油！';msg='去錯題複習區針對弱點加強！';}
+  else{emoji='💪';title='不要灰心！';msg='把講義再仔細看一遍，再來挑戰！';}
+  document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;
+  document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;
+  document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';
+  document.getElementById('rMsg').textContent=msg;
+  const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);
+  if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}
+  else document.getElementById('rWeak').style.display='none';
+  const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';
+  if(pct>=.75)confetti();
+}
+
+function renderWP(){
+  const bank=loadWB();const panel=document.getElementById('wrongPanel');
+  const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');
+  if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}
+  const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));
+  panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;
+  pw.style.display='block';cl.style.display='block';
+}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#2471a3','#c0392b','#1a5a8a','#8e44ad','#f0f4ff'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>複習闖關王 · 學員登入</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@400;500&display=swap');
+
+  :root {
+    --bg-deep: #0d1117;
+    --bg-card: rgba(22, 30, 46, 0.85);
+    --border: rgba(99, 210, 190, 0.18);
+    --teal: #63d2be;
+    --teal-dim: rgba(99, 210, 190, 0.7);
+    --text: #e2e8f0;
+    --text-muted: #7a8a9a;
+    --accent: #f0b429;
+    --red: #fc5c65;
+    --success-bg: rgba(99, 210, 190, 0.08);
+    --input-bg: rgba(255,255,255,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--bg-deep);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 10%, rgba(99,210,190,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 60% at 80% 90%, rgba(99,120,210,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(240,180,41,0.03) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Floating dots */
+  .dots {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+  }
+  .dot {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--teal);
+    opacity: 0.12;
+    animation: float linear infinite;
+  }
+
+  @keyframes float {
+    from { transform: translateY(110vh) rotate(0deg); }
+    to   { transform: translateY(-10vh) rotate(360deg); }
+  }
+
+  .card {
+    position: relative;
+    z-index: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px 36px 32px;
+    width: 100%;
+    max-width: 480px;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow:
+      0 0 0 1px rgba(99,210,190,0.06),
+      0 24px 64px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+    animation: cardIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(24px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Brand */
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand-icon {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, var(--teal), #4a9e90);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .brand-name {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: .05em;
+  }
+  .brand-tag {
+    margin-left: auto;
+    font-size: .65rem;
+    color: var(--teal-dim);
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    border: 1px solid rgba(99,210,190,0.25);
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  /* Headline */
+  .headline {
+    font-family: 'Noto Serif TC', serif;
+    font-size: clamp(1.75rem, 6vw, 2.2rem);
+    font-weight: 900;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: 24px;
+  }
+  .headline span {
+    color: var(--teal);
+    display: block;
+  }
+
+  /* Warning bar */
+  .notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: rgba(240,180,41,0.07);
+    border: 1px solid rgba(240,180,41,0.2);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    font-size: .8rem;
+    color: var(--accent);
+    line-height: 1.5;
+  }
+  .notice-icon { flex-shrink: 0; margin-top: 1px; }
+
+  /* Description */
+  .desc {
+    font-size: .9rem;
+    color: var(--text-muted);
+    line-height: 1.8;
+    margin-bottom: 28px;
+  }
+
+  /* Form */
+  .form-group { margin-bottom: 14px; }
+
+  label {
+    display: block;
+    font-size: .75rem;
+    letter-spacing: .12em;
+    color: var(--teal-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  input[type="email"] {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 16px;
+    font-size: .95rem;
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  input[type="email"]::placeholder { color: rgba(122,138,154,0.6); }
+  input[type="email"]:focus {
+    border-color: rgba(99,210,190,0.5);
+    box-shadow: 0 0 0 3px rgba(99,210,190,0.1);
+  }
+  input[type="email"].error {
+    border-color: rgba(252,92,101,0.6);
+    box-shadow: 0 0 0 3px rgba(252,92,101,0.1);
+  }
+
+  .error-msg {
+    font-size: .78rem;
+    color: var(--red);
+    margin-top: 6px;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+
+  /* Button */
+  .btn {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, var(--teal), #4a9e90);
+    border: none;
+    border-radius: 10px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: .95rem;
+    font-weight: 700;
+    color: #0d1a18;
+    cursor: pointer;
+    letter-spacing: .08em;
+    transition: opacity 0.2s, transform 0.15s;
+    position: relative;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .btn:hover:not(:disabled) { opacity: .88; transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  .btn .spinner {
+    display: none;
+    width: 18px; height: 18px;
+    border: 2px solid rgba(13,26,24,0.3);
+    border-top-color: #0d1a18;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    margin: 0 auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .btn.loading .btn-text { display: none; }
+  .btn.loading .spinner { display: block; }
+
+  /* Success box */
+  .success-box {
+    display: none;
+    background: var(--success-bg);
+    border: 1px solid rgba(99,210,190,0.3);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 18px;
+    animation: fadeIn 0.4s ease both;
+  }
+  .success-box.show { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .success-label {
+    font-size: .72rem;
+    letter-spacing: .2em;
+    color: var(--teal);
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .success-label::before {
+    content: '';
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--teal);
+    border-radius: 50%;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .4; transform: scale(0.8); }
+  }
+
+  .success-main {
+    font-size: .92rem;
+    color: var(--teal);
+    font-weight: 700;
+    line-height: 1.6;
+    margin-bottom: 8px;
+  }
+  .success-sub {
+    font-size: .8rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* Countdown */
+  .countdown {
+    display: inline-block;
+    background: rgba(99,210,190,0.12);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: .8rem;
+    color: var(--teal);
+    font-variant-numeric: tabular-nums;
+    margin-top: 8px;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .footer-item {
+    font-size: .68rem;
+    color: rgba(122,138,154,0.5);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .footer-sep { color: rgba(122,138,154,0.25); font-size: .68rem; }
+</style>
+</head>
+<body>
+
+<!-- Floating dots background -->
+<div class="dots" id="dots"></div>
+
+<div class="card">
+  <div class="brand">
+    <div class="brand-icon">🏆</div>
+    <div class="brand-name">複習闖關王</div>
+    <div class="brand-tag">學員專區</div>
+  </div>
+
+  <h1 class="headline">
+    登入取得
+    <span>會考完全攻略</span>
+  </h1>
+
+  <div class="notice">
+    <span class="notice-icon">⚠️</span>
+    <span>僅限付費學員登入，請使用報名時的 Email</span>
+  </div>
+
+  <p class="desc">
+    輸入你的 Email，我們會寄一封登入連結給你。<br>
+    連結 <strong style="color:var(--text)">15 分鐘</strong>內有效、只能用一次，不需要密碼。
+  </p>
+
+  <div class="form-group">
+    <label for="email">電子信箱</label>
+    <input type="email" id="email" placeholder="student@example.com" autocomplete="email" />
+    <div class="error-msg" id="errorMsg">此 Email 不在學員名單中，請確認後重試。</div>
+  </div>
+
+  <button class="btn" id="sendBtn" onclick="handleSend()">
+    <span class="btn-text">寄送登入連結 →</span>
+    <span class="spinner"></span>
+  </button>
+
+  <div class="success-box" id="successBox">
+    <div class="success-label">SENT</div>
+    <div class="success-main">已寄出登入連結到你的信箱，請在 15 分鐘內點擊連結即可登入。</div>
+    <div class="success-sub">若 5 分鐘後還沒收到，請檢查「垃圾郵件」資料夾或點下方重新寄送。</div>
+    <div class="countdown" id="countdown">可在 <span id="timer">60</span> 秒後重新寄送</div>
+  </div>
+
+  <div class="footer">
+    <span class="footer-item">學員資格管理</span>
+    <span class="footer-sep">·</span>
+    <span class="footer-item">無密碼登入</span>
+    <span class="footer-sep">·</span>
+    <span class="footer-item">Secured by Supabase</span>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // =============================================
+  // ⚙️ 請填入你的 Supabase 設定（步驟二取得）
+  // =============================================
+  const SUPABASE_URL = 'https://你的專案ID.supabase.co'
+  const SUPABASE_ANON_KEY = '你的 anon public key'
+  // =============================================
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  // 產生背景浮動小點
+  const dotsEl = document.getElementById('dots')
+  for (let i = 0; i < 12; i++) {
+    const d = document.createElement('div')
+    d.className = 'dot'
+    const size = Math.random() * 4 + 2
+    d.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      animation-duration:${Math.random()*20+15}s;
+      animation-delay:-${Math.random()*20}s;
+      opacity:${Math.random()*0.12+0.04};
+    `
+    dotsEl.appendChild(d)
+  }
+
+  let countdown = null
+
+  async function handleSend() {
+    const email = document.getElementById('email').value.trim()
+    const errorMsg = document.getElementById('errorMsg')
+    const btn = document.getElementById('sendBtn')
+    const successBox = document.getElementById('successBox')
+
+    // 清除舊狀態
+    errorMsg.classList.remove('show')
+    document.getElementById('email').classList.remove('error')
+    successBox.classList.remove('show')
+
+    if (!email || !email.includes('@')) {
+      document.getElementById('email').classList.add('error')
+      errorMsg.textContent = '請輸入有效的 Email 格式。'
+      errorMsg.classList.add('show')
+      return
+    }
+
+    // 顯示載入中
+    btn.classList.add('loading')
+    btn.disabled = true
+
+    try {
+      // 1. 查白名單
+      const { data, error } = await supabase
+        .from('allowed_emails')
+        .select('email')
+        .eq('email', email.toLowerCase())
+        .single()
+
+      if (error || !data) {
+        document.getElementById('email').classList.add('error')
+        errorMsg.textContent = '此 Email 不在學員名單中，請確認後重試。'
+        errorMsg.classList.add('show')
+        return
+      }
+
+      // 2. 寄送 Magic Link
+      const { error: authError } = await supabase.auth.signInWithOtp({
+        email: email.toLowerCase(),
+        options: {
+          emailRedirectTo: window.location.origin + '/課程選單_courses.html'
+        }
+      })
+
+      if (authError) throw authError
+
+      // 3. 顯示成功
+      successBox.classList.add('show')
+      startCountdown()
+
+    } catch (err) {
+      errorMsg.textContent = '寄送失敗，請稍後再試。'
+      errorMsg.classList.add('show')
+      console.error(err)
+    } finally {
+      btn.classList.remove('loading')
+      btn.disabled = false
+    }
+  }
+
+  function startCountdown() {
+    clearInterval(countdown)
+    let secs = 60
+    const timerEl = document.getElementById('timer')
+    const countdownEl = document.getElementById('countdown')
+    timerEl.textContent = secs
+    countdownEl.style.opacity = '1'
+
+    countdown = setInterval(() => {
+      secs--
+      timerEl.textContent = secs
+      if (secs <= 0) {
+        clearInterval(countdown)
+        countdownEl.innerHTML = '<a href="#" onclick="handleSend();return false;" style="color:var(--teal)">重新寄送登入連結</a>'
+      }
+    }, 1000)
+  }
+
+  // Enter 鍵送出
+  document.getElementById('email').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleSend()
+  })
+
+  // 檢查是否已登入，自動跳轉
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (session) window.location.href = '/課程選單_courses.html'
+  })
+</script>
+</body>
+</html>

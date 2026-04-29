@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地理闖關王 第二冊</title>
+<style>
+:root{
+  --bg:#f0fff4;--ink:#0a1a2a;--red:#c0392b;--gold:#1e8449;
+  --teal:#1a6b3a;--blue:#145a32;--accent:#27ae60;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(10,26,42,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(39,174,96,.08) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(26,107,58,.06) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#c8f5d8 0%,var(--bg) 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(10,26,42,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(10,26,42,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(10,26,42,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(10,26,42,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(10,26,42,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#c8f5d8;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(10,26,42,.48);margin-top:3px;line-height:1.4;}
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(10,26,42,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(10,26,42,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(10,26,42,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(10,26,42,.38);border:1px solid rgba(10,26,42,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:#ff6b6b;animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#d4efdf;color:var(--teal);}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:var(--green);}
+.qtag.match{background:#fce8d0;color:#b06010;}
+.qtag.sort{background:#fde8d0;color:#d35400;}
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(10,26,42,.43);margin-bottom:11px;font-style:italic;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#e8f8ee;border:2px solid #a9dfbf;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#c8f5d8;}
+.opt.ok{background:#d4f5e2;border-color:var(--green);color:var(--green);font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #a9dfbf;background:#e8f8ee;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:var(--green);}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:var(--green);background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--blue);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#e8f8ee;border:2px solid #a9dfbf;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:var(--gold);background:#c8f5d8;font-weight:700;}
+.match-item.matched{border-color:var(--green);background:#d4f5e2;color:var(--green);font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#c8f5d8;border:2px solid #a9dfbf;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--teal);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:var(--green);border-left:4px solid var(--green);}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+#result{background:linear-gradient(155deg,#c8f5d8 0%,var(--bg) 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(10,26,42,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(10,26,42,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(10,26,42,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#e8f8ee;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">地理闖關王</div>
+    <div class="home-badge">地理 第二冊 · 單元3+4 · 會考複習</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip on" data-t="u3a">👥 人口成長與分布</div>
+      <div class="tchip on" data-t="u3b">📊 人口組成與問題</div>
+      <div class="tchip on" data-t="u3c">🌏 族群文化</div>
+      <div class="tchip on" data-t="u3d">🌾 一級產業</div>
+      <div class="tchip on" data-t="u3e">🏭 二三級產業與貿易</div>
+      <div class="tchip on" data-t="u4a">🏘️ 聚落與都市化</div>
+      <div class="tchip on" data-t="u4b">🚗 交通運輸</div>
+      <div class="tchip on" data-t="u4c">🗾 區域特色與發展</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+<div class="screen" id="game">
+  <div class="gbar">
+    <div><div class="gbar-left" id="gInfo">第 1 / 50 題</div><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;"><div class="gbar-timer" id="gTimer" style="display:none;">20</div><div><div class="gbar-score" id="gScore">0 分</div><div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox"><div class="fb-title" id="fbtitle"></div><div id="fbmsg"></div></div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div><div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div><div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div><div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+<div class="combo" id="combo"></div>
+<script>
+const SK='geo_book2_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+// ====== 單元3 主題一：人口成長 ======
+{t:'u3a',type:'mc',era:'人口成長・出生率公式',q:'出生率的計算公式為何？',opts:['當年出生人數÷當年人口總數×100%','當年出生人數÷當年人口總數×1000‰','當年死亡人數÷當年人口總數×1000‰','當年移入人數÷當年人口總數×1000‰'],ans:1,explain:'出生率＝當年出生人數÷當年人口總數×1000‰（千分比）。同理，死亡率＝當年死亡人數÷當年人口總數×1000‰。'},
+{t:'u3a',type:'mc',era:'人口成長・移率',q:'影響「移入率高」的主要拉力（Pull factor）是什麼？',opts:['天災、戰爭、政治動盪','就業機會少、交通不便','經濟發達、就業機會多、政治自由、醫療進步','生育率下降、死亡率低'],ans:2,explain:'拉力（吸引人口移入）：經濟發達、就業機會多、政治自由、社會進步等；推力（推人口移出）：天災、戰爭、就業機會少、治安差等。'},
+{t:'u3a',type:'sort',era:'人口成長・歷史階段排序',q:'臺灣人口成長歷程，請由「最早」到「最晚」排列：',items:['日治時期：基礎建設改善，死亡率下降','戰後臺灣：高出生率、死亡率下降，人口快速成長','近代臺灣：晚婚不婚普遍，低出生率低死亡率','戰後末期：自然增加率降低，人口成長趨緩'],correctOrder:[0,1,3,2],explain:'日治→戰後初期（嬰兒潮）→1960-70年代趨緩→近代少子化。2020年臺灣死亡率首次超過出生率，人口首度負成長。'},
+{t:'u3a',type:'tf',era:'人口成長・人口密度',q:'人口密度＝總人口÷面積（平方公里），數值越高代表單位面積平均居住人數越多，土地資源越少。',ans:true,explain:'人口密度＝總人口÷面積，臺灣約642.7人/平方公里，遠高於澳洲（約3.34人/平方公里），反映臺灣地狹人稠。'},
+{t:'u3a',type:'mc',era:'人口分布・特色',q:'臺灣人口分布集中，「西部＞東部」的主要原因為何？',opts:['東部人口密度較高，因東部地廣人少','西部多平原、開發早，就業機會多，人口密度高','東部降水較少，不利生活','北部因氣溫低，人口不集中'],ans:1,explain:'臺灣人口分布：平原＞山地；西部＞東部（西部多平原開發早）；都市＞鄉村（都市就業機會多）。東部多山、開發晚，人口較稀少。'},
+{t:'u3a',type:'mc',era:'人口分布・遷移類型',q:'「國際移工」屬於哪種人口移動類型？',opts:['國內永久性移民','國際暫時性移民（短期務工）','國內暫時性移動','難民移動'],ans:1,explain:'國際移工：來自東南亞（越南、印尼等）來臺短期務工，屬「國際暫時性移民」，未入籍臺灣，故非永久性移民。'},
+
+// ====== 單元3 主題二：人口組成與問題 ======
+{t:'u3b',type:'mc',era:'人口組成・扶養比',q:'扶養比的公式為何？扶養比高代表什麼意義？',opts:['壯年人口÷（幼年＋老年）×100，比值越高越好','（幼年人口＋老年人口）÷壯年人口×100，比值越高扶養負擔越重','幼年人口÷老年人口×100，越高越好','老年人口÷壯年人口×100，比值越低越好'],ans:1,explain:'扶養比＝（幼年人口0-14歲＋老年人口65歲以上）÷壯年人口（15-64歲）×100。比值越高，代表每位壯年人需扶養的依賴人口越多，扶養負擔越重。'},
+{t:'u3b',type:'mc',era:'人口組成・性別比',q:'臺灣2023年性別比約97.6，代表什麼意思？',opts:['每100位女性對應97.6位男性，女多於男','每100位男性對應97.6位女性，男多於女','男女比例相同，差距極小','性別比越高，代表男性越多'],ans:0,explain:'性別比＝男性人口÷女性人口×100。臺灣2023年性別比97.6，表示每100位女性對應97.6位男性，即女多於男，原因包括女性高齡者多及外籍配偶移入。'},
+{t:'u3b',type:'match',era:'人口金字塔・類型配對',q:'請將人口金字塔類型與特徵配對：',pairs:[['低金字塔（寬底）','高出生率高死亡率，多開發中國家'],['高金字塔（窄底）','低出生率低死亡率，已開發國家'],['彈頭型','少子化嚴重，幼年人口少，老年人口多'],['臺灣鄉村地區','壯年男性外移或死亡，金字塔中段缺口']],explain:'低金字塔：底寬（高出生率）、正三角形；高金字塔（彈頭型）：底窄（低出生率）、老年人口多；特殊型：受戰爭、移民影響某年齡層缺口。'},
+{t:'u3b',type:'tf',era:'人口問題・少子化',q:'少子化的主要背景是晚婚、不婚現象普遍，婦女生育率低；影響包括未來勞力短缺、壯年扶養負擔加重、學校減班。',ans:true,explain:'少子化（低生育率）導致：勞動力不足、社會扶養比上升、學校招生不足（減班甚至廢校）、兵員減少等。政府以育嬰假、補助托育等政策因應。'},
+{t:'u3b',type:'mc',era:'人口問題・高齡化',q:'臺灣2023年老年人口比例超過14%，依聯合國定義屬於哪種社會？',opts:['高齡化社會（7%以上）','高齡社會（14%以上）','超高齡社會（20%以上）','老齡危機社會（30%以上）'],ans:1,explain:'老年人口（65歲以上）比例：≥7%為「高齡化社會」；≥14%為「高齡社會」；≥20%為「超高齡社會」。臺灣2023年已超過14%，進入高齡社會。'},
+{t:'u3b',type:'mc',era:'人口問題・多元文化',q:'臺灣新住民增加帶來的「多元文化適應」問題，下列政府對策何者不正確？',opts:['公共空間增設東南亞文字標示','辦理多元文化交流活動','實施強制同化，要求新住民放棄母語','中文課程及新住民子女教育學習研習'],ans:2,explain:'臺灣的多元文化政策是尊重與融合，而非強制同化。對策包括：語言支援、文化交流活動、子女教育輔導等，目標是使新住民融入並保有文化特色。'},
+{t:'u3b',type:'sort',era:'人口問題・高齡化對策排序',q:'下列高齡化因應對策，請由「個人層面」到「國家層面」排列（最個人的排第一）：',items:['健全老人社會福利','儲蓄退休金、規劃老年生活','推動高科技輔助（智慧醫療）','調整退休年齡政策'],correctOrder:[1,0,3,2],explain:'個人：儲蓄規劃→家庭：老人照護→國家政策：調整退休制度→整體社會：科技醫療輔助。這是應對高齡化的多層次策略。'},
+
+// ====== 單元3 主題三：族群文化 ======
+{t:'u3c',type:'mc',era:'族群・四大族群',q:'臺灣人口最多的族群為何？其祖籍主要來自哪裡？',opts:['客家人，廣東省','閩南人，福建省，分布於西部沿海平原','原住民族，臺灣本地','戰後移民，中國各省'],ans:1,explain:'臺灣四大族群：閩南人（約佔73%，最多，祖籍福建，分布西部沿海平原）、客家人（祖籍廣東，內陸丘陵、桃竹苗）、戰後移民（中國各省）、原住民族（2.5%，最早住民）。'},
+{t:'u3c',type:'mc',era:'族群・原住民',q:'臺灣原住民族行政核定共有幾族？主要分布在哪些地區？',opts:['10族，西部沿海','16族，山地及花東地區','20族，全臺平均分布','8族，北部山地'],ans:1,explain:'臺灣原住民族共16族（行政院原住民族委員會核定），主要分布於山地及花東地區，是臺灣最早的住民，屬南島語族。'},
+{t:'u3c',type:'match',era:'多元文化・族群飲食配對',q:'請將族群與其代表飲食文化配對：',pairs:[['原住民族','竹筒飯、小米酒'],['閩南人','米食文化、碗粿'],['戰後移民','北方麵食文化（饅頭、炸醬麵）'],['新住民','越南生春捲、東南亞酸辣食物']],explain:'各族群飲食反映其原鄉文化：原住民以竹筒飯、小米酒為代表；閩南以米食為主；戰後移民帶入北方麵食；新住民引入東南亞飲食，豐富臺灣多元飲食文化。'},
+{t:'u3c',type:'tf',era:'多元文化・宗教',q:'臺灣新住民及移工主要信奉伊斯蘭教，因此公共場所設置穆斯林祈禱室（MUSLIM PRAY ROOM）以滿足其宗教需求。',ans:true,explain:'臺灣東南亞移工中有大量穆斯林（來自印尼、馬來西亞等），因此機場、車站、工廠等地設有穆斯林祈禱室（Musala），是多元文化包容的具體表現。'},
+{t:'u3c',type:'mc',era:'族群・新住民',q:'臺灣新住民（約佔2.4%）的主要來源為何？',opts:['日本與韓國','中國大陸及東南亞（越南、印尼、泰國等）','歐美各國','非洲與南美洲'],ans:1,explain:'臺灣新住民主要來自中國大陸（64.7%）及東南亞（印尼36.2%為主，越南等），多透過婚姻取得中華民國國籍，近年東南亞新住民比例逐漸增加。'},
+
+// ====== 單元3 主題五：產業分類 ======
+{t:'u3d',type:'mc',era:'產業分類・三級產業定義',q:'下列關於三級產業的分類，何者正確？',opts:['第一級：製造業；第二級：農林漁牧；第三級：服務業','第一級：農林漁牧；第二級：製造加工業；第三級：商業或服務業','第一級：服務業；第二級：農林漁牧；第三級：製造業','第一、二、三級沒有區別，皆為生產活動'],ans:1,explain:'第一級（農林漁牧）：直接利用自然資源；第二級（工業）：利用各種原料加工製造；第三級（服務業）：提供各種貨物買賣及服務，如商業、金融、教育等。'},
+{t:'u3d',type:'mc',era:'農業・臺灣三大傳統作物',q:'臺灣三大傳統作物為稻米、甘蔗、茶葉，下列敘述何者錯誤？',opts:['稻米是臺灣最重要糧食作物，分布於水源充足的平原','甘蔗主要分布於高溫多雨的平原，嘉南平原為主，昔日多蔗糖廠','茶葉分布於高溫低雨的山地，北部為主要種植地區','茶葉生產成本高，面臨進口競爭，種植面積大幅縮減'],ans:2,explain:'茶葉適合分布於「高溫多雨」的山地、丘陵，並非低雨環境。北部（北台灣）及中部山地（阿里山）為主要茶葉產區。生產成本高、面臨進口競爭是近年挑戰。'},
+{t:'u3d',type:'mc',era:'農業・集約耕作',q:'臺灣農業以「集約耕作」為主要特色，其成因與影響為何？',opts:['土地廣大、人口稀少，每人耕地面積大','山多平原少、人口稠密，人均耕地面積小，需以大量勞力資本提高單位面積產量','氣候惡劣，無法發展其他農業模式','政府強制推行集約農業政策'],ans:1,explain:'集約耕作：臺灣山多平原少（人多地少），需在有限土地上投入大量勞力、資本、肥料，以提高單位面積產量（收益）。副作用：農藥肥料使用量大。'},
+{t:'u3d',type:'match',era:'農業・作物種類配對',q:'請將農作物與其用途分類配對：',pairs:[['稻米、小麥、番薯','糧食作物（可作為主食填飽肚子）'],['甘蔗、茶葉、棉花、花卉','經濟作物（可換取現金或作為工業原料）'],['玉米、大豆','飼料作物（用於畜牧飼料）'],['蔬菜、水果','園藝作物（供蔬菜水果生產）']],explain:'糧食作物以稻米、小麥為代表；經濟作物以甘蔗（製糖）、棉花（紡織原料）為代表；臺灣有「水果王國」美稱，園藝農業發達。'},
+{t:'u3d',type:'tf',era:'農業・挑戰與轉型',q:'2002年臺灣加入世界貿易組織（WTO），開放市場使廉價進口農產品大量湧入，衝擊國內農業生產。',ans:true,explain:'臺灣加入WTO後，需降低關稅開放農產品進口，廉價進口品（如泰國米、進口豬肉）衝擊臺灣農業，促使臺灣農業轉型向精緻化、有機農業、觀光農業發展。'},
+{t:'u3d',type:'mc',era:'漁業・種類與分布',q:'臺灣漁業中，「遠洋漁業」的作業範圍為何？主要捕撈對象為何？',opts:['西南沿海沙岸，0-12海里內，主要養殖吳郭魚','近海12-200海里，中上層魚類','200海里以外公海，鮪魚、旗魚等高經濟魚類','河川湖泊，淡水魚類'],ans:2,explain:'漁業分類：養殖漁業（西南沙岸，如虱目魚）、沿岸（0-12海里）、近海（12-200海里）、遠洋（200海里以外），遠洋以捕撈鮪魚、旗魚等高價值魚類為主。'},
+{t:'u3d',type:'mc',era:'牧業・特色',q:'臺灣畜牧業的主要分布地區及特色為何？',opts:['東部多山、適合大規模放牧，以羊牛為主','西南部（彰化、雲林、臺南、屏東），土地有限、多以欄牧方式飼養','北部平原，以稻田轉作牧草為主','離島金門，因地廣風強，以傳統放牧為主'],ans:1,explain:'臺灣畜牧業：土地有限、多以欄牧（圈養）為主，集中於西南部（彰化、雲林、臺南、屏東）。近年趨向商業化、專業化大型現代化飼養場。'},
+
+// ====== 單元3 主題七：二級產業 ======
+{t:'u3e',type:'mc',era:'工業・三大類型比較',q:'下列關於輕工業、重工業、高科技工業的比較，何者正確？',opts:['輕工業：資本技術密集，代表電腦半導體','重工業：勞力密集，工廠規模小、產品重量輕','輕工業：勞力密集，工廠小，生產民生消費品；重工業：資本能源密集，如鋼鐵；高科技：資本技術密集，如半導體','高科技工業與重工業完全相同'],ans:2,explain:'輕工業：勞力密集，規模小，食品加工、紡織、製鞋；重工業：資本/能源密集，鋼鐵、煉油、機械；高科技：資本/技術密集，電腦、半導體、生物科技。'},
+{t:'u3e',type:'sort',era:'工業・臺灣工業發展歷程',q:'請將臺灣工業發展階段由「最早」到「最晚」排列：',items:['高科技工業（電腦、半導體），70年代至今','輕工業出口（紡織、製鞋）民國50年代','重化工業（鋼鐵、石化）民國60年代','發展農產品加工，提升農業附加價值，民國40年代'],correctOrder:[3,1,2,0],explain:'臺灣工業發展：民國40年代（農產加工）→50年代（輕工業紡織）→60年代（重化工業）→70年代至今（高科技半導體）。台積電是高科技工業代表。'},
+{t:'u3e',type:'mc',era:'工業・區位因素',q:'新竹科學園區設立的主要區位優勢為何？',opts:['靠近高雄港，進出口便利','靠近清大、交大等大學及研究機構，有利招募科技人才','原料豐富，靠近鋼鐵原料產地','電力成本低廉，適合高耗能工業'],ans:1,explain:'高科技工業為技術密集，最重要的區位是「勞工區位」中的高素質技術人才。新竹科學園區靠近清大、交大，有利招募研發人才，是設立的主要原因。'},
+{t:'u3e',type:'mc',era:'工業・區位類型',q:'「魚罐頭工廠」設在漁港附近，主要考量哪種工業區位？',opts:['市場區位（靠近消費市場）','動力區位（靠近電力廠）','原料區位（原料失重大，靠近原料產地）','勞工區位（需大量廉價勞工）'],ans:2,explain:'原料區位：適合原料體積龐大、重量大、加工後重量減少（失重）的工業，應設在靠近原料產地，如甘蔗製糖廠靠近甘蔗田、魚罐頭廠靠近漁港。'},
+{t:'u3e',type:'tf',era:'國際貿易・定義',q:'「入超」指出口總額大於進口總額，又稱順差；「出超」指進口總額大於出口總額，又稱逆差。',ans:false,explain:'注意！出超（順差）＝出口＞進口，表示賺取外匯；入超（逆差）＝進口＞出口，表示外匯流失。臺灣長期處於出超（順差），出口大於進口。'},
+{t:'u3e',type:'mc',era:'國際貿易・臺灣現況',q:'臺灣高度依賴國際貿易，國際貿易佔GDP約94%以上，主要原因為何？',opts:['臺灣人口少，消費需求小','臺灣缺乏自然資源，原料需仰賴進口；國內市場小，工業產品須大量外銷','臺灣農業發達，農產品大量出口','臺灣政府強制推行外貿政策'],ans:1,explain:'臺灣高度依賴貿易：天然資源匱乏（煤、石油等需進口）；國內市場小（2300萬人）→工業品需外銷。主要貿易對象：中國、美國、日本、東協。'},
+{t:'u3e',type:'match',era:'貿易・進出口對象',q:'請將臺灣主要貿易類型與說明配對：',pairs:[['出超（順差）','出口總額＞進口總額，又稱貿易順差'],['入超（逆差）','進口總額＞出口總額，又稱貿易逆差'],['主要出口品','電子產品、半導體、機械設備'],['主要進口品','石油、天然氣、礦產等能源原料']],explain:'臺灣長期出超（出口多於進口），主要出口電子、半導體；主要進口能源（石油天然氣）及工業原料。最大貿易夥伴為中國、美國、日本。'},
+{t:'u3e',type:'mc',era:'產業結構・變遷',q:'臺灣產業結構變遷，由早期到現在的趨勢為何？',opts:['第一級（農業）比例持續上升','第三級（服務業）比例逐漸成為最大，第一級比例下降','第二級（工業）持續增長，已超過70%','三級產業比例均等，各佔約三分之一'],ans:1,explain:'臺灣產業結構變遷：早期以農業（一級）為主→民國50-60年代工業（二級）興起→民國70年代中期後，三級（服務業）成最大比例，目前第三級產業就業人口比例最高（約61%）。'},
+
+// ====== 單元4 主題一：聚落與都市化 ======
+{t:'u4a',type:'mc',era:'聚落・形成條件',q:'聚落形成的自然條件，下列何者不重要？',opts:['水源充足','地勢平坦','鄰近河海交通便利','高溫多雨的熱帶氣候'],ans:3,explain:'聚落形成的自然條件：水源充足（如宜蘭平原）、地勢平坦（如嘉南平原）、地近河海交通便利。高溫多雨不是必要條件，臺灣各地氣候均可形成聚落。'},
+{t:'u4a',type:'mc',era:'聚落・都市化',q:'「都市化」的定義為何？',opts:['農村人口增加的過程','鄉村人口往都市集中的過程','都市人口往鄉村疏散的過程','工廠由都市往農村移動的過程'],ans:1,explain:'都市化：鄉村人口往都市集中的過程。成因：都市就業機會多、薪資高，生活便利、教育醫療資源佳。臺灣都市化程度達79.5%（2023年）。'},
+{t:'u4a',type:'fill',era:'聚落・都市化程度',q:'都市化程度＝都市人口÷_____×100%，可用來表示工業、服務業發展程度及經濟水準。',ans:'總人口',alts:['全國人口','國家總人口'],explain:'都市化程度＝都市人口÷全國總人口×100%。臺灣都市化程度約79.5%，代表近八成人口居住在都市地區。'},
+{t:'u4a',type:'mc',era:'聚落・郊區化',q:'「郊區化」發生的主要原因，下列何者正確？',opts:['都市就業機會減少，人口被迫移出','都市推力（房價上漲、交通壅塞）加上捷運等交通革新，通勤圈擴大，人口往郊區移動','政府強制疏散都市人口','農業發展帶動郊區人口增加'],ans:1,explain:'郊區化：都市人口往郊區移動。成因：都市推力（房價高、交通擁擠、環境差）＋交通革新（捷運、高速公路）使通勤圈擴大，都市邊緣地區成為居住選擇。'},
+{t:'u4a',type:'mc',era:'聚落・都會區',q:'臺灣目前有哪五大都會區？',opts:['臺北、桃園、臺中、臺南、高雄','臺北、基隆、桃園中壢、臺中彰化、臺南高雄（五大都會區）','臺北、新北、臺中、嘉義、屏東','基隆、臺北、新竹、臺南、高雄'],ans:1,explain:'臺灣五大都會區：臺北（含基隆）、桃園中壢、臺中彰化、臺南、高雄（五大都會圈），都市向外擴張後與周邊城鎮連成一體。桃機擴建後北北桃逐漸整合。'},
+
+// ====== 單元4 主題二：交通類型 ======
+{t:'u4b',type:'mc',era:'交通・運輸方式比較',q:'下列關於各種交通運輸方式的比較，何者正確？',opts:['空運：運費最低，適合大量重貨','水運：速度最快，適合精密儀器','公路：機動性強，可深入鄉鎮，適合短程、少量運輸及宅配','鐵路：容易交通阻塞，機動性最強'],ans:2,explain:'公路：機動性強、可深入鄉鎮、短程低運費，適合宅配鮮貨；鐵路：無交通阻塞、長途量大、較公路省；水運：量大費低，適合重貨；空運：速快費高，適合高值輕貨。'},
+{t:'u4b',type:'match',era:'交通・運輸特性配對',q:'請將運輸方式與最適合運送的貨物配對：',pairs:[['公路','宅配、鮮貨、短程輕便物品'],['鐵路','長途、大量、較重的物品（如鋼材）'],['水運（海運）','進口石油、汽車、大宗物資'],['空運','疫苗、花卉、高單價精密電子零件']],explain:'選擇運輸方式考量：距離（遠近）、貨物特性（重量、體積、易腐性）、運費、時效。空運雖貴但速度快，適合高價值或時效性強的貨物。'},
+{t:'u4b',type:'mc',era:'交通・臺灣現況',q:'臺灣最普及的交通方式為何？其特色為何？',opts:['鐵路，無交通阻塞、長途省錢','空運，速度快適合島嶼地形','公路，機動性高、受地形限制，編號分國道、省道、縣道','水運，四面環海利用海運最方便'],ans:2,explain:'臺灣最普及的交通為公路（汽機車最多），受地形限制（東西向多山阻隔），南北向公路較發達；編號分：國道（高速公路）、省道（如台9線）、縣道。'},
+{t:'u4b',type:'tf',era:'交通・捷運特性',q:'捷運（大眾運輸）無交通阻塞、班次密集，但路線固定、需轉乘，且修築成本高，目前臺灣僅部分大都市有捷運系統。',ans:true,explain:'捷運優點：無路面塞車、班次密集、載客量大；缺點：路線固定、需轉公車才能到達各地、建設成本高。臺灣目前有臺北、新北、桃園、臺中、高雄捷運。'},
+{t:'u4b',type:'mc',era:'交通・聚落關係',q:'「交通便利帶動工商業發展，提供就業機會，吸引人口移入，聚落規模擴大」，這說明了什麼關係？',opts:['聚落大小與氣候有關','交通網絡與聚落體系相輔相成（交通越發達，聚落越繁榮）','鄉村地區交通越好越容易城鎮化','交通只影響工業，不影響聚落型態'],ans:1,explain:'交通與聚落互相促進：交通便利→工商業發展→就業機會多→吸引人口→聚落規模擴大→進一步促進交通建設，形成良性循環。'},
+
+// ====== 單元4 主題三：臺灣區域特色 ======
+{t:'u4c',type:'mc',era:'區域特色・北部',q:'臺灣北部地區的主要特色，下列何者正確？',opts:['農業最發達，以稻米、甘蔗為主','人口密度、經濟產值、教育程度最高，以臺北為政治經濟中心','工業最發達，鋼鐵石化集中','冬季最乾燥，適合發展旱作農業'],ans:1,explain:'北部（臺北、新北、桃園等）：人口最密集、經濟最發達、教育程度最高。臺北為政治經濟中心，桃園為最大空運門戶（桃園機場）。'},
+{t:'u4c',type:'mc',era:'區域特色・中部',q:'臺灣中部地區（苗栗、臺中、彰化、南投等）的主要產業特色為何？',opts:['重化工業發達，如高雄鋼鐵','以高科技為主，如竹科半導體','臺中為中部都會核心，精密機械工業發達；彰化、雲林為重要稻米、蔬菜產地','以觀光農業為主，無工業發展'],ans:2,explain:'中部：臺中（直轄市）為中部都會核心，精密機械工業（台中精機）發達，文創實力提升（臺中國家歌劇院）；彰化、雲林為稻米、蔬菜、花卉重要產地。'},
+{t:'u4c',type:'mc',era:'區域特色・南部',q:'臺灣南部（嘉義、臺南、高雄、屏東、澎湖）地區，下列敘述何者正確？',opts:['冬季降雨豐沛，農業用水充足','夏雨冬乾，臺南市為歷史古都，高雄市為重要工業城市及海運樞紐','東部地形多山、開發晚，以觀光農業為主','平均教育程度全臺最高'],ans:1,explain:'南部：夏雨冬乾，農業（熱帶水果、稻作、養殖漁業）發達；臺南為歷史古都（成功大學、歷史博物館）；高雄有港口優勢，重工業（煉鋼、煉油）及近年科技轉型。'},
+{t:'u4c',type:'mc',era:'區域特色・東部',q:'臺灣東部地區（花蓮、臺東）的發展特色為何？',opts:['工業最發達，紡織重鎮','居中央山脈與海岸山脈間，開發晚，原住民文化觀光發達，優質農產品著名','人口密度全臺最高','四季氣候涼爽，全年降水均勻'],ans:1,explain:'東部：夾於中央山脈與海岸山脈間，開發晚、交通不便（蘇花公路）；好山好水利於原住民文化觀光；台東池上米、花蓮大理石、大魯閣國家公園著名。'},
+{t:'u4c',type:'match',era:'區域特色・各縣市配對',q:'請將縣市與其最具代表性特色配對：',pairs:[['新竹市','竹科帶動高科技產業發展'],['臺南市（直轄市）','歷史古都，安平古堡、赤嵌樓'],['高雄市（直轄市）','最大港口，重工業、近年文創興起'],['花蓮縣','大魯閣國家公園、大理石工業、清水斷崖']],explain:'各區域代表特色：新竹科技、臺南歷史文化、高雄港口工業、花蓮自然景觀。會考常考各縣市特色與地理區域特性。'},
+{t:'u4c',type:'tf',era:'區域差異・醫療教育',q:'臺灣醫療資源分布不均，平地＞山地、本島＞離島，花蓮臺東醫院較分散，偏鄉就醫需長途跋涉。',ans:true,explain:'臺灣醫療資源：六都地區醫院密集、醫療程度高；東部（花蓮、臺東）醫院較分散；離島（金門、馬祖、澎湖）醫療資源最不足，需往本島就醫，就醫距離長。'},
+{t:'u4c',type:'mc',era:'區域差異・三級產業人口比例',q:'臺灣區域三級產業就業人口比例，下列何者正確？',opts:['東部區域第三級產業比例最高','北部第二、三級產業就業人口最多；東部交通不便，第二級比例最低，但觀光業（第三級）發達','南部農業（第一級）比例高於北部','中部第三級產業就業人口全臺最高'],ans:1,explain:'北部（臺北圈）服務業（三級）及工業（二級）就業人口最多；東部因交通阻隔，第二級產業比例低，但觀光服務業（第三級）發達；農業（一級）以中南部比例較高。'},
+
+// ====== 單元4 主題四：區域發展差異與策略 ======
+{t:'u4c',type:'mc',era:'區域發展・均衡策略',q:'臺灣「國土空間發展策略計畫」（民國107年）將國土分為四大區域，下列何者正確？',opts:['城鄉發展地區、農業發展地區、海洋資源地區、山地保育地區','都市地區、農村地區、工業地區、保護地區','北部、中部、南部、東部四大區域','自由貿易區、科技園區、農業園區、文化創意區'],ans:0,explain:'全國國土計畫（民國107年）：①城鄉發展地區（落實城鄉發展）②農業發展地區（維護農業生產環境）③海洋資源地區（維護海域生態）④山地保育地區（保育原住民文化及土地使用）。'},
+{t:'u4c',type:'mc',era:'區域發展・國家公園',q:'下列臺灣國家公園與其特色的配對，何者錯誤？',opts:['墾丁：熱帶海岸林、珊瑚礁地形、風吹沙','玉山：高山動植物、布農族文化、八通關古道','雪霸：雪山、大霸尖山、大甲溪峽谷、「武陵農場賞櫻」','大雪山：火山地熱、溫泉，近北基都會區'],ans:3,explain:'大屯火山群在陽明山國家公園（非大雪山），陽明山以火山地熱、溫泉、芒草著名，靠近臺北都會區。大雪山是雪霸國家公園範圍，以雪山主峰、武陵賞櫻著名。'},
+{t:'u4c',type:'sort',era:'聚落發展・明清到現在',q:'請將臺灣聚落發展由「最早」到「最晚」排列：',items:['日治時期：多陸運交通聚集點，車站成商業中心','明清時期：多港口型聚落（安平、滬尾、鹿港、艋舺）','近代：桃園機場擴建，北北桃逐漸整合為大都會','戰後：公路建設積極，西南部成開發核心'],correctOrder:[1,0,3,2],explain:'臺灣聚落演變：明清（港口型）→日治（鐵路車站型）→戰後（公路擴張，西南部發展）→近代（機場帶動桃園，高鐵使南北往來頻繁）。'},
+{t:'u4c',type:'mc',era:'區域發展・家戶所得',q:'臺灣各地家戶平均所得差異，下列描述何者正確？',opts:['六都家戶平均所得全臺最低','花東地區家戶所得最高','六都地區家戶平均所得較高，花東地區家戶所得最低','全臺各縣市家戶所得均等'],ans:2,explain:'臺灣地區發展差異：六都（直轄市）產業發達、就業機會多，家戶平均所得較高（臺北最高）；花蓮、臺東地區因交通不便、產業以農業觀光為主，家戶所得相對偏低。'},
+
+// ====== 補充加強題 ======
+{t:'u3a',type:'mc',era:'人口成長・自然增加率',q:'「自然增加率」的計算方式為何？若出生率為8‰、死亡率為10‰，則自然增加率為？',opts:['出生率＋死亡率＝18‰，人口增加','出生率－死亡率＝-2‰，人口自然減少','死亡率÷出生率＝1.25，人口縮減','（出生率－死亡率）×1000＝-2，無意義'],ans:1,explain:'自然增加率＝出生率－死亡率。若出生率8‰＜死亡率10‰，自然增加率為-2‰，表示人口自然減少。臺灣2020年首度出現人口自然負成長。'},
+{t:'u3b',type:'mc',era:'人口金字塔・臺灣2023',q:'臺灣2023年人口金字塔顯示老年人口增加、幼年人口減少，這代表臺灣正面對什麼問題？',opts:['人口爆炸，需推行計畫生育','同時面臨少子化（幼年人口比例下降）與高齡化（老年人口比例上升）的雙重挑戰','人口過度集中都市，需推動分散政策','移民問題嚴重，外籍人口太多'],ans:1,explain:'臺灣目前面對雙重人口問題：少子化（生育率下降，幼年人口比例降低）＋高齡化（平均壽命延長，老年人口比例增加）→扶養比上升，社會負擔加重。'},
+{t:'u3d',type:'mc',era:'農業・農產品商品化',q:'「農產品商品化」指的是什麼？',opts:['農民直接食用自種農產品，減少浪費','農產品以供應市場需求為導向，以銷售為目的，減少自給自足','農業改以機器取代人工，提高效率','農業由政府統一管理銷售'],ans:1,explain:'農產品商品化：農業生產由傳統自給自足轉變為「以銷售為目的」，配合市場需求（如臺灣各地區往來農產品運輸），有利於農民收入提升。'},
+{t:'u3e',type:'tf',era:'工業・臺灣重工業區位',q:'臺灣重工業（如鋼鐵、石化）多設於高雄，主要是因為高雄有港口，進出口原料便利，屬於「交通區位」。',ans:true,explain:'臺灣缺乏煤、礦砂、石油等重工業原料，需仰賴進口，因此重工業應設於港口附近（交通區位），以便降低運輸成本。高雄有高雄港，是重工業發展重鎮。'},
+{t:'u4a',type:'mc',era:'聚落・類型比較',q:'「都市」與「鄉村」聚落的主要差異，下列何者正確？',opts:['鄉村人口數量比都市多，密度較高','都市人口較多、密度高，第二三級產業為主；鄉村人口少、密度低，第一級產業（農漁牧）為主','都市以農業為主，鄉村以商業為主','都市與鄉村的人口密度與規模沒有顯著差異'],ans:1,explain:'都市聚落（2萬人以上，人口密度300人/平方公里以上）：工商業發達；鄉村聚落：人口少，第一級產業（農林漁牧）為主，提供食物勞力與休閒資源。'},
+{t:'u4b',type:'mc',era:'交通・空運特色',q:'「空運」的主要優缺點，下列描述正確的是？',opts:['速度慢、運費低廉，適合大宗散貨','速度快、不受地形限制，但運費高、需特定地點起降，適合高價值或時效性強貨物','運量大、受天候影響小','機動性強、可深入山區鄉鎮'],ans:1,explain:'空運特性：速度最快（臺灣→日本約2小時）、不受地形限制，但運費最貴、需機場設施。適合：疫苗（時效）、花卉（新鮮度）、高單價電子零件（如晶片）。'},
+{t:'u4c',type:'mc',era:'區域差異・離島',q:'金門離島地區的主要特色，下列何者錯誤？',opts:['屬中國福建省沿海大陸島，地形起伏多丘陵','戰地遺跡成為觀光特色，以風獅爺、高粱酒著名','地形山高陡峭，適合高山農業，種植茶葉','風強雨少，宜植高粱、花生等早作'],ans:2,explain:'金門：大陸島、丘陵地形（並非高山），不適合山地茶葉種植。金門以戰地文化（碉堡、地雷）、風獅爺（鎮風）、高粱酒（利用高粱）、馬祖八八坑道聞名。'},
+];
+
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.panel).classList.add('active');if(tab.dataset.panel==='wrong')renderWP();});});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+function updateGo(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);const btn=document.getElementById('goBtn');if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}else{btn.disabled=true;btn.textContent='請選擇單元與模式';}}
+document.getElementById('goBtn').addEventListener('click',startGame);
+function startGame(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;const isLong=S.mode==='normal'||S.mode==='timed';let pool=QB.filter(q=>S.topics.includes(q.t));pool=shuffle(pool);S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));S.cur=0;showScreen('game');renderQ();}
+function startWrongPractice(){const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();}
+function renderQ(){if(S.cur>=S.qs.length){showResult();return;}const q=S.qs[S.cur];S.answered=false;const total=S.qs.length;document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));else document.getElementById('gLives').textContent='';const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort'};document.getElementById('qtag').textContent=tMap[q.type]||'題目';document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;document.getElementById('qtext').textContent=q.q;document.getElementById('qsub').textContent=q.hint||'';const area=document.getElementById('ans-area');area.innerHTML='';document.getElementById('fbbox').className='fb-box';document.getElementById('nextBtn').className='next-btn';if(q.type==='mc')renderMC(q,area);else if(q.type==='tf')renderTF(q,area);else if(q.type==='fill')renderFillQ(q,area);else if(q.type==='match')renderMatch(q,area);else if(q.type==='sort')renderSort(q,area);clearInterval(S.timer);const te=document.getElementById('gTimer');if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}else te.style.display='none';}
+function renderMC(q,area){const grid=document.createElement('div');grid.className='opts';q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt';btn.textContent=o;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const ok=i===q.ans;grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});finish(ok,q);});grid.appendChild(btn);});area.appendChild(grid);}
+function renderTF(q,area){const row=document.createElement('div');row.className='tf-row';['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const userT=i===0,ok=userT===q.ans;row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});finish(ok,q);});row.appendChild(btn);});area.appendChild(row);}
+function renderFillQ(q,area){const row=document.createElement('div');row.className='fill-row';const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確：${q.ans}`);};btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});row.append(inp,btn);area.appendChild(row);}
+function renderMatch(q,area){const wrap=document.createElement('div');wrap.className='match-wrap';const lCol=document.createElement('div');lCol.className='match-col';const rCol=document.createElement('div');rCol.className='match-col';const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);let lPicked=null,rPicked=null,matched=0;pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});wrap.append(lCol,rCol);area.appendChild(wrap);function tryM(){if(!lPicked||!rPicked)return;const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}lPicked=null;rPicked=null;}wrap.addEventListener('click',e=>{if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}tryM();});}
+let dragEl=null;
+function renderSort(q,area){const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));const list=document.createElement('div');list.className='sort-list';shuffled.forEach(item=>{const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});el.addEventListener('dragend',()=>el.classList.remove('dragging'));el.addEventListener('dragover',e=>e.preventDefault());el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});list.appendChild(el);});area.appendChild(list);const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});area.appendChild(chk);}
+function finish(ok,q,extraMsg){const pts=calcPts(ok,q.type);if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;document.getElementById('fbmsg').textContent=msg;document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;const nb=document.getElementById('nextBtn');nb.className='next-btn show';const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};}
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+function startTimer(sec){S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';S.timer=setInterval(()=>{S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}},1000);}
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+function showResult(){clearInterval(S.timer);showScreen('result');const max=S.qs.length*6;const pct=max>0?S.score/max:0;let emoji,title,msg;if(pct>=.9){emoji='🏆';title='地理高手！';msg='地理第二冊掌握得非常好！繼續保持！';}else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點複習！';}else if(pct>=.5){emoji='📖';title='繼續加油！';msg='去錯題複習區針對弱點加強！';}else{emoji='💪';title='不要灰心！';msg='把講義再仔細看一遍，再來挑戰！';}document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';document.getElementById('rMsg').textContent=msg;const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}else document.getElementById('rWeak').style.display='none';const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';if(pct>=.75)confetti();}
+function renderWP(){const bank=loadWB();const panel=document.getElementById('wrongPanel');const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;pw.style.display='block';cl.style.display='block';}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#27ae60','#1e8449','#1a6b3a','#145a32','#c8f5d8'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

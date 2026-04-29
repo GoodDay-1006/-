@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地科闖關王 第六冊</title>
+<style>
+:root{
+  --bg:#f0f8ff;--ink:#0a1a2a;--red:#c0392b;--gold:#1a6ea8;
+  --teal:#1a5276;--blue:#154360;--accent:#2980b9;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(10,26,42,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(41,128,185,.10) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(26,110,168,.07) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#d6eaf8 0%,var(--bg) 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(10,26,42,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(10,26,42,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(10,26,42,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(10,26,42,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(10,26,42,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#d6eaf8;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(10,26,42,.48);margin-top:3px;line-height:1.4;}
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(10,26,42,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(10,26,42,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(10,26,42,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(10,26,42,.38);border:1px solid rgba(10,26,42,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:#ff6b6b;animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#d6eaf8;color:var(--teal);}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:#1a7a3a;}
+.qtag.match{background:#fce8d0;color:#b06010;}
+.qtag.sort{background:#fde8d0;color:#d35400;}
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(10,26,42,.43);margin-bottom:11px;font-style:italic;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#eaf4fd;border:2px solid #aed6f1;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#d6eaf8;}
+.opt.ok{background:#d4f5e2;border-color:#1a7a3a;color:#1a7a3a;font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #aed6f1;background:#eaf4fd;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:#1a7a3a;}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:#1a7a3a;background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--blue);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#eaf4fd;border:2px solid #aed6f1;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:var(--gold);background:#d6eaf8;font-weight:700;}
+.match-item.matched{border-color:#1a7a3a;background:#d4f5e2;color:#1a7a3a;font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#d6eaf8;border:2px solid #aed6f1;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--teal);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:#1a7a3a;border-left:4px solid #1a7a3a;}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+#result{background:linear-gradient(155deg,#d6eaf8 0%,var(--bg) 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(10,26,42,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(10,26,42,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(10,26,42,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#eaf4fd;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">地科闖關王</div>
+    <div class="home-badge">地球科學 第六冊 · 大氣天氣・全球變遷 · 會考複習</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip" data-t="u4a">單元4-1 地球的大氣</div>
+      <div class="tchip" data-t="u4b">單元4-2 天氣現象與大氣環流</div>
+      <div class="tchip" data-t="u4c">單元4-3 氣團鋒面與颱風</div>
+      <div class="tchip" data-t="u5a">單元5-1 海洋與氣候變化</div>
+      <div class="tchip" data-t="u5b">單元5-2 溫室效應與全球暖化</div>
+      <div class="tchip" data-t="u5c">單元5-3 臭氧層與天然災害</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+<div class="screen" id="game">
+  <div class="gbar">
+    <div><div class="gbar-left" id="gInfo">第 1 / 50 題</div><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;"><div class="gbar-timer" id="gTimer" style="display:none;">20</div><div><div class="gbar-score" id="gScore">0 分</div><div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox"><div class="fb-title" id="fbtitle"></div><div id="fbmsg"></div></div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div><div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div><div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div><div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+<div class="combo" id="combo"></div>
+<script>
+const SK='geo6_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+// ===== 單元4-1：地球的大氣 =====
+{type:'mc',t:'u4a',era:'大氣層・垂直分層',q:'大氣層依溫度隨高度變化分為四層，其中天氣變化大多發生在哪一層？',opts:['對流層','平流層','中氣層','增溫層'],ans:0,explain:'對流層：最靠近地表，水氣集中，氣溫隨高度增加而降低，天氣現象（雲、雨、風）集中在此層。平均厚約10公里，高度會隨季節地點改變（赤道高、極地低）。'},
+{type:'mc',t:'u4a',era:'大氣層・平流層特性',q:'臭氧層主要集中在哪個大氣層？長途飛機也常在此層飛行，原因為何？',opts:['對流層，空氣對流旺盛','平流層，空氣水平流動少、飛行平穩','中氣層，氣溫最低','增溫層，高度最高'],ans:1,explain:'平流層（距地約10–50公里）：①臭氧濃度最高，可吸收紫外線；②氣流以水平為主，幾乎沒有垂直對流，飛行平穩；③氣溫隨高度升高（因臭氧吸收紫外線放熱）。'},
+{type:'mc',t:'u4a',era:'大氣組成・固定變動氣體',q:'大氣的主要成分中，「氮氣」佔約多少比例？',opts:['21%','78%','0.93%','0.04%'],ans:1,explain:'乾燥空氣組成：氮氣78%（最多，化學性質穩定）、氧氣21%（生物呼吸所需）、氬氣0.93%（惰性氣體）、二氧化碳約0.04%（重要溫室氣體，比例雖少但影響大）。'},
+{type:'tf',t:'u4a',era:'大氣層・增溫層',q:'增溫層的溫度隨高度升高而升高，是因為大氣密度高，吸收大量太陽輻射。',ans:false,explain:'錯誤！增溫層溫度隨高度升高，但原因是「太陽的短波輻射（X射線、紫外線等）被少量氣體粒子吸收」，而不是因為密度高。事實上增溫層的空氣極為稀薄。'},
+{type:'mc',t:'u4a',era:'大氣層・氣壓',q:'關於氣壓隨高度的變化，下列敘述何者正確？',opts:['氣壓隨高度升高而增大','氣壓隨高度升高而減小','氣壓與高度無關','氣壓在平流層最大'],ans:1,explain:'氣壓是指單位面積上空氣柱的重量，越往高空，上方的空氣越少，氣壓越低。海平面的氣壓最大（約1013百帕），越高越低。因此登山時氣壓降低，水的沸點也會降低。'},
+{type:'mc',t:'u4a',era:'大氣功能・溫室效應',q:'若沒有大氣層，地球平均溫度約為多少？',opts:['0°C','−18°C','15°C','100°C'],ans:1,explain:'若無大氣層，地球平均溫度約為−18°C。但因有適量溫室氣體（水氣、CO₂等）吸收地表輻射，地球實際平均溫度維持約15°C，溫差約33°C，這就是自然的「溫室效應」。'},
+{type:'mc',t:'u4a',era:'空氣污染・AQI',q:'AQI（空氣品質指標）值越高，代表空氣品質如何？',opts:['越好，污染越少','越差，污染越嚴重','與空氣品質無關','只表示紫外線強度'],ans:1,explain:'AQI值越高，代表空氣中污染物濃度越高，對人體健康影響越大。AQI 0–50良好（綠）；51–100普通（黃）；101–150對敏感族群不健康（橘）；越高越危險（紅→紫→褐紅）。'},
+{type:'fill',t:'u4a',era:'大氣組成・固定氣體',q:'大氣中含量最多的固定氣體是____，約占大氣體積的78%。',ans:'氮氣',alts:['氮','N₂'],explain:'氮氣（N₂）是大氣中含量最多的氣體，約78%，化學性質穩定，不易與其他物質反應。氧氣（O₂）次之，約21%，是生物呼吸所必需的氣體。'},
+{type:'mc',t:'u4a',era:'大氣層・中氣層',q:'大氣層中，氣溫最低的一層是？',opts:['對流層','平流層','中氣層','增溫層'],ans:2,explain:'中氣層（距地50–85公里）：氣溫隨高度升高而「降低」，頂部約−90°C，是大氣中溫度最低的地方。其下方的平流層氣溫隨高度升高，因此中氣層底部反而比頂部溫暖。'},
+
+// ===== 單元4-2：天氣現象與大氣環流 =====
+{type:'mc',t:'u4b',era:'天氣變化・相對濕度',q:'關於相對濕度的敘述，下列何者正確？',opts:['相對濕度100%表示空氣中沒有水氣','溫度升高，相對濕度通常升高','相對濕度越高，表示空氣越接近飽和','相對濕度與溫度無關'],ans:2,explain:'相對濕度＝實際水氣量÷同溫下的飽和水氣量×100%。相對濕度越接近100%，空氣越接近飽和，水氣越易凝結。溫度升高時，飽和水氣量增大，相對濕度反而「降低」。'},
+{type:'mc',t:'u4b',era:'天氣變化・雲的形成',q:'雲形成的主要原因是什麼？',opts:['海水蒸發直接形成','空氣上升冷卻，水氣達到飽和後凝結','冷暖空氣相遇後直接凝固','地面輻射冷卻使水氣凝結'],ans:1,explain:'雲的形成：空氣上升→氣壓變小→體積膨脹→溫度下降→達到露點（飽和）→水氣凝結在凝結核（灰塵、鹽粒等）上→形成小水滴或冰晶→集合形成雲。需要有凝結核才能有效凝結。'},
+{type:'mc',t:'u4b',era:'等壓線・氣壓判讀',q:'在天氣圖上，等壓線越密集的地方，表示什麼？',opts:['氣壓越高','氣壓越低','風速越快','溫度越高'],ans:2,explain:'等壓線越密集，表示相鄰兩地氣壓差異越大（氣壓梯度越大），空氣流動越快，風速越強。等壓線稀疏則風速弱。判斷風向：北半球風從高壓吹向低壓，並向右偏（科氏力）。'},
+{type:'mc',t:'u4b',era:'高低氣壓・天氣',q:'在北半球，地面高氣壓中心（H）的水平氣流方向為何？',opts:['逆時針向內旋入','順時針向外輻散','逆時針向外輻散','順時針向內旋入'],ans:1,explain:'北半球高氣壓：地面氣流「順時針向外輻散」，垂直氣流「下沉」→空氣下沉後升溫，水氣不易凝結→通常晴朗天氣。低氣壓：逆時針向內輻合，垂直氣流上升→水氣凝結→通常有雲雨。'},
+{type:'tf',t:'u4b',era:'高低氣壓・天氣',q:'地面低氣壓中心通常帶來晴朗天氣，因為其中心氣流下沉。',ans:false,explain:'錯誤！低氣壓（L）中心：氣流逆時針輻合→中心空氣被迫「上升」→上升後冷卻膨脹→水氣凝結→形成雲雨，通常是陰雨天氣。高氣壓（H）中心氣流下沉，才帶來晴天。'},
+{type:'mc',t:'u4b',era:'降水形成・成因',q:'夏季午後常在山區出現的「雷陣雨」，主要是由哪種形式形成？',opts:['鋒面抬升','地形抬升','對流作用（對流雨）','低壓輻合'],ans:2,explain:'夏季午後雷陣雨：地表受太陽強烈加熱→空氣受熱膨脹上升→強烈對流→凝結高度高，形成積雨雲→對流雨（雷陣雨）。常見於夏季午後，台灣中南部山區特別明顯。'},
+{type:'mc',t:'u4b',era:'季風・台灣季風',q:'台灣夏季盛行什麼季風？來源為何？',opts:['東北季風，來自亞洲大陸','西南季風，來自太平洋','東南季風，來自印度洋','西北季風，來自西伯利亞'],ans:1,explain:'台灣季風：夏季陸地比海洋熱，氣壓較低，風從海洋（太平洋）吹向陸地，盛行「西南季風」（偏南風）；冬季陸地比海洋冷，氣壓較高，盛行「東北季風」（偏北風）。'},
+{type:'match',t:'u4b',era:'降水形成・三種降雨',q:'請將降雨類型與其形成原因配對：',pairs:[['對流雨','地面受熱空氣強力上升'],['地形雨','空氣受山地阻擋被迫抬升'],['鋒面雨','冷暖氣團相遇，暖空氣沿冷氣團爬升'],['颱風雨','低壓中心旋轉上升氣流']],explain:'對流雨：夏季午後雷陣雨；地形雨：迎風面多雨、背風面焚風（台灣東北部冬天地形雨多）；鋒面雨：梅雨、春雨；颱風雨：旋轉上升氣流帶來豪大雨。'},
+{type:'mc',t:'u4b',era:'等壓線・風向判讀',q:'在北半球地面天氣圖中，風向的判斷步驟為何？',opts:['垂直等壓線，從低壓吹向高壓','垂直等壓線，從高壓吹向低壓，再向右偏','沿等壓線方向吹','隨機方向'],ans:1,explain:'北半球地面風向：①先找氣壓梯度方向（垂直等壓線，從高壓指向低壓）；②受科氏力影響向右偏轉約15°–20°；③受地表摩擦力影響（海洋摩擦力小，偏轉較少）。最終風向與等壓線成約15°–20°交角。'},
+{type:'sort',t:'u4b',era:'雲的形成・過程排序',q:'請將雲的形成過程由先到後排列：',items:['空氣上升','氣壓降低體積膨脹','溫度下降達到露點','水氣在凝結核上凝結','形成小水滴聚集成雲'],correctOrder:[0,1,2,3,4],explain:'雲的形成：空氣因各種原因上升→氣壓降低→體積膨脹（絕熱冷卻）→溫度降低→達到露點（飽和）→水氣凝結在凝結核上→形成小水滴或冰晶→集合成雲。'},
+
+// ===== 單元4-3：氣團鋒面與颱風 =====
+{type:'mc',t:'u4c',era:'鋒面・冷鋒暖鋒比較',q:'冷鋒過境時，天氣變化的順序為何？',opts:['先晴後雨，氣溫升高','先潮濕暖和→降雨→乾燥寒冷（氣溫降低）','先降雨後晴，氣溫升高','先降溫後降雨，最後轉晴'],ans:1,explain:'冷鋒過境：冷鋒「前」方→溫暖潮濕；冷鋒「過境時」→風向改變、降雨（積雨雲）；冷鋒「後方」→乾燥寒冷。氣溫明顯下降。台灣冬季寒流常是強烈冷鋒過境造成。'},
+{type:'mc',t:'u4c',era:'鋒面・影響台灣的鋒面',q:'每年5至6月影響台灣的「梅雨」，主要是由哪種鋒面造成？',opts:['冷鋒','暖鋒','滯留鋒（梅雨鋒）','颱風鋒面'],ans:2,explain:'梅雨（5–6月）：大陸冷氣團與太平洋暖氣團勢力相當，形成「滯留鋒」在台灣附近，鋒面移動緩慢→持續降雨。梅雨是台灣重要水資源，但也易造成災害。'},
+{type:'tf',t:'u4c',era:'鋒面・暖鋒特性',q:'暖鋒是暖氣團主動推向冷氣團，暖空氣爬升在冷空氣上方，形成積雨雲和強烈降雨。',ans:false,explain:'錯誤！暖鋒：暖氣團推向冷氣團，暖空氣「沿冷氣團緩慢爬升」，坡度較緩，主要形成層雲（頁雲）而非積雨雲，降雨較「緩和持續」（層狀雨）；積雨雲和強降雨是「冷鋒」的特徵。'},
+{type:'mc',t:'u4c',era:'颱風・形成條件',q:'颱風形成所需的主要條件是？',opts:['寒冷海洋提供能量','溫暖海水（27°C以上）提供水氣蒸發放熱','高緯度地區的強風輻合','大陸冷氣團和海洋暖氣團相遇'],ans:1,explain:'颱風形成條件：①溫暖海水（27°C以上）：提供充足水氣，蒸發凝結時放出大量熱能→驅動颱風；②地球自轉（緯度5°以上）：科氏力使氣流旋轉；③低壓中心：空氣輻合上升。'},
+{type:'mc',t:'u4c',era:'颱風・結構',q:'颱風眼的天氣特徵為何？',opts:['風雨最強烈的地方','下沉氣流，無風無雨，晴朗可見陽光','強烈上升氣流，多積雨雲','氣壓最高的地方'],ans:1,explain:'颱風眼：颱風中心，有下沉氣流，天氣晴朗無風無雨（「颱風眼因下沉氣流，為無風無雨，晴朗可見陽光」）。颱風眼壁（眼牆）才是風雨最強的地方，向外風力漸弱。'},
+{type:'mc',t:'u4c',era:'颱風・北半球旋轉方向',q:'在北半球，颱風的水平氣流旋轉方向為何？',opts:['順時針旋入','逆時針旋入','順時針旋出','逆時針旋出'],ans:1,explain:'北半球颱風（低氣壓）：氣流「逆時針旋入」中心，再由中心上升。南半球則相反（順時針）。記憶：北半球低壓=逆時針輻合；高壓=順時針輻散。（左手定則：左手拇指向上，四指彎曲方向即為北半球低壓旋轉方向）'},
+{type:'mc',t:'u4c',era:'氣團・影響台灣',q:'影響台灣冬季天氣的主要氣團是？',opts:['太平洋海洋暖氣團','西伯利亞（蒙古）大陸冷氣團','印度洋暖氣團','赤道低壓氣團'],ans:1,explain:'影響台灣的氣團：冬季→西伯利亞（蒙古）大陸冷氣團（冷、乾、密度大）→東北季風、寒流；夏季→太平洋海洋暖氣團（暖、濕、密度小）→西南季風、颱風。'},
+{type:'match',t:'u4c',era:'鋒面種類・特徵比較',q:'請將鋒面類型與其主要特徵配對：',pairs:[['冷鋒','冷氣團推向暖氣團，坡度陡，積雨雲，短時強雨'],['暖鋒','暖氣團推向冷氣團，坡度緩，層雲，持續細雨'],['滯留鋒','冷暖氣團勢力相當，鋒面停滯，連續降雨']],explain:'三種鋒面比較：冷鋒（▼符號）降雨在鋒後；暖鋒（▲符號）降雨在鋒前；滯留鋒（=符號）兩側氣團勢力相當，台灣梅雨季的主角。'},
+{type:'mc',t:'u4c',era:'颱風・移動路徑',q:'侵台颱風的主要發源地是？',opts:['北太平洋西部及南海','北大西洋','印度洋','地中海'],ans:0,explain:'侵台颱風多生成於「南海與北太平洋西南海域」（菲律賓東方海域）。北太平洋颱風路徑受「太平洋高壓邊緣氣流」影響，也易受陸地地形影響。颱風登陸後摩擦力增大，失去水氣供應，逐漸減弱變為低壓。'},
+{type:'tf',t:'u4c',era:'颱風・台灣影響',q:'颱風過境台灣時，以中央山脈為界，迎風面（東部）和背風面（西部）的降雨量完全相同。',ans:false,explain:'錯誤！中央山脈對颱風路徑有阻擋作用。颱風從東部靠近時，東部為迎風面，雨量較強；西部為背風面，降雨較少。颱風穿越後風向改變，各地影響程度不同。'},
+
+// ===== 單元5-1：海洋與氣候變化 =====
+{type:'mc',t:'u5a',era:'洋流・暖流寒流',q:'黑潮是影響台灣的重要洋流，下列關於黑潮的敘述何者正確？',opts:['屬於寒流，由高緯流向低緯','屬於暖流，由低緯流向高緯，水溫高且清澈','屬於寒流，流速緩慢','流向為由北向南流過台灣東岸'],ans:1,explain:'黑潮（暖流）：北太平洋最強大的暖流；水溫高（暖流）、透明度高（含沙少呈深藍黑色）、流速快（約每秒1–2公尺）；由南向北流過台灣東部；帶來豐富漁場（與中國沿岸流交匯）。'},
+{type:'mc',t:'u5a',era:'洋流・影響氣候',q:'暖流流經的沿岸地區，對當地氣候的影響是？',opts:['使沿岸氣候變得寒冷乾燥','使沿岸氣候變得溫暖濕潤','對氣候沒有影響','使沿岸降雪增加'],ans:1,explain:'暖流：水溫高於流經海域，使鄰近大氣增溫增濕→沿岸氣候溫暖濕潤。寒流：水溫低於流經海域，使大氣降溫減濕→沿岸氣候寒冷乾燥。如：西歐沿岸受北大西洋暖流影響，氣候溫和。'},
+{type:'tf',t:'u5a',era:'海洋・水溫特性',q:'相同緯度的地區，夏季時海洋的溫度比陸地高，冬季則相反。',ans:false,explain:'錯誤！相反：海洋的比熱較大（升降溫慢），陸地比熱小（升降溫快）。所以夏季時「陸地溫度高於海洋」，冬季時「海洋溫度高於陸地」。這是海陸風和季風形成的基本原理。'},
+{type:'mc',t:'u5a',era:'海浪・波浪特性',q:'波浪傳播時，水分子的運動方式為何？',opts:['隨波浪一起向前移動','水分子只傳遞能量，做圓周運動而不向前移動','水分子靜止不動','水分子上下垂直移動'],ans:1,explain:'波浪是能量的傳播，而非水體的整體移動。水分子做原地的圓周（橢圓）運動，只傳遞能量，不會隨波浪向前移動。所以漂浮物受波浪影響時會上下搖動，但不會被帶著向前移動。'},
+{type:'mc',t:'u5a',era:'洋流・台灣周邊',q:'台灣西側（台灣海峽）冬季的主要洋流為？',opts:['黑潮主流由南往北流','南海海流（暖流）由南往北流入','中國沿岸流（寒流）由北往南流','黑潮支流由東往西流'],ans:2,explain:'台灣海峽洋流：夏季→南海海流受西南季風推送，由南往北流入海峽；冬季→東北季風特強，中國沿岸流（寒流）由北往南，沿中國海岸南下，使海峽溫度降低。'},
+{type:'mc',t:'u5a',era:'海嘯・成因',q:'海嘯的主要成因是什麼？',opts:['強烈颱風引起的大浪','海底地震、山崩或火山噴發引起海底地形劇烈變動','潮汐作用造成','洋流與海風共同作用'],ans:1,explain:'海嘯：由海底地震（最常見）、海底山崩或火山噴發引起，海底地形劇烈變動→海水被推動形成長波長、低波高的海浪→接近海岸時波高驟增→造成重大災害。速度極快，難以逃離。'},
+
+// ===== 單元5-2：溫室效應與全球暖化 =====
+{type:'mc',t:'u5b',era:'溫室效應・原理',q:'溫室效應的基本原理是什麼？',opts:['太陽輻射被大氣完全反射回太空','溫室氣體吸收地表輻射的長波（紅外線），再將部分輻射回地面，使地表升溫','大氣阻擋太陽短波輻射進入','地面反射太陽輻射使大氣升溫'],ans:1,explain:'溫室效應：太陽輻射（短波）→穿過大氣到達地面→地面吸收後以長波（紅外線）輻射→溫室氣體（CO₂、水氣、甲烷等）吸收此長波→再輻射回地面→使地表溫度升高。適量溫室效應是維持生命所需的！'},
+{type:'mc',t:'u5b',era:'溫室效應・溫室氣體',q:'下列哪種氣體雖然量極小，但因人類活動大量增加而被視為全球暖化的主要元兇之一？',opts:['氮氣','氧氣','二氧化碳','氬氣'],ans:2,explain:'CO₂（二氧化碳）：工業革命以來，大量燃燒化石燃料→CO₂濃度持續升高（已超過420ppm）→溫室效應增強→全球暖化。其他重要溫室氣體：甲烷（CH₄）、氧化亞氮（N₂O）、氟氯碳化物等。'},
+{type:'mc',t:'u5b',era:'全球暖化・影響',q:'全球暖化造成的影響，下列何者最符合事實？',opts:['兩極冰川融化，海平面下降','極端天氣增加，冰川融化導致海平面上升','降雨量增加，乾旱減少','高山雪線下降，積雪增多'],ans:1,explain:'全球暖化影響：①極地冰川融化→海平面上升→沿海低地淹沒；②極端天氣事件增加（洪水、乾旱、颱風增強）；③生態系改變（物種滅絕、珊瑚白化）；④農業生產受影響；⑤高山雪線「上升」，積雪減少。'},
+{type:'tf',t:'u5b',era:'溫室效應・自然現象',q:'溫室效應完全是人類活動造成的，自然界中沒有溫室效應存在。',ans:false,explain:'錯誤！溫室效應是「自然存在」的現象，水氣、CO₂等天然溫室氣體使地表溫度維持在約15°C，若無溫室效應地球約為−18°C。問題在於人類活動「增強」了溫室效應，導致額外的全球暖化。'},
+{type:'mc',t:'u5b',era:'氣候協議・京都議定書',q:'1997年簽訂、目的是「限制主要工業國家溫室氣體排放量」的國際協議是？',opts:['蒙特婁議定書','京都議定書','巴黎協定','格拉斯哥氣候協議'],ans:1,explain:'京都議定書（1997年，日本京都）：限制主要工業國家（附件一國家）溫室氣體排放。2005年生效。已被2015年的「巴黎協定」所取代，巴黎協定目標：將全球均溫升幅限制在1.5–2°C以內，由各國自主設定目標。'},
+{type:'mc',t:'u5b',era:'全球暖化・二氧化碳',q:'大氣中二氧化碳濃度呈現季節性波動，夏季濃度較低，主要原因為何？',opts:['夏季人類活動減少，排放量降低','夏季植物光合作用旺盛，吸收較多CO₂','夏季氣溫高，CO₂溶解度增加','夏季洋流吸收大量CO₂'],ans:1,explain:'CO₂的季節波動：夏季→植物光合作用旺盛→吸收大量CO₂→濃度降低；冬季→光合作用弱→呼吸作用和分解作用使CO₂濃度升高。長期趨勢：由於化石燃料燃燒，CO₂濃度整體持續上升。'},
+{type:'fill',t:'u5b',era:'氣候協議・巴黎協定目標',q:'2015年巴黎協定的目標是：將全球均溫升幅限制在不超過____°C，且追求不超過1.5°C。',ans:'2',alts:['2°C','兩'],explain:'巴黎協定（2015年，法國巴黎）：以工業革命前（1750年）為基準，目標控制本世紀末全球升溫不超過2°C，並追求1.5°C的更嚴格目標。2021年格拉斯哥協議重申此目標。'},
+
+// ===== 單元5-3：臭氧層與天然災害 =====
+{type:'mc',t:'u5c',era:'臭氧層・功能與位置',q:'臭氧層的主要功能是什麼？主要分布在哪個大氣層？',opts:['調節氣溫，分布在對流層','吸收紫外線，分布在平流層','吸收紅外線，分布在中氣層','提供氧氣，分布在增溫層'],ans:1,explain:'臭氧（O₃）層：主要集中在平流層（距地約20–30公里），濃度在25公里左右最高。主要功能：吸收太陽的紫外線（UV），保護地球生物免受紫外線傷害（減少皮膚癌、白內障、破壞DNA等）。'},
+{type:'mc',t:'u5c',era:'臭氧層・破洞',q:'造成南極上空臭氧層破洞的主要化學物質是什麼？',opts:['二氧化碳（CO₂）','二氧化硫（SO₂）','氟氯碳化物（CFCs，氟利昂）','甲烷（CH₄）'],ans:2,explain:'臭氧層破洞主因：「氟氯碳化物（CFCs，又稱氟利昂）」。CFCs被廣泛用於冷媒、噴霧劑等，飄升至平流層後，在低溫和紫外線作用下釋放氯原子（Cl），催化分解臭氧。1987年「蒙特婁議定書」規定禁用CFCs。'},
+{type:'tf',t:'u5c',era:'臭氧層・破洞位置',q:'臭氧層破洞最嚴重的地方是在北極上空，因為北極冬季溫度最低。',ans:false,explain:'錯誤！臭氧層破洞最嚴重在「南極」上空（每年南半球春季8–10月出現）。南極冬季（6–8月）溫度極低，形成「極地渦旋」，使氟氯碳化物濃縮，春季陽光照射後大量分解臭氧。'},
+{type:'mc',t:'u5c',era:'天然災害・洪水',q:'台灣容易發生洪水的主要自然因素是什麼？',opts:['台灣緯度低，終年降雨','年雨量集中在颱風和梅雨季，短時間豪雨','台灣山脈高聳，阻擋水氣','台灣面積小，水量多'],ans:1,explain:'台灣洪水成因：①自然：年雨量約2500毫米是世界平均的2.6倍，但「集中在颱風（7–9月）和梅雨（5–6月）」短時豪雨，使雨水迅速匯流；②地形：台灣山高河短，水流快、蓄水能力差；③人為：河道和堤防興建停車場、建物。'},
+{type:'mc',t:'u5c',era:'天然災害・土石流',q:'土石流（泥石流）發生最需要的條件是什麼？',opts:['台風和地震同時發生','豐富的鬆散堆積物＋充足水分（豪雨）','山坡坡度過於平緩','森林茂密的地區'],ans:1,explain:'土石流發生條件：①坡度15°–30°（傾斜但不過陡）；②山坡有大量鬆散沉積物（碎石、泥土）；③豐富水源（豪雨）→水分滲入後使土石混合流動；④人為開挖坡腳也會增加風險。颱風和梅雨季豪雨後最易發生。'},
+{type:'mc',t:'u5c',era:'天然災害・山崩',q:'下列哪種情況最容易造成山崩？',opts:['順向坡（地層傾斜方向與山坡面相同）','逆向坡（地層傾斜方向與山坡面相反）','平緩坡地','植被茂密的山坡'],ans:0,explain:'順向坡：地層傾斜方向與山坡面相同→岩石沿地層面容易滑落→易發生山崩。逆向坡則相反，較穩定。因此進行工程時需特別注意地層走向，避免在順向坡興建建築物。'},
+{type:'sort',t:'u5c',era:'臭氧層・破壞過程',q:'請將氟氯碳化物破壞臭氧的過程由先到後排列：',items:['人類使用含CFCs的冷氣、冰箱等產品','CFCs逸散到平流層','低溫和紫外線使CFCs釋放氯原子（Cl）','氯原子催化臭氧分解（O₃→O₂）','臭氧層變薄，紫外線增強'],correctOrder:[0,1,2,3,4],explain:'CFCs破壞臭氧的完整過程：使用CFCs產品→CFCs逸散→飄升至平流層→低溫+UV使CFCs釋放Cl原子→Cl催化O₃分解→臭氧層變薄→紫外線增強→危害生物。一個Cl原子可破壞大量臭氧分子（連鎖反應）。'},
+{type:'mc',t:'u5c',era:'全球變遷・SDGs',q:'「聯合國永續發展目標（SDGs）」共有幾項？',opts:['7項','12項','17項','21項'],ans:2,explain:'聯合國在2015年制定「17項永續發展目標（SDGs）」，期望在2030年前達成，涵蓋消除貧窮、優質教育、氣候行動等面向，是全球共同應對氣候變遷和永續發展的重要框架。'},
+{type:'mc',t:'u5c',era:'乾旱・台灣特性',q:'台灣雖然年雨量豐富，卻仍常面臨水資源不足的問題，主要原因為何？',opts:['台灣人口少，需水量低','台灣河流短促，儲水能力差，且降雨時間分布不均','台灣地形平坦，無法興建水庫','台灣土壤滲水快，雨水迅速流失'],ans:1,explain:'台灣缺水原因：①地形：山高坡陡，河流短促（平均200公里），水流快無法儲存；②降雨不均：梅雨颱風集中在5–9月，冬季乾旱；③河流短→枯水期流量少。解決方法：興建水庫（存蓄）、地下水補充。'},
+{type:'match',t:'u5c',era:'國際協議・比較',q:'請將國際環境協議與其主要目的配對：',pairs:[['蒙特婁議定書（1987）','禁止使用氟氯碳化物，保護臭氧層'],['京都議定書（1997）','限制工業國家溫室氣體排放量'],['巴黎協定（2015）','各國自主承諾，控制全球升溫在2°C以內']],explain:'三大重要協議：蒙特婁→臭氧層保護；京都→溫室氣體排放限制（已由巴黎協定取代）；巴黎→更廣泛的全球氣候承諾，目標1.5–2°C。格拉斯哥（2021）為後續談判成果。'},
+// ===== 補充填空題 =====
+{type:'fill',t:'u4a',era:'大氣層・平流層',q:'臭氧層位於____層，能吸收太陽紫外線，保護地球生物。',ans:'平流',alts:['平流層'],explain:'臭氧層位於平流層（距地約20–30公里濃度最高）。若臭氧層被破壞，紫外線增強會導致皮膚癌、白內障及破壞DNA，對地球生物危害極大。'},
+{type:'fill',t:'u4b',era:'等壓線・讀值規則',q:'天氣圖上標示「88」的等壓線，實際氣壓為____百帕。',ans:'988',alts:['988百帕','988hPa'],explain:'等壓線讀值規則：地面氣壓介於950–1050百帕，以2碼表示。標示值≥50時加900（如88→988百帕）；標示值<50時加1000（如24→1024百帕）。'},
+{type:'fill',t:'u4c',era:'颱風・強度',q:'颱風中心風速超過51公尺/秒稱為____颱風，破壞力最強。',ans:'強烈',alts:['強烈颱風'],explain:'颱風強度分級：輕度（17.2–32.6m/s）→中度（32.7–50.9m/s）→強烈（51m/s以上）。強烈颱風風速驚人，常帶來嚴重風災水患。'},
+{type:'fill',t:'u5a',era:'洋流・暖寒流',q:'水溫比流經海域高的洋流稱為____，會使沿岸氣候溫暖濕潤。',ans:'暖流',alts:['暖'],explain:'暖流：水溫高於周圍海域，由低緯流向高緯（如黑潮）；寒流：水溫低於周圍海域，由高緯流向低緯。暖流使沿岸增溫增濕，寒流則使沿岸降溫減濕。'},
+{type:'fill',t:'u5b',era:'溫室氣體・趨勢',q:'自工業革命以來，大氣中二氧化碳（CO₂）濃度持續____。',ans:'上升',alts:['升高','增加'],explain:'工業革命前CO₂約280ppm，現已超過420ppm，增幅約50%。主因：化石燃料大量燃燒加上毀林。CO₂持續升高是全球暖化的主要人為因素。'},
+{type:'fill',t:'u5c',era:'臭氧層・破洞季節',q:'南極臭氧層破洞每年南半球____季（8–10月）出現，面積最大。',ans:'春',alts:['春季'],explain:'南極臭氧層破洞：南半球冬季（6–8月）形成極地渦旋，CFCs在超低溫下積累；春季（8–10月）陽光照射後，氯原子大量釋放並分解臭氧，破洞在10月前後最大。'},
+// ===== 補充連連看 =====
+{type:'match',t:'u4a',era:'大氣組成・成分比例',q:'請將大氣主要成分與其體積比例配對：',pairs:[['氮氣（N₂）','約78%'],['氧氣（O₂）','約21%'],['氬氣（Ar）','約0.93%'],['二氧化碳（CO₂）','約0.04%（逐年升高）']],explain:'乾燥空氣組成：N₂78%（最多，固定氣體）；O₂21%（生物呼吸燃燒所需）；Ar0.93%（惰性）；CO₂0.04%（雖少但重要！溫室氣體且持續上升）。'},
+{type:'match',t:'u4a',era:'大氣層・四層特性',q:'請將大氣層與其主要特徵配對：',pairs:[['對流層','天氣變化集中，氣溫隨高度遞減'],['平流層','臭氧層所在，長途飛機飛行層'],['中氣層','溫度最低，流星在此燃燒'],['增溫層','溫度最高，極光在此出現']],explain:'四層大氣：對流層（天氣）→平流層（臭氧+飛機）→中氣層（最冷，流星）→增溫層（最熱，極光）。溫度交替變化：↓↑↓↑。'},
+{type:'match',t:'u4b',era:'高低氣壓・北半球特性',q:'請將北半球氣壓系統與其特性配對：',pairs:[['高氣壓（H）','順時針向外輻散，垂直下沉，晴朗'],['低氣壓（L）','逆時針向內輻合，垂直上升，陰雨'],['等壓線密集','氣壓梯度大，風速強'],['等壓線稀疏','氣壓梯度小，風速弱']],explain:'北半球科氏力向右偏：H→順時針輻散+下沉→晴；L→逆時針輻合+上升→雨。等壓線密集→梯度大→風速強（如颱風中心附近等壓線非常密集）。'},
+{type:'match',t:'u5b',era:'溫室氣體・來源配對',q:'請將溫室氣體與其主要人為來源配對：',pairs:[['二氧化碳（CO₂）','化石燃料燃燒、砍伐森林'],['甲烷（CH₄）','牛羊等反芻動物、垃圾掩埋場'],['氟氯碳化物（CFCs）','冷媒、噴霧劑（已受限制）'],['氧化亞氮（N₂O）','農業施肥、生物燃燒']],explain:'主要溫室氣體：CO₂工業排放最多；CH₄農業廢棄物；CFCs既破壞臭氧層又是溫室氣體，蒙特婁議定書已限制；N₂O農業為主。'},
+// ===== 補充排序題 =====
+{type:'sort',t:'u4a',era:'大氣層・由低到高',q:'請將大氣層由距地面「最近（最低）」到「最遠（最高）」排列：',items:['對流層','平流層','中氣層','增溫層'],correctOrder:[0,1,2,3],explain:'大氣層由低到高：對流層（0–10km）→平流層（10–50km）→中氣層（50–85km）→增溫層（85km以上）。溫度交替升降：↓→↑→↓→↑。'},
+{type:'sort',t:'u4c',era:'冷鋒過境・天氣變化',q:'請將冷鋒過境的天氣變化由「鋒前」到「鋒後」排列：',items:['溫暖潮濕偏南風','風向改變降下大雨','乾燥寒冷氣溫驟降'],correctOrder:[0,1,2],explain:'冷鋒過境：①鋒前→暖氣團，溫暖潮濕偏南風；②過境時→風向突變偏北、強降雨；③鋒後→大陸冷氣團，乾燥寒冷（即寒流）。冷鋒坡度陡，天氣變化劇烈迅速。'},
+{type:'sort',t:'u5b',era:'溫室效應・能量流程',q:'請將溫室效應的能量傳遞過程由先到後排列：',items:['太陽短波輻射穿過大氣到達地面','地面吸收後以長波（紅外線）向外輻射','溫室氣體吸收地表長波輻射','溫室氣體將部分能量輻射回地面','地表溫度升高'],correctOrder:[0,1,2,3,4],explain:'溫室效應：太陽短波→穿過大氣→地面吸收升溫→輻射長波（紅外線）→溫室氣體吸收→再輻射回地面→地表升溫。這是自然現象，人類活動增強了此效應導致全球暖化。'},
+// ===== 補充選擇題 =====
+{type:'mc',t:'u4b',era:'天氣預報・觀測工具',q:'「衛星雲圖」在天氣預報中主要提供什麼資訊？',opts:['地面氣壓分布和等壓線','雲層分布與颱風形狀動態','各地即時降雨量','各地氣溫與濕度'],ans:1,explain:'各種天氣觀測工具：衛星雲圖→雲的分布和颱風形狀動態；地面天氣圖→等壓線、高低壓、鋒面；氣象雷達→即時降雨強度和分布；探空氣球→高空溫濕度和風向。'},
+{type:'mc',t:'u4c',era:'台灣降雨・南北差異',q:'台灣冬季（東北季風）降雨集中在哪個地區？主要降雨類型為何？',opts:['南部平原，對流雨','北部及東北部（基隆、宜蘭），地形雨','中部山區，鋒面雨','西部平原，季風雨'],ans:1,explain:'台灣冬季：東北季風挾帶水氣→受北部和東北部地形阻擋抬升→「地形雨」→基隆、宜蘭冬天多雨。南部位於背風面，冬季乾燥少雨。這是台灣南北降雨季節分布不均的主因。'},
+{type:'mc',t:'u5a',era:'海洋・潮汐成因',q:'海水潮汐的主要成因是什麼？',opts:['洋流方向季節性改變','月球和太陽的引力作用','颱風和季風驅動海水','地球自轉產生的科氏力'],ans:1,explain:'潮汐：主要由月球（約67%）和太陽（約33%）引力共同作用。滿月/新月時三者連線，引力疊加→大潮；上下弦月時，月球和太陽引力垂直→小潮。規律可以預測。'},
+{type:'mc',t:'u5c',era:'臭氧層・紫外線危害',q:'臭氧層破壞後紫外線增強，對人體最直接的危害是？',opts:['使氣溫升高造成熱傷害','增加皮膚癌和白內障的發生率','使降雨增加造成洪水','增強人體免疫力'],ans:1,explain:'紫外線（UV-B）危害：①破壞DNA→皮膚癌風險增加；②傷害眼睛晶狀體蛋白質→白內障；③抑制免疫系統；④傷害浮游植物，破壞海洋食物鏈。台灣的紫外線指數（UVI）高，需注意防曬。'},
+{type:'mc',t:'u4a',era:'空氣污染・酸雨',q:'酸雨的定義是pH值小於多少？主要成因為何？',opts:['pH<7，二氧化碳溶於水','pH<5.6，二氧化硫和氮氧化物形成硫酸和硝酸','pH<4，鹽酸氣體溶於水','pH<6，甲烷溶於水'],ans:1,explain:'酸雨：pH<5.6（正常雨水因含CO₂故pH約5.6）。主因：工廠、汽車排放SO₂和NOₓ→溶水形成硫酸、硝酸。危害：土壤酸化、湖泊生態破壞、腐蝕石灰岩建物和古蹟。'},
+{type:'mc',t:'u5b',era:'全球暖化・應對方法',q:'以下哪種方法最能有效減緩全球暖化？',opts:['增加煤炭使用量','發展太陽能等再生能源取代化石燃料','多燃燒天然氣取代石油','增加人口以分攤碳排放'],ans:1,explain:'減緩全球暖化的有效方法：①發展再生能源（太陽、風、水力）取代化石燃料；②植樹造林（增加碳匯）；③提升能源效率；④改變飲食（減少肉食）；⑤碳捕捉技術。核心：減少溫室氣體排放量。'},
+{type:'tf',t:'u5c',era:'天然災害・土石流預防',q:'做好水土保持工作（如造林護坡）可以有效減少土石流的發生。',ans:true,explain:'正確！土石流預防：植物根系可以固定土壤、增加抗沖蝕能力；梯田和護坡工程可減緩水流速度；避免在坡腳開挖；颱風豪雨期間撤離危險區域。政府設有土石流警戒系統提前預警。'},
+
+];
+
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.panel).classList.add('active');if(tab.dataset.panel==='wrong')renderWP();});});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+function updateGo(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);const btn=document.getElementById('goBtn');if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}else{btn.disabled=true;btn.textContent='請選擇單元與模式';}}
+document.getElementById('goBtn').addEventListener('click',startGame);
+function startGame(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;const isLong=S.mode==='normal'||S.mode==='timed';let pool=QB.filter(q=>S.topics.includes(q.t));pool=shuffle(pool);S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));S.cur=0;showScreen('game');renderQ();}
+function startWrongPractice(){const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();}
+function renderQ(){if(S.cur>=S.qs.length){showResult();return;}const q=S.qs[S.cur];S.answered=false;const total=S.qs.length;document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));else document.getElementById('gLives').textContent='';const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort'};document.getElementById('qtag').textContent=tMap[q.type]||'題目';document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;document.getElementById('qtext').textContent=q.q;document.getElementById('qsub').textContent=q.hint||'';const area=document.getElementById('ans-area');area.innerHTML='';document.getElementById('fbbox').className='fb-box';document.getElementById('nextBtn').className='next-btn';if(q.type==='mc')renderMC(q,area);else if(q.type==='tf')renderTF(q,area);else if(q.type==='fill')renderFillQ(q,area);else if(q.type==='match')renderMatch(q,area);else if(q.type==='sort')renderSort(q,area);clearInterval(S.timer);const te=document.getElementById('gTimer');if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}else te.style.display='none';}
+function renderMC(q,area){const grid=document.createElement('div');grid.className='opts';q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt';btn.textContent=o;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const ok=i===q.ans;grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});finish(ok,q);});grid.appendChild(btn);});area.appendChild(grid);}
+function renderTF(q,area){const row=document.createElement('div');row.className='tf-row';['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const userT=i===0,ok=userT===q.ans;row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});finish(ok,q);});row.appendChild(btn);});area.appendChild(row);}
+function renderFillQ(q,area){const row=document.createElement('div');row.className='fill-row';const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確：${q.ans}`);};btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});row.append(inp,btn);area.appendChild(row);}
+function renderMatch(q,area){const wrap=document.createElement('div');wrap.className='match-wrap';const lCol=document.createElement('div');lCol.className='match-col';const rCol=document.createElement('div');rCol.className='match-col';const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);let lPicked=null,rPicked=null,matched=0;pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});wrap.append(lCol,rCol);area.appendChild(wrap);function tryM(){if(!lPicked||!rPicked)return;const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}lPicked=null;rPicked=null;}wrap.addEventListener('click',e=>{if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}tryM();});}
+let dragEl=null;
+function renderSort(q,area){const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));const list=document.createElement('div');list.className='sort-list';shuffled.forEach(item=>{const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});el.addEventListener('dragend',()=>el.classList.remove('dragging'));el.addEventListener('dragover',e=>e.preventDefault());el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});list.appendChild(el);});area.appendChild(list);const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});area.appendChild(chk);}
+function finish(ok,q,extraMsg){const pts=calcPts(ok,q.type);if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;document.getElementById('fbmsg').textContent=msg;document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;const nb=document.getElementById('nextBtn');nb.className='next-btn show';const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};}
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+function startTimer(sec){S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';S.timer=setInterval(()=>{S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}},1000);}
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+function showResult(){clearInterval(S.timer);showScreen('result');const max=S.qs.length*6;const pct=max>0?S.score/max:0;let emoji,title,msg;if(pct>=.9){emoji='🌏';title='地科達人！';msg='地科第六冊掌握得非常好！繼續保持！';}else if(pct>=.7){emoji='🌤️';title='表現優異！';msg='大部分都答對了，再針對弱點複習！';}else if(pct>=.5){emoji='📖';title='繼續加油！';msg='去錯題複習區針對弱點加強！';}else{emoji='💪';title='不要灰心！';msg='把課本筆記再仔細看一遍，再來挑戰！';}document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';document.getElementById('rMsg').textContent=msg;const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}else document.getElementById('rWeak').style.display='none';const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';if(pct>=.75)confetti();}
+function renderWP(){const bank=loadWB();const panel=document.getElementById('wrongPanel');const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;pw.style.display='block';cl.style.display='block';}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#2980b9','#1a6ea8','#1a5276','#154360','#d6eaf8'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

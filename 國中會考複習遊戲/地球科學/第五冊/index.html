@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地科闖關王 第五冊</title>
+<style>
+:root{
+  --bg:#f0f8ff;--ink:#0a1a2a;--red:#c0392b;--gold:#1a6ea8;
+  --teal:#1a5276;--blue:#154360;--accent:#2980b9;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(10,26,42,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(41,128,185,.09) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(26,110,168,.07) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#d6eaf8 0%,var(--bg) 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(10,26,42,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(10,26,42,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(10,26,42,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(10,26,42,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(10,26,42,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#d6eaf8;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(10,26,42,.48);margin-top:3px;line-height:1.4;}
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(10,26,42,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(10,26,42,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(10,26,42,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(10,26,42,.38);border:1px solid rgba(10,26,42,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:#ff6b6b;animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#d6eaf8;color:var(--teal);}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:var(--green);}
+.qtag.match{background:#fce8d0;color:#b06010;}
+.qtag.sort{background:#fde8d0;color:#d35400;}
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(10,26,42,.43);margin-bottom:11px;font-style:italic;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#eaf4fd;border:2px solid #aed6f1;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#d6eaf8;}
+.opt.ok{background:#d4f5e2;border-color:var(--green);color:var(--green);font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #aed6f1;background:#eaf4fd;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:var(--green);}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:var(--green);background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--blue);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#eaf4fd;border:2px solid #aed6f1;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:var(--gold);background:#d6eaf8;font-weight:700;}
+.match-item.matched{border-color:var(--green);background:#d4f5e2;color:var(--green);font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#d6eaf8;border:2px solid #aed6f1;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--teal);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:var(--green);border-left:4px solid var(--green);}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+#result{background:linear-gradient(155deg,#d6eaf8 0%,var(--bg) 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(10,26,42,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(10,26,42,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(10,26,42,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#eaf4fd;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">🌍 地科闖關王</div>
+    <div class="home-badge">國中地科 第五冊 · 單元1–3 · 會考複習</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip on" data-t="u1a">💧 U1 水循環與分布</div>
+      <div class="tchip on" data-t="u1b">🪨 U1 礦物與岩石</div>
+      <div class="tchip on" data-t="u1c">🏔️ U1 地表地質活動</div>
+      <div class="tchip on" data-t="u1d">🌊 U1 河道與海岸平衡</div>
+      <div class="tchip on" data-t="u2a">🌐 U2 地球內部與板塊</div>
+      <div class="tchip on" data-t="u2b">⚡ U2 板塊邊界與地貌</div>
+      <div class="tchip on" data-t="u2c">🔨 U2 斷層褶皺與地震</div>
+      <div class="tchip on" data-t="u2d">📜 U2 地質事件與化石</div>
+      <div class="tchip on" data-t="u3a">🌟 U3 太陽系與宇宙</div>
+      <div class="tchip on" data-t="u3b">🌀 U3 地球自轉與公轉</div>
+      <div class="tchip on" data-t="u3c">🌙 U3 月相與日月食</div>
+      <div class="tchip on" data-t="u3d">🌊 U3 潮汐現象</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+<div class="screen" id="game">
+  <div class="gbar">
+    <div><div class="gbar-left" id="gInfo">第 1 / 50 題</div><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;"><div class="gbar-timer" id="gTimer" style="display:none;">20</div><div><div class="gbar-score" id="gScore">0 分</div><div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox"><div class="fb-title" id="fbtitle"></div><div id="fbmsg"></div></div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div><div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div><div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div><div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+<div class="combo" id="combo"></div>
+<script>
+const SK='geo5_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+// ===== U1 水循環與分布 =====
+{type:'mc',t:'u1a',era:'水分布・水體比例',q:'地球上水資源中，占比最大的水體是？',opts:['冰川（最大淡水資源）','地下水（最大水資源）','海水（最大水體）','河水與湖水'],ans:2,explain:'地球水體比例：海水97%（最大水體，但鹽度高，難直接利用）、冰川2%（最大淡水資源，但位置遠）、地下水0.9%（最大的水資源，可直接利用）、河水與湖水0.01%。'},
+{type:'mc',t:'u1a',era:'水分布・地下水',q:'地下水被稱為「最大的水資源」，其主要補充來源是？',opts:['海水滲透進地層','大氣降雨（雨水滲入地下）','冰川融化','河流注入'],ans:1,explain:'地下水補充來源主要是雨水。雨水滲入地下，儲存在透水層中（砂岩、礫岩層），形成地下水體。地下水面隨季節變化：雨季高於河水面（補充河流），旱季低（河流補充地下水）。'},
+{type:'mc',t:'u1a',era:'水循環・三大過程',q:'水循環的三個主要過程中，「凝結」是指？',opts:['地表水蒸發成水蒸氣到大氣中','大氣中水蒸氣凝結成液滴或冰晶，形成雲','雲中水滴以降水形式落到地表','地表水滲入地下形成地下水'],ans:1,explain:'水循環三過程：蒸發（地表水→水蒸氣進入大氣）、凝結（大氣水蒸氣凝結成雲和雨）、降水（雲中水滴落下，流入河流或滲入地下）。驅動水循環的能量主要來自太陽的熱。'},
+{type:'tf',t:'u1a',era:'水循環・能量來源',q:'驅動水循環的能量主要來自太陽的熱能。',ans:true,explain:'正確。太陽輻射是驅動水循環最主要的能量來源（使水蒸發）。大氣環流、洋流也參與平衡地球上高低緯度熱量差異。'},
+{type:'mc',t:'u1a',era:'水分布・鹽水湖',q:'「鹽水湖」（如死海）的形成原因是？',opts:['位於赤道，蒸發量少','常為內陸河流終點，無出口流向大海，鹽分累積，蒸發量大於降雨量','地下水鹽分高滲出','靠近海洋，海水侵入'],ans:1,explain:'鹽水湖特徵：①常為內陸河流終點（無出口流向大海），②鹽分不斷累積，③蒸發量>降雨量，使鹽度持續升高。如死海（以色列）、悠濱湖（中亞）。淡水湖有出口流向大海，鹽分可排出。'},
+{type:'mc',t:'u1a',era:'水分布・超抽地下水',q:'超抽地下水可能造成的災害，下列何者正確？',opts:['地下水面上升，造成淹水','地層下陷、地下水鹹化（海水入侵）、影響防洪功能','地震頻率增加','河流水量暴增'],ans:1,explain:'超抽地下水三大災害：①地層下陷（岩層失去支撐被壓密）、②地下水鹹化（沿海地區海水入侵）、③影響防洪功能（孔隙減少，儲水能力降低，大雨易地表逕流造成洪水）。'},
+
+// ===== U1 礦物與岩石 =====
+{type:'mc',t:'u1b',era:'礦物・定義',q:'「礦物」的定義，下列何者正確？',opts:['人工合成的固態物質','天然產出的固態無機物，具有一定的化學成分及物理性質，大部分具有結晶構造','所有岩石都是礦物','任何固態化合物'],ans:1,explain:'礦物定義：①天然產出（非人工）、②固態無機物、③一定的化學成分、④物理性質（硬度、顏色、晶形等）、⑤大部分具結晶構造（原子有規律排列）。'},
+{type:'mc',t:'u1b',era:'礦物・鑑定',q:'石英（SiO₂）遇到稀鹽酸的反應為？',opts:['起泡（CO₂）','變色','幾乎不反應','溶解消失'],ans:2,explain:'礦物化學性質鑑定：石英（SiO₂）→幾乎不與稀鹽酸反應；方解石（CaCO₃）→與稀鹽酸起泡（產生CO₂）。鑑定方解石常用稀鹽酸，是典型考題。'},
+{type:'mc',t:'u1b',era:'岩石・三大類',q:'沉積岩的主要特徵是？',opts:['礦物彼此鑲嵌，岩漿冷卻形成','具有層理（水平層狀構造），常含有化石','礦物平行排列，片狀礦物所組成','顆粒大，在地殼深處緩慢冷卻形成'],ans:1,explain:'三大岩類特徵：沉積岩（沉積物固結→有層理、含化石、地表最常見）；火成岩（岩漿冷卻→礦物彼此鑲嵌，無化石）；變質岩（高溫高壓→礦物平行排列，片狀結構）。'},
+{type:'mc',t:'u1b',era:'岩石・火成岩',q:'「玄武岩」與「花崗岩」同屬火成岩，二者最大的差異是？',opts:['顏色不同（玄武岩較淺，花崗岩較深）','生成深度：玄武岩在地表（火山岩），花崗岩在地殼深處（深成岩）','花崗岩含有化石，玄武岩沒有','玄武岩是沉積岩，花崗岩才是火成岩'],ans:1,explain:'火成岩依生成深度分：火山岩（地表噴出，快速冷卻，細粒結晶如玄武岩、安山岩）；深成岩（地殼深處，緩慢冷卻，粗粒結晶如花崗岩）。澎湖群島多玄武岩，金門多花崗岩。'},
+{type:'match',t:'u1b',era:'岩石・岩類配對',q:'請配對代表岩石與所屬岩類：',pairs:[['花崗岩','深成火成岩'],['石灰岩','化學沉積岩（含碳酸鈣）'],['大理岩','石灰岩變質而成'],['砂岩','碎屑沉積岩']],explain:'常見岩石分類：花崗岩（深成火成岩）、玄武岩（火山岩）、砂岩（碎屑沉積岩）、石灰岩（生物/化學沉積岩）、大理岩（石灰岩→變質）、板岩（頁岩→變質）。'},
+{type:'sort',t:'u1b',era:'岩石・沉積岩顆粒',q:'請依沉積岩顆粒由大到小排列：',items:['頁岩（黏土礦物）','礫岩（礫石）','泥岩（黏土）','砂岩（砂粒）'],correctOrder:[1,3,2,0],explain:'沉積岩依顆粒大小（由大到小）：礫岩（>2mm）→砂岩（1/16~2mm）→粉砂岩→泥岩→頁岩（<1/256mm，黏土礦物）。顆粒越小，沉積越慢，代表水流越緩慢的深水環境。'},
+{type:'tf',t:'u1b',era:'岩石・變質岩',q:'變質岩是岩石在「未達熔化的程度」下受到高溫或高壓而形成的，若岩石完全熔化則形成岩漿。',ans:true,explain:'正確。變質作用：岩石在未達熔化程度下，受高溫高壓，改變原有礦物成分或岩石組織（變質）。若完全熔化→形成岩漿→冷卻後成火成岩。'},
+
+// ===== U1 地表地質活動 =====
+{type:'mc',t:'u1c',era:'地表活動・風化',q:'「物理風化」與「化學風化」最主要的差異是？',opts:['物理風化速度快，化學風化速度慢','物理風化使岩石破碎但成分不變，化學風化使岩石成分改變','物理風化只發生在乾燥地區','化學風化只在熱帶地區發生'],ans:1,explain:'風化分類：物理風化（岩石因物理作用破碎，成分不變；如熱脹冷縮、水冰作用、生物根系）；化學風化（岩石因化學反應分解，成分改變；如長石水化變黏土礦物、氧化反應使火星土呈紅色）。'},
+{type:'mc',t:'u1c',era:'地表活動・搬運力',q:'下列外營力中，搬運能力最強的是？',opts:['風','海浪','冰川','流水'],ans:2,explain:'搬運能力大小：冰川＞河水＞海浪＞風。冰川能搬運巨大的岩塊（稱為漂礫）；風的搬運能力最弱，只能搬運細小的砂粒。'},
+{type:'mc',t:'u1c',era:'地表活動・河流地貌',q:'河流「上游」的侵蝕特徵與地形，下列何者正確？',opts:['侵蝕作用弱，沉積作用強，形成寬廣沖積平原','以向源侵蝕為主，源頭不斷後退，形成瀑布等地形','以側向侵蝕為主，形成曲流','以搬運作用為主，形成三角洲'],ans:1,explain:'河流侵蝕方式：向源侵蝕（上游，源頭後退，形成瀑布）、向下侵蝕（中上游，河道加深，V形谷）、側向侵蝕（中下游，河道加寬，曲流）。上游：水流快、侵蝕>沉積、河道窄、顆粒大有稜角。'},
+{type:'mc',t:'u1c',era:'地表活動・海浪地貌',q:'海浪侵蝕形成的地形，下列何者正確？',opts:['三角洲（沙洲）','海蝕洞→海蝕拱（海拱）→海蝕柱','沖積扇','曲流（河灣）'],ans:1,explain:'海浪侵蝕地形演育：沉積岩節理→海蝕洞（浪打岩壁形成）→海蝕拱（海拱，洞穿穿透）→海蝕柱（拱崩塌）。北部鼻頭角、野柳一帶有典型海蝕地形。沙灘、沙洲是海浪沉積作用形成。'},
+{type:'tf',t:'u1c',era:'地表活動・沙洲',q:'河流上游流速快，搬運的岩屑顆粒較粗；河流下游流速慢，沉積的顆粒較細。',ans:true,explain:'正確。流速決定搬運能力：流速快（上游）→大顆粒也能搬運；流速慢（下游）→搬運能力下降，大顆粒先沉積，細顆粒後沉積。因此河流上游沉積物顆粒大且有稜角，下游細且圓滑（鵝卵石）。'},
+{type:'mc',t:'u1c',era:'地表活動・冰川',q:'冰川的侵蝕作用最強，形成的地形是？',opts:['V形谷（峽谷）','U形谷（冰蝕谷）','曲流','三角洲'],ans:1,explain:'冰川侵蝕特徵：侵蝕力最強，形成U形谷（冰蝕谷，谷底寬平）；沉積物稱為冰磧石，大小混雜；冰川地形景觀包括角峰、刃嶺、冰斗等。河流形成V形谷（谷底窄）。'},
+
+// ===== U1 河道與海岸平衡 =====
+{type:'mc',t:'u1d',era:'河道平衡・概念',q:'河道達到平衡時，下列敘述何者正確？',opts:['侵蝕速率遠大於沉積速率，河床持續下降','侵蝕速率約等於沉積速率，河道幾乎沒有坡度變化','只有沉積，沒有侵蝕','完全沒有地質活動'],ans:1,explain:'河道平衡：河道經過長期侵蝕、搬運、沉積，侵蝕速率≈沉積速率，達到「均夷剖面」（幾乎沒有坡度），此時侵蝕速率≈沉積速率，河道相對穩定。'},
+{type:'mc',t:'u1d',era:'河道平衡・破壞',q:'當「海水面下降」時，對河道平衡的影響是？',opts:['河道與海平面的落差縮小，沉積增強','河道與海平面的落差增大，侵蝕增強，引發上游侵蝕加強','河道流速減慢，搬運力降低','沉積作用增強，形成三角洲'],ans:1,explain:'海水面變化對河道的影響：海水面下降→陸地相對上升→河道與海平面落差增大→流速增快→侵蝕能力增強，河床下切。海水面上升→落差減小→沉積作用增強。'},
+{type:'mc',t:'u1d',era:'海岸平衡・概念',q:'海岸線達到平衡（不移動）的條件是？',opts:['泥沙沉積量 > 侵蝕量，海岸前進（海進）','泥沙沉積量 = 搬運量，沉積與侵蝕相抵消','河流完全斷流','只有海浪沉積，沒有侵蝕'],ans:1,explain:'海岸線平衡：河流帶來泥沙沉積≈海浪及海流侵蝕帶走的泥沙，海岸線位置不動。若沉積>侵蝕→海岸前進（陸地增加）；若侵蝕>沉積→海岸退縮（海岸侵蝕，陸地縮小）。'},
+{type:'tf',t:'u1d',era:'海岸平衡・泥沙',q:'在河川上游興建水壩後，下游的泥沙補充量減少，可能導致海岸線侵蝕退縮。',ans:true,explain:'正確。水壩蓄水攔截泥沙→下游泥沙補充量減少→海岸侵蝕>沉積→海岸線退縮（海岸侵蝕後退）。台灣西部海岸（如新竹至香山）已有明顯的海岸侵蝕現象。'},
+
+// ===== U2 地球內部與板塊 =====
+{type:'mc',t:'u2a',era:'地球內部・分層',q:'地球內部由外到內依序為？',opts:['地核→地函→地殼','地殼→地函→地核','地函→地殼→地核','地殼→地核→地函'],ans:1,explain:'地球內部分三層（由外到內）：地殼（最薄，0~35km）→地函（上部為橄欖岩，2900km）→地核（鐵鎳，2900~6371km，最重）。了解方法：利用地震波在不同介質中傳播速度不同而判斷。'},
+{type:'mc',t:'u2a',era:'地球內部・地殼',q:'大陸地殼與海洋地殼最大的差異是？',opts:['大陸地殼由玄武岩組成，密度較大；海洋地殼由花崗岩組成，密度較小','大陸地殼由花崗岩組成，較厚（約35km）；海洋地殼由玄武岩組成，較薄（約7km）','海洋地殼比大陸地殼厚','兩者組成和密度相同'],ans:1,explain:'大陸地殼 vs 海洋地殼：大陸地殼（花崗岩質，密度較小，平均厚35km）；海洋地殼（玄武岩質，密度較大，平均厚7km）。大陸地殼密度小，故「浮」在地函之上，不易隱沒。'},
+{type:'mc',t:'u2a',era:'板塊構造・學說',q:'板塊構造學說提出的主要驅動力是？',opts:['地球自轉的離心力','地球內部熱對流（軟流圈的熱對流）帶動岩石圈板塊','太陽引力','月球潮汐力'],ans:1,explain:'板塊構造學說（1968年）：地球內部熱對流（主要在軟流圈）→帶動板塊移動、分離或碰撞→在板塊邊界形成地震帶、火山帶、海溝、山脈等地質現象。'},
+{type:'mc',t:'u2a',era:'板塊構造・中洋脊',q:'「中洋脊」是什麼地質構造？',opts:['海洋中最深的溝槽','海底的火山山脈，由板塊張裂而形成新的海洋地殼','大陸板塊碰撞形成的褶皺山脈','海洋地殼隱沒形成的火山島弧'],ans:1,explain:'中洋脊：海底的火山山脈，蜿蜒環繞全球。由板塊張裂→岩漿噴出→形成新的海洋地殼（玄武岩質）→由中洋脊向兩側擴張，距中洋脊越遠，海洋地殼越老，沉積物越厚。'},
+{type:'tf',t:'u2a',era:'板塊構造・軟流圈',q:'軟流圈位於地殼之下，物質狀態為部分熔融，是板塊移動的「潤滑層」。',ans:true,explain:'正確。軟流圈（深度約100~250km，在地函中）：物質為部分熔融狀態，可緩慢流動，是岩石圈（板塊）滑動的基礎。岩石圈漂浮在軟流圈之上，受熱對流影響而移動。'},
+
+// ===== U2 板塊邊界與地貌 =====
+{type:'mc',t:'u2b',era:'板塊邊界・張裂',q:'板塊張裂邊界的特徵是？',opts:['板塊相互碰撞，形成山脈和海溝','板塊受拉力分離，熱對流向上，形成中洋脊和裂谷，常有淺源地震和火山','板塊水平錯動，形成平移斷層，少有火山','板塊隱沒，形成深海溝和火山島弧'],ans:1,explain:'張裂性板塊邊界（拉力）：熱對流向上→板塊分裂→形成裂谷（陸上如東非大裂谷）或中洋脊（海洋如大西洋中洋脊）→岩漿噴出形成玄武岩→淺源地震常見。'},
+{type:'mc',t:'u2b',era:'板塊邊界・聚合',q:'「海洋板塊與大陸板塊」聚合，會形成什麼地形？',opts:['裂谷（陸地裂開）','平移斷層','海溝（海洋板塊隱沒）和大陸側的火山島弧（安山岩質火山）','中洋脊'],ans:2,explain:'海陸聚合板塊邊界：海洋板塊（密度大）隱沒到大陸板塊之下→形成海溝（隱沒帶）；岩漿往上形成大陸邊緣的安山岩質火山；例：南美洲西岸（太平洋板塊+南美板塊→安地斯山脈）。'},
+{type:'mc',t:'u2b',era:'板塊邊界・錯動',q:'錯動性板塊邊界的主要特徵是？',opts:['板塊相互分離，形成新地殼','板塊水平相對滑動，形成平移斷層，少有火山但容易引起淺源地震','板塊碰撞，形成褶皺山脈','海洋板塊熔入地函'],ans:1,explain:'錯動性板塊邊界（剪力）：兩板塊水平相對滑動→形成平移斷層→容易引起淺源地震，少有明顯地形或火山。例：美國加州聖安地列斯斷層（北美板塊+太平洋板塊）。'},
+{type:'match',t:'u2b',era:'板塊邊界・地形配對',q:'請配對板塊邊界類型與代表地形：',pairs:[['張裂邊界','東非大裂谷、大西洋中洋脊'],['海陸聚合邊界','安地斯山脈、馬里亞納海溝'],['陸陸聚合邊界','喜馬拉雅山（印澳板塊+歐亞板塊）'],['錯動邊界','聖安地列斯斷層']],explain:'三大板塊邊界：張裂（拉力→裂谷/中洋脊）、聚合（壓力→海溝/山脈）、錯動（剪力→平移斷層）。台灣位於歐亞板塊與菲律賓海板塊聚合邊界。'},
+{type:'mc',t:'u2b',era:'板塊邊界・台灣',q:'台灣的形成，主要是哪兩個板塊聚合的結果？',opts:['太平洋板塊與北美板塊','菲律賓海板塊向歐亞板塊（亞歐板塊）推進聚合','南極板塊與非洲板塊','印澳板塊與歐亞板塊'],ans:1,explain:'台灣板塊構造：菲律賓海板塊以每年約7~8公分的速度向西北方向推進，與歐亞板塊（台灣西側）碰撞聚合→形成台灣（中央山脈即板塊碰撞抬升的結果）→多地震和火山活動。'},
+
+// ===== U2 斷層褶皺與地震 =====
+{type:'mc',t:'u2c',era:'地殼變動・斷層',q:'「正斷層」是受什麼力作用形成的？',opts:['壓力（水平擠壓）','拉力（水平拉張）','剪力（水平錯動）','重力（垂直下沉）'],ans:1,explain:'斷層類型依受力：正斷層（拉力→上盤相對下移，斷層面傾斜）；逆斷層（壓力→上盤相對上移，常見於聚合板塊邊界）；平移斷層（剪力→兩盤水平錯動，無明顯上下位移）。'},
+{type:'mc',t:'u2c',era:'地殼變動・斷層判斷',q:'關於斷層「上盤」和「下盤」，何者正確？',opts:['上盤是指位於斷層面上方（斷層面以上的岩石）','斷層面不一定是傾斜的，垂直斷層沒有上下盤之分','正斷層的上盤向上移動','逆斷層的下盤向下移動，讓上盤看起來往上'],ans:0,explain:'上盤：位於斷層面上方的岩石。下盤：位於斷層面下方的岩石。正斷層：上盤相對下移（拉力）；逆斷層：上盤相對上移（壓力）。口訣：「上盤向下→正斷層，上盤向上→逆斷層」。'},
+{type:'mc',t:'u2c',era:'地殼變動・褶皺',q:'向斜（syncline）地形的特徵是？',opts:['兩翼地層向上傾斜，中央為新地層','兩翼地層向下傾斜，中央為新地層（向心）','兩翼地層水平，中央抬升','地層斷裂錯位'],ans:1,explain:'褶皺類型：向斜（兩側地層相向傾斜，中央為新地層，外觀為谷地）；背斜（兩側地層相背傾斜，中央為老地層，外觀為山脊但易受侵蝕）。注意：地表外觀可能因侵蝕而與地層年齡關係相反。'},
+{type:'mc',t:'u2c',era:'地震・規模與震度',q:'關於地震「規模」與「震度」的比較，何者正確？',opts:['規模代表地面搖晃程度，各地不同；震度代表釋放能量，每次地震只有一個','規模代表釋放的能量，每次地震只有一個值；震度代表地面搖晃程度，各地不同','規模和震度都只有一個值','規模越大，各地震度均相同'],ans:1,explain:'規模（Magnitude）：釋放的能量多寡，至小數第一位，每次地震只有一個值，各測站相同。震度（Intensity）：地面搖晃程度，分0~7級（共10級），距震央越近，震度越大，各地可能不同。'},
+{type:'tf',t:'u2c',era:'地震・火山',q:'全球主要的火山帶和地震帶幾乎位置相同，都集中在板塊邊界附近。',ans:true,explain:'正確。火山帶和地震帶位置高度重合，主要沿板塊邊界分布，如環太平洋地震帶（世界最活躍）、地中海-喜馬拉雅山地震帶等。因板塊邊界有岩漿活動和地殼變動，故同時有地震和火山。'},
+{type:'mc',t:'u2c',era:'地震・地震波',q:'地震波中，「P波」與「S波」的主要差異是？',opts:['P波速度慢，S波速度快','P波為縱波，可在固體、液體、氣體中傳播；S波為橫波，只能在固體中傳播','P波只在地殼傳播，S波可傳到地核','兩者傳播速度相同'],ans:1,explain:'地震波：P波（縱波，壓力波，速度快，可在固液氣中傳播）；S波（橫波，剪力波，速度慢，只能在固體中傳播）。科學家發現S波無法穿透外地核，推斷外地核為液態。'},
+
+// ===== U2 地質事件與化石 =====
+{type:'mc',t:'u2d',era:'地質歷史・地層定律',q:'「水平沉積定律」是指？',opts:['越深的地層越新','沉積岩原本呈水平沉積，地層在未受到地殼變動前，越下方地層越老','地層可以倒置，需用化石判斷','斷層必定是最新的地質事件'],ans:1,explain:'地層三大判斷原則：①水平沉積定律（地層原始水平沉積，未受變動前下老上新）；②疊置定律（下層比上層老）；③截切定律（截切其他地質事件者較新）。'},
+{type:'mc',t:'u2d',era:'地質歷史・指標化石',q:'「指標化石」的特點是？',opts:['演化速度慢，存活時間長，分布廣','演化速度快、出現時間短（存在特定年代）、分布廣且個體特徵明顯易辨認','只存在於單一地點','形體最大的化石'],ans:1,explain:'指標化石（標準化石）：①演化速度快、②出現時間短（只存在特定地質年代）、③分布廣、④個體特徵明顯易辨認。例：三葉蟲（古生代）、菊石（中生代）、長毛象（新生代）。可用於地層年代比對。'},
+{type:'mc',t:'u2d',era:'地質歷史・地質年代',q:'下列地質年代由古到新的順序，何者正確？',opts:['新生代→中生代→古生代→元古代','始生代→元古代→古生代→中生代→新生代','中生代→古生代→新生代','新生代→始生代→中生代'],ans:1,explain:'地質年代（由古至新）：始生代（最古老，約35億年前藍綠菌出現）→元古代→古生代（三葉蟲、魚類繁盛）→中生代（恐龍時代，開花植物出現）→新生代（哺乳類繁盛，人類出現）。'},
+{type:'tf',t:'u2d',era:'地質歷史・化石',q:'化石形成需要有堅硬部分（如骨骼、外殼），且生物死後需迅速被沉積物掩埋才較容易保存。',ans:true,explain:'正確。化石形成條件：①具有堅硬部分（骨骼、外殼、木材）、②生物死後迅速被沉積物掩埋（避免分解）、③沉積環境較穩定。因此沉積岩中最容易發現化石，火成岩和變質岩中很少見化石。'},
+{type:'mc',t:'u2d',era:'地質歷史・台灣地形',q:'台灣東西岸地形差異顯著，下列何者正確？',opts:['西岸以岩岸為主，東岸以沙岸為主','西岸多平原地形，以沙岸為主；東岸多山地地形，以岩岸為主','西岸河流短、流速快；東岸河流長、流域廣','東岸多沉積岩，西岸多變質岩'],ans:1,explain:'台灣東西岸差異：西岸（多平原、沙岸為主、河流長流域廣、以沉積岩為主）；東岸（多山地、岩岸為主、河流短急、多變質岩與火成岩）。板塊碰撞在東岸，故地形崎嶇多岩岸。'},
+
+// ===== U3 太陽系與宇宙 =====
+{type:'mc',t:'u3a',era:'宇宙・太陽系',q:'太陽系八大行星中，「類地行星」的特徵是？',opts:['體積大，主要由氣體和冰組成，密度小，有行星環','體積小，距離太陽近，由岩石和金屬組成，密度大（約5g/cm³），衛星少','距離太陽最遠，有大量衛星','自行發光，是恆星'],ans:1,explain:'類地行星（水星、金星、地球、火星）：距太陽近、體積小、主要由岩石和金屬組成、密度大（約5g/cm³）、衛星少。類木行星（木星、土星、天王星、海王星）：體積大、主要由氣體和冰組成、密度小（約1g/cm³）、衛星多、有行星環。'},
+{type:'mc',t:'u3a',era:'宇宙・太陽',q:'太陽黑子的特性，下列何者正確？',opts:['溫度比周圍高，呈白色','是太陽表面溫度較低（約4500°C）的區域，看起來較暗（呈黑色）','只在太陽赤道附近出現','與地球氣候無關'],ans:1,explain:'太陽黑子：太陽表面溫度較低（約4500°C，但比周圍≈5500°C低）→看起來較暗（相對黑色）。週期約11年，黑子數增加→太陽表面活動活躍，影響地球氣候與無線電通訊。'},
+{type:'mc',t:'u3a',era:'宇宙・天文距離',q:'「光年」的定義是？',opts:['光在一年中發出的光量','光在真空中行進一年的距離，約9.46×10¹²公里','地球到月球的距離','1天文單位（AU）'],ans:1,explain:'光年（light year）：光在真空中行進一年的距離（約9.46×10¹²公里 = 10兆公里）。用來描述宇宙間極遠距離。天文單位（AU）：地球到太陽的平均距離（約1.5×10⁸公里），用來描述太陽系內距離。'},
+{type:'mc',t:'u3a',era:'宇宙・銀河系',q:'關於銀河系的描述，何者正確？',opts:['銀河系是宇宙中唯一的星系','銀河系直徑約10萬光年，由約2000億顆恆星組成，屬棒旋型星系','太陽位於銀河系中心','銀河系只有一個星系群'],ans:1,explain:'銀河系：直徑約10萬光年，約有2000億顆恆星，屬棒旋型星系，中央像荷包蛋形狀。太陽位於銀河系其中一條旋臂上，距銀河中心約3萬光年。宇宙由超過1000億個星系組成。'},
+{type:'tf',t:'u3a',era:'宇宙・行星定義',q:'依2006年國際天文聯合會重新定義，「行星」必須能清除公轉軌道附近其他物質，而冥王星因無法做到，被降格為矮行星。',ans:true,explain:'正確。2006年新行星定義三條件：①繞恆星公轉、②質量足夠，靠重力維持球體外形、③能清除公轉軌道附近的物質。冥王星無法滿足第三條，故被重新分類為矮行星。'},
+
+// ===== U3 地球自轉與公轉 =====
+{type:'mc',t:'u3b',era:'地球運動・自轉',q:'地球自轉的方向是？',opts:['由東向西（從北極上空看為順時針）','由西向東（從北極上空看為逆時針）','由南向北','自轉方向因季節而改變'],ans:1,explain:'地球自轉：由西向東（從北極上空看為逆時針方向），週期24小時。造成的現象：晝夜交替、太陽東升西落、天球上的天體也東升西落（視運動）。'},
+{type:'mc',t:'u3b',era:'地球運動・四季',q:'地球四季變化的主要原因是？',opts:['地球距太陽遠近不同（近日點夏天，遠日點冬天）','地球自轉速度不同','地軸傾斜（23.5°）且繞日公轉，導致各地接收陽光的直射斜射和日照時間不同','月球引力的影響'],ans:2,explain:'四季成因：地軸朝固定方向傾斜23.5°＋繞日公轉→太陽直射緯度改變（赤道到南北回歸線之間）→各地日照角度（直射/斜射）和日照時間不同→溫度差異→四季變化。與遠近日點無關。'},
+{type:'mc',t:'u3b',era:'地球運動・節氣',q:'北半球「夏至」時，太陽直射哪條緯線？',opts:['赤道（0°）','北回歸線（23.5°N）','南回歸線（23.5°S）','北極圈（66.5°N）'],ans:1,explain:'太陽直射緯度：春分/秋分→赤道（0°）；夏至→北回歸線（23.5°N），北半球晝長夜短；冬至→南回歸線（23.5°S），北半球晝短夜長。太陽直射範圍在南北回歸線之間（23.5°N~23.5°S）。'},
+{type:'mc',t:'u3b',era:'地球運動・晝夜長短',q:'北半球「冬至」時，下列何地的晝夜狀況正確？',opts:['北極圈（66.5°N）：晝最短夜最長','北極圈：永夜，北半球晝短夜長，南半球晝長夜短','赤道：晝長夜短','南極圈：永夜'],ans:1,explain:'冬至（12/21-23）：太陽直射南回歸線→北半球各地：緯度越高晝越短、北極圈→永夜；南半球相反，越高緯度晝越長、南極圈→永晝。赤道一年四季晝夜等長。'},
+{type:'sort',t:'u3b',era:'地球運動・節氣順序',q:'請依照一年中的順序排列這四個節氣（從春分開始）：',items:['冬至（12月21-23日）','春分（3月20-22日）','夏至（6月20-22日）','秋分（9月22-24日）'],correctOrder:[1,2,3,0],explain:'節氣順序（一年依序）：春分（3月，太陽直射赤道）→夏至（6月，北半球晝最長）→秋分（9月，太陽直射赤道）→冬至（12月，北半球晝最短）。'},
+{type:'tf',t:'u3b',era:'地球運動・影子',q:'在台灣（位於北半球），夏至正午的影子比冬至正午的影子短。',ans:true,explain:'正確。正午影子長短與太陽仰角有關：太陽仰角越大→影子越短。夏至太陽仰角最大（正午太陽最高）→影子最短；冬至太陽仰角最小→影子最長。台灣（北緯約23.5°）夏至時，正午太陽在天頂（幾乎沒有影子）。'},
+
+// ===== U3 月相與日月食 =====
+{type:'mc',t:'u3c',era:'月相・月球運動',q:'月球公轉週期約為多少天？它自轉週期如何？',opts:['約7天公轉，自轉更快','約29.53天公轉，自轉週期也約29.53天（公自轉同步）','約365天公轉，無自轉','約15天公轉，無自轉'],ans:1,explain:'月球公轉週期≈29.53天（繞地球一圈，稱為朔望月）；月球自轉週期也約29.53天→公轉與自轉週期相同→月球永遠以同一面對著地球，地球上的人只能看到同一面的月球。'},
+{type:'mc',t:'u3c',era:'月相・月相變化',q:'農曆初一（朔），月球在地球與太陽之間，此時月相稱為？',opts:['滿月（望）','上弦月','新月（朔）看不見月球','下弦月'],ans:2,explain:'月相：初一（朔）→新月（月球在日地之間，月球朝向地球的一面不受陽光照射，看不見月球）；初七八→上弦月（西側亮）；十五六→滿月（望，月地日一線，月球全面被照亮）；廿二三→下弦月（東側亮）。'},
+{type:'mc',t:'u3c',era:'月相・月相辨認',q:'「上弦月」與「下弦月」的辨認方式？',opts:['上弦月東側亮，下弦月西側亮','上弦月西側亮（右亮），出現在傍晚西方天空；下弦月東側亮（左亮），出現在後半夜東方天空','形狀相同，只是出現時間不同','上弦月比下弦月大'],ans:1,explain:'上弦月（農曆初七八）：月球西側亮，形如D字，傍晚出現在南方偏西天空，約子夜落下。下弦月（農曆廿二三）：月球東側亮，形如C字，後半夜升起，正午前後落下。'},
+{type:'mc',t:'u3c',era:'日月食・日食',q:'「日全食」發生的條件，下列何者正確？',opts:['地球進入月球的本影區','月球進入地球本影中（月球全暗）','月球運行到地球和太陽中間（日月地三點一線），月球距地球較近，本影落在地表上','月球距地球最遠時'],ans:2,explain:'日全食：月球運行到太陽與地球之間（日月地三點一線，農曆初一）→月球距地較近（本影能落到地表）→位於月球本影內的觀測者可看到日全食。月球距地較遠→本影不及地表→日環食。'},
+{type:'mc',t:'u3c',era:'日月食・月食',q:'月食發生在農曆幾號？此時日、月、地三者的相對位置？',opts:['農曆初一（朔），月球在中間','農曆十五或十六（望），地球在中間（日地月三點一線）','農曆初七八（上弦），月球在側邊','農曆廿二三（下弦），月球在側邊'],ans:1,explain:'月食成因：月球運行到地球的背太陽側（日地月一線），進入地球本影→月食。發生時間：農曆十五或十六（望）。月全食時，月球被地球本影完全覆蓋，呈古銅色。地球上夜晚側均可看到月食。'},
+{type:'tf',t:'u3c',era:'日月食・每月發生',q:'每逢農曆初一必發生日食，每逢農曆十五必發生月食。',ans:false,explain:'錯誤。月球公轉軌道面（白道面）與地球公轉軌道面（黃道面）有約5°的夾角，因此大部分時候，朔望時三者不在同一直線上，不發生日月食。只有月球恰好在兩軌道交點附近（黃白道交點）時，才可能發生日月食。'},
+
+// ===== U3 潮汐現象 =====
+{type:'mc',t:'u3d',era:'潮汐・成因',q:'潮汐現象的主要成因是？',opts:['地球自轉產生的離心力','太陽和月球的引力，其中月球引力的影響較大','風力驅動海水','火山噴發引起海水波動'],ans:1,explain:'潮汐：海水受太陽和月球的引力影響，使海水面週期性升降的現象。月球的影響較大（距離近，雖質量小）。月球引力使朝向和背向月球的海面各形成一個隆起（高潮）。'},
+{type:'mc',t:'u3d',era:'潮汐・大小潮',q:'「大潮」發生的條件是？',opts:['日月地三者成直角時（上弦月或下弦月）','日月地三者成一直線時（朔或望：農曆初一、十五），日月引力相互加強','只有在春天才發生','月球距地球最遠時'],ans:1,explain:'大潮（最高潮差）：日月地三點一線（農曆初一/朔、十五/望），日月引力同向疊加→潮差最大。小潮（最小潮差）：日月地成直角（農曆初七八/上弦月、廿二三/下弦月），引力相互抵消→潮差最小。'},
+{type:'mc',t:'u3d',era:'潮汐・週期',q:'一天中通常有幾次滿潮和幾次乾潮？潮汐週期約為多少？',opts:['1次滿潮1次乾潮，週期約24小時','2次滿潮2次乾潮，週期約12小時25分','4次滿潮4次乾潮，週期約6小時','1次滿潮1次乾潮，週期約12小時'],ans:1,explain:'潮汐週期：因地球自轉，每日約有2次滿潮和2次乾潮，週期約12小時25分（一個潮汐週期）。月球每天晚50分鐘升起（月球繞地公轉），因此每天滿潮時間也晚約50分鐘。'},
+{type:'tf',t:'u3d',era:'潮汐・月相關係',q:'農曆十五（滿月/望）時，發生大潮；農曆初七八（上弦月）時，發生小潮。',ans:true,explain:'正確。月相與潮汐對應：朔（初一）、望（十五）→日月地一線→大潮；上弦月（初七八）、下弦月（廿二三）→日月地直角→小潮。台灣西部潮差比東部大（西部海岸線形狀更集中潮汐能量）。'},
+{type:'mc',t:'u3d',era:'潮汐・應用',q:'潮汐現象在生活上有哪些應用？',opts:['只能用於預測地震','捕魚（利用潮間帶雙心石滬）、大型貨輪進港（利用滿潮）、潮汐發電、清潔河口','僅用於農業灌溉','只影響航空交通'],ans:1,explain:'潮汐生活應用：①捕魚（利用潮間帶，如台灣的雙心石滬）、②大型貨輪在滿潮時進港（水深足夠）、③潮汐發電（利用潮差）、④清潔河口（潮差越大，越容易將污染物帶走）。'}
+];
+
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.panel).classList.add('active');if(tab.dataset.panel==='wrong')renderWP();});});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+
+function updateGo(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);const btn=document.getElementById('goBtn');if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}else{btn.disabled=true;btn.textContent='請選擇單元與模式';}}
+
+document.getElementById('goBtn').addEventListener('click',startGame);
+
+function startGame(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;const isLong=S.mode==='normal'||S.mode==='timed';let pool=QB.filter(q=>S.topics.includes(q.t));pool=shuffle(pool);S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));S.cur=0;showScreen('game');renderQ();}
+
+function startWrongPractice(){const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();}
+
+function renderQ(){if(S.cur>=S.qs.length){showResult();return;}const q=S.qs[S.cur];S.answered=false;const total=S.qs.length;document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));else document.getElementById('gLives').textContent='';const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};document.getElementById('qtag').textContent=tMap[q.type]||'題目';document.getElementById('qtag').className=`qtag ${q.type||'mc'}`;document.getElementById('qtext').textContent=q.q;document.getElementById('qsub').textContent=q.hint||'';const area=document.getElementById('ans-area');area.innerHTML='';document.getElementById('fbbox').className='fb-box';document.getElementById('nextBtn').className='next-btn';if(q.type==='mc')renderMC(q,area);else if(q.type==='tf')renderTF(q,area);else if(q.type==='fill')renderFillQ(q,area);else if(q.type==='match')renderMatch(q,area);else if(q.type==='sort')renderSort(q,area);clearInterval(S.timer);const te=document.getElementById('gTimer');if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}else te.style.display='none';}
+
+function renderMC(q,area){const grid=document.createElement('div');grid.className='opts';q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt';btn.textContent=o;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const ok=i===q.ans;grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});finish(ok,q);});grid.appendChild(btn);});area.appendChild(grid);}
+
+function renderTF(q,area){const row=document.createElement('div');row.className='tf-row';['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const userT=i===0,ok=userT===q.ans;row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});finish(ok,q);});row.appendChild(btn);});area.appendChild(row);}
+
+function renderFillQ(q,area){const row=document.createElement('div');row.className='fill-row';const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確：${q.ans}`);};btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});row.append(inp,btn);area.appendChild(row);}
+
+function renderMatch(q,area){const wrap=document.createElement('div');wrap.className='match-wrap';const lCol=document.createElement('div');lCol.className='match-col';const rCol=document.createElement('div');rCol.className='match-col';const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);let lPicked=null,rPicked=null,matched=0;pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});wrap.append(lCol,rCol);area.appendChild(wrap);function tryM(){if(!lPicked||!rPicked)return;const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}lPicked=null;rPicked=null;}wrap.addEventListener('click',e=>{if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}tryM();});}
+
+let dragEl=null;
+function renderSort(q,area){const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));const list=document.createElement('div');list.className='sort-list';shuffled.forEach(item=>{const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});el.addEventListener('dragend',()=>el.classList.remove('dragging'));el.addEventListener('dragover',e=>e.preventDefault());el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});list.appendChild(el);});area.appendChild(list);const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});area.appendChild(chk);}
+
+function finish(ok,q,extraMsg){const pts=calcPts(ok,q.type);if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;document.getElementById('fbmsg').textContent=msg;document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;const nb=document.getElementById('nextBtn');nb.className='next-btn show';const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};}
+
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+
+function startTimer(sec){S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';S.timer=setInterval(()=>{S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}},1000);}
+
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+
+function showResult(){clearInterval(S.timer);showScreen('result');const max=S.qs.length*6;const pct=max>0?S.score/max:0;let emoji,title,msg;if(pct>=.9){emoji='🏆';title='地科達人！';msg='第五冊掌握得非常好！會考必拿高分！';}else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，針對弱點加強！';}else if(pct>=.5){emoji='📖';title='繼續加油！';msg='去錯題複習區，重點強化弱點！';}else{emoji='💪';title='不要灰心！';msg='把筆記再仔細看一遍，繼續挑戰！';}document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';document.getElementById('rMsg').textContent=msg;const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}else document.getElementById('rWeak').style.display='none';const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';if(pct>=.75)confetti();}
+
+function renderWP(){const bank=loadWB();const panel=document.getElementById('wrongPanel');const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;pw.style.display='block';cl.style.display='block';}
+
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#2980b9','#1a6ea8','#1a5276','#154360','#d6eaf8'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

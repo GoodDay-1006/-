@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>國文闖關王 第三冊</title>
+<style>
+:root{
+  --bg:#f0fff4;--ink:#1a2a1a;--red:#c0392b;--gold:#e8a020;
+  --teal:#1a7a4a;--blue:#1a4a3a;--pink:#c0396b;--purple:#5c2a83;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(26,42,26,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(26,122,74,.08) 0%,transparent 70%),
+  radial-gradient(ellipse 50% 50% at 85% 75%,rgba(92,42,131,.06) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#d0ffe0 0%,#f0fff4 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--teal);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--teal);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:660px;margin-bottom:16px;border-bottom:2px solid rgba(26,42,26,.1);padding-bottom:0;}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(26,42,26,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--teal);border-bottom-color:var(--teal);}
+.tab-panel{display:none;width:100%;max-width:660px;}
+.tab-panel.active{display:block;}
+
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(26,42,26,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(26,42,26,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--teal);border-color:var(--teal);color:white;font-weight:700;}
+
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(26,42,26,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--teal);background:#e8f8ee;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(26,42,26,.48);margin-top:3px;line-height:1.4;}
+
+.go-btn{background:var(--teal);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(26,122,74,.3);width:100%;max-width:660px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+.wrong-panel{width:100%;max-width:660px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(26,42,26,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(26,42,26,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(26,42,26,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:660px;margin-top:12px;transition:all .2s;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(26,42,26,.38);border:1px solid rgba(26,42,26,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:660px;}
+
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:660px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--gold);color:var(--ink);font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:var(--red);animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .4s;}
+
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:660px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--teal);border-radius:5px 0 0 5px;}
+
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#e5f8ed;color:var(--teal);}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:var(--green);}
+.qtag.match{background:#fce8d0;color:#b06010;}
+.qtag.sort{background:#ece5fd;color:var(--purple);}
+.qtag.fsy{background:#e5fde8;color:#1a7a1a;}
+.qtag.struct{background:#fde5e5;color:var(--red);}
+
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(26,42,26,.43);margin-bottom:11px;font-style:italic;}
+
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#f5f9f6;border:2px solid #dde8e0;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--teal);background:#e8f8ee;}
+.opt.ok{background:#d4f5e2;border-color:var(--green);color:var(--green);font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #dde8e0;background:#f5f9f6;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:var(--green);}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--teal);}
+.fill-in.ok{border-color:var(--green);background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--teal);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;transition:opacity .2s;}
+.sub-btn:hover{opacity:.85;}
+
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#f5f9f6;border:2px solid #dde8e0;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--teal);}
+.match-item.selected{border-color:var(--gold);background:#fef7e6;font-weight:700;}
+.match-item.matched{border-color:var(--green);background:#d4f5e2;color:var(--green);font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#eef8f0;border:2px solid #c5e0c8;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;transition:box-shadow .14s;color:var(--ink);}
+.sort-item:active{cursor:grabbing;box-shadow:0 4px 12px rgba(0,0,0,.13);}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--teal);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;transition:opacity .2s;}
+.sort-check:hover{opacity:.85;}
+
+.fsy-table{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:.79rem;}
+.fsy-table th{background:var(--teal);color:white;padding:5px 8px;text-align:center;}
+.fsy-table td{border:1px solid #dde8e0;padding:6px 8px;text-align:center;}
+.fsy-table tr:nth-child(even) td{background:#f5f9f6;}
+
+.idiom-box{background:#fff8e6;border:1.5px solid var(--gold);border-radius:10px;padding:11px 13px;margin-top:11px;display:none;}
+.idiom-box.show{display:block;}
+.idiom-box .ib-title{font-size:.7rem;color:var(--gold);font-weight:700;letter-spacing:.1em;margin-bottom:4px;}
+.idiom-box .ib-word{font-size:1.05rem;font-weight:900;color:var(--ink);margin-bottom:3px;}
+.idiom-box .ib-def{font-size:.82rem;color:rgba(26,42,26,.72);line-height:1.6;}
+.idiom-box .ib-ex{font-size:.76rem;color:rgba(26,42,26,.48);margin-top:3px;font-style:italic;}
+
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:#1a7a3a;border-left:4px solid var(--green);}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:660px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--teal);}
+
+#result{background:linear-gradient(155deg,#d0ffe0 0%,#f0fff4 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:460px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--gold);}
+.r-max{font-size:.8rem;color:rgba(26,42,26,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(26,42,26,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--gold);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(26,42,26,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#eef4f0;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--gold);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">國文闖關王</div>
+    <div class="home-badge">第三冊 · 語文複習講義</div>
+  </div>
+
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇主題（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip on" data-t="fsy">🔤 形音義辨析</div>
+      <div class="tchip on" data-t="pos">📚 詞類辨析</div>
+      <div class="tchip on" data-t="color">🎨 顏色字</div>
+      <div class="tchip on" data-t="direction">🧭 方位詞</div>
+      <div class="tchip on" data-t="conj">🔗 連詞</div>
+      <div class="tchip on" data-t="idiom">🌸 成語詞語</div>
+      <div class="tchip on" data-t="rhetoric">🎭 修辭法</div>
+      <div class="tchip on" data-t="sentence">📝 句型知識</div>
+      <div class="tchip on" data-t="lianmian">🔡 聯綿詞</div>
+    </div>
+
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇主題與模式</button>
+  </div>
+
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+
+<div class="screen" id="game">
+  <div class="gbar">
+    <div>
+      <div class="gbar-left" id="gInfo">第 1 / 50 題</div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div class="gbar-timer" id="gTimer" style="display:none;">20</div>
+      <div>
+        <div class="gbar-score" id="gScore">0 分</div>
+        <div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="qcard" id="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="idiom-box" id="idiomBox">
+      <div class="ib-title">📚 成語小教室</div>
+      <div class="ib-word" id="ibWord"></div>
+      <div class="ib-def" id="ibDef"></div>
+      <div class="ib-ex" id="ibEx"></div>
+    </div>
+    <div class="fb-box" id="fbbox">
+      <div class="fb-title" id="fbtitle"></div>
+      <div id="fbmsg"></div>
+    </div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div>
+    <div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div>
+    <div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div>
+    <div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+
+<div class="combo" id="combo"></div>
+
+<script>
+const SK='cw3_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+
+// ══ 形音義辨析 ══
+{t:'fsy',era:'形音義・攙/殘/慘',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'攙',ping:'chān',def:'攙扶、攙雜',ex:'攙扶、攙入'},
+   {char:'殘',ping:'cán',def:'殘缺、殘忍',ex:'殘破、殘忍'},
+   {char:'慘',ping:'cǎn',def:'悲慘、慘烈',ex:'悲慘、慘痛'},
+ ],
+ askQ:'「他___著老人走過斑馬線」中應填入哪個字？',
+ opts:['攙（扶持）','殘（缺損）','慘（悲痛）','纏（纏繞）'],ans:0,
+ explain:'「攙扶」的「攙」是用手扶持的意思，手字旁與扶持動作有關。'},
+
+{t:'fsy',era:'形音義・緲/渺/邈',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'緲',ping:'miǎo',def:'縹緲、飄渺',ex:'縹緲、虛無縹緲'},
+   {char:'渺',ping:'miǎo',def:'渺小、渺茫',ex:'渺小、渺茫'},
+   {char:'邈',ping:'miǎo',def:'遙遠、高遠',ex:'遙邈、邈遠'},
+ ],
+ askQ:'「___小」一詞中應填入哪個字？',
+ opts:['緲（飄渺）','渺（微小）','邈（遙遠）','秒（時間）'],ans:1,
+ explain:'「渺小」的「渺」帶水字旁，形容微小，如水面上的浪花一樣細微。'},
+
+{t:'fsy',era:'形音義・數 多音字',type:'fsy',
+ q:'辨認多音字「數」：',
+ chars:[
+   {char:'數(shù)',ping:'ㄕㄨˋ',def:'數字、數量',ex:'數字、數目'},
+   {char:'數(shǔ)',ping:'ㄕㄨˇ',def:'計算、數算',ex:'數錢、數羊'},
+   {char:'數(shuò)',ping:'ㄕㄨㄛˋ',def:'屢次、多次',ex:'數次、頻數'},
+ ],
+ askQ:'「他___了___次才算清楚」中「數了」的「數」讀作？',
+ opts:['shù（ㄕㄨˋ）數量','shǔ（ㄕㄨˇ）計算','shuò（ㄕㄨㄛˋ）屢次','都不對'],ans:1,
+ explain:'「數了」（動詞，計算）讀 shǔ（ㄕㄨˇ）；「數次」（頻繁）讀 shuò；「數字」讀 shù。'},
+
+{t:'fsy',era:'形音義・落 多音字',type:'fsy',
+ q:'辨認多音字「落」：',
+ chars:[
+   {char:'落(luò)',ping:'ㄌㄨㄛˋ',def:'下落、落下',ex:'落葉、落幕'},
+   {char:'落(là)',ping:'ㄌㄚˋ',def:'遺漏、落後',ex:'落下、丟三落四'},
+   {char:'落(lào)',ping:'ㄌㄠˋ',def:'固定詞組用法',ex:'落枕、落色'},
+ ],
+ askQ:'「她把鑰匙___在家裡了」的「落」讀作？',
+ opts:['luò（ㄌㄨㄛˋ）下落','là（ㄌㄚˋ）遺漏','lào（ㄌㄠˋ）固定詞','都不對'],ans:1,
+ explain:'「落在家裡」（遺漏、忘帶）讀 là；「落葉」讀 luò；「落枕」讀 lào。'},
+
+{t:'fsy',era:'形音義・調 多音字',type:'fsy',
+ q:'辨認多音字「調」：',
+ chars:[
+   {char:'調(diào)',ping:'ㄉㄧㄠˋ',def:'音調、調動',ex:'曲調、調職'},
+   {char:'調(tiáo)',ping:'ㄊㄧㄠˊ',def:'調和、協調',ex:'調整、調味'},
+ ],
+ askQ:'「___味料」的「調」讀作？',
+ opts:['diào（ㄉㄧㄠˋ）音調','tiáo（ㄊㄧㄠˊ）調和','兩者皆可','都不對'],ans:1,
+ explain:'「調味」是協調、混合味道，讀 tiáo；「曲調」「調職」讀 diào。'},
+
+{t:'fsy',era:'形音義・煩/繁/樊',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'煩',ping:'fán',def:'煩惱、麻煩',ex:'煩惱、心煩'},
+   {char:'繁',ping:'fán',def:'繁多、繁榮',ex:'繁華、繁忙'},
+   {char:'樊',ping:'fán',def:'樊籠（籠子）',ex:'樊籠、樊籬'},
+ ],
+ askQ:'「___榮昌盛」中應填入哪個字？',
+ opts:['煩（煩惱）','繁（眾多）','樊（籠子）','帆（船帆）'],ans:1,
+ explain:'「繁榮」的「繁」是眾多、茂盛的意思，絲字旁與眾多密集相關。'},
+
+{t:'fsy',era:'形音義・躁/燥/噪/澡',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'躁',ping:'zào',def:'急躁、浮躁',ex:'急躁、暴躁'},
+   {char:'燥',ping:'zào',def:'乾燥、燥熱',ex:'乾燥、燥熱'},
+   {char:'噪',ping:'zào',def:'噪音、喧噪',ex:'噪音、噪雜'},
+   {char:'澡',ping:'zǎo',def:'洗澡',ex:'洗澡、澡盆'},
+ ],
+ askQ:'「天氣___熱，皮膚很乾」的「___」應填入哪個字？',
+ opts:['躁（急躁）','燥（乾燥）','噪（噪音）','澡（洗浴）'],ans:1,
+ explain:'「燥熱」的「燥」是乾燥、缺少水分的意思，火字旁表示與熱和乾燥有關。'},
+
+{t:'fsy',era:'形音義・幽/悠/憂',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'幽',ping:'yōu',def:'幽靜、深遠',ex:'幽靜、幽谷'},
+   {char:'悠',ping:'yōu',def:'悠閒、悠長',ex:'悠閒、悠悠'},
+   {char:'憂',ping:'yōu',def:'憂愁、憂慮',ex:'憂愁、憂鬱'},
+ ],
+ askQ:'「___然自得」應填入哪個字？',
+ opts:['幽（幽靜）','悠（悠閒）','憂（憂愁）','游（游泳）'],ans:1,
+ explain:'「悠然自得」的「悠」是悠閒、自在的意思，形容心情輕鬆、無拘無束。'},
+
+{t:'fsy',era:'形音義・磋/嗟/蹉',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'磋',ping:'cuō',def:'切磋、磨練',ex:'切磋、磋商'},
+   {char:'嗟',ping:'jiē',def:'嗟嘆（嘆氣）',ex:'嗟嘆、嗟乎'},
+   {char:'蹉',ping:'cuō',def:'蹉跎（虛度）',ex:'蹉跎歲月'},
+ ],
+ askQ:'「___跎歲月」中應填入哪個字？',
+ opts:['磋（切磋）','嗟（嘆氣）','蹉（虛度）','搓（搓揉）'],ans:2,
+ explain:'「蹉跎歲月」的「蹉」是虛度光陰、錯過機會的意思，足字旁表示腳步蹉跌。'},
+
+{t:'fsy',era:'形音義・漫/慢/蔓/饅',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'漫',ping:'màn',def:'漫長、漫延',ex:'漫長、漫漫'},
+   {char:'慢',ping:'màn',def:'緩慢、怠慢',ex:'緩慢、慢慢'},
+   {char:'蔓',ping:'màn',def:'蔓延（草木生長）',ex:'蔓延、蔓草'},
+   {char:'饅',ping:'mán',def:'饅頭',ex:'饅頭'},
+ ],
+ askQ:'「野火___延」的「___」應填入哪個字？',
+ opts:['漫（漫延）','慢（緩慢）','蔓（蔓延）','饅（饅頭）'],ans:2,
+ explain:'「蔓延」用於形容火勢、疾病等擴散蔓延，草字頭表示草木蔓生的擴散之意。'},
+
+{t:'fsy',era:'形音義・膩/賦/懶 多義字',type:'mc',
+ q:'「令人嘆為觀止」的「令」是哪種用法？',
+ opts:['A 命令（動詞）','B 使（動詞）','C 官職名稱','D 時令季節'],ans:1,
+ explain:'「令人嘆為觀止」的「令」是使、讓的意思（動詞），類似「使人」。'},
+
+{t:'fsy',era:'形音義・令 多義字',type:'mc',
+ q:'「縣令」的「令」是哪種用法？',
+ opts:['A 命令（動詞）','B 使（動詞）','C 官職名稱','D 時令季節'],ans:2,
+ explain:'「縣令」的「令」是古代官職，指縣的行政長官。'},
+
+{t:'fsy',era:'形音義・動 多義字',type:'mc',
+ q:'「一動不動」的「動」是哪個意思？',
+ opts:['A 行動、移動','B 感動','C 輕易（副詞）','D 觸動、打動'],ans:0,
+ explain:'「一動不動」的「動」是移動、行動的意思，形容完全靜止。'},
+
+{t:'fsy',era:'形音義・動 多義字',type:'mc',
+ q:'「感人肺腑，令人___容」中的「動」是哪個意思？',
+ opts:['A 移動','B 感動（打動內心）','C 輕易','D 行動'],ans:1,
+ explain:'「動容」的「動」是感動、打動的意思，形容表情因情緒波動而改變。'},
+
+// ══ 詞類辨析 ══
+{t:'pos',era:'詞類・名詞',type:'mc',
+ q:'下列哪個詞是「名詞」？',
+ opts:['A 奔跑','B 美麗','C 圖書館','D 非常'],ans:2,
+ explain:'「圖書館」是表示地方的名詞。「奔跑」是動詞，「美麗」是形容詞，「非常」是副詞。'},
+
+{t:'pos',era:'詞類・動詞',type:'mc',
+ q:'「她喜歡音樂」中，「喜歡」屬於哪種詞類？',
+ opts:['A 形容詞','B 動詞','C 副詞','D 名詞'],ans:1,
+ explain:'「喜歡」是表示心理狀態的動詞（心理動詞），說明主語的狀態或感受。'},
+
+{t:'pos',era:'詞類・形容詞',type:'mc',
+ q:'「燦爛的陽光照耀大地」中，「燦爛」屬於哪種詞類？',
+ opts:['A 動詞','B 副詞','C 形容詞','D 名詞'],ans:2,
+ explain:'「燦爛」修飾「陽光」，是形容詞，用來描述名詞的性質或狀態。'},
+
+{t:'pos',era:'詞類・副詞',type:'mc',
+ q:'「他非常努力地練習」中，「非常」屬於哪種詞類？',
+ opts:['A 名詞','B 動詞','C 形容詞','D 副詞'],ans:3,
+ explain:'「非常」修飾形容詞「努力」，是程度副詞，表示程度很高。'},
+
+{t:'pos',era:'詞類・代名詞',type:'mc',
+ q:'下列哪個是「代名詞」？',
+ opts:['A 跑步','B 她們','C 高興','D 因為'],ans:1,
+ explain:'「她們」是代名詞，代替人稱，指代一群女性。'},
+
+{t:'pos',era:'詞類・介詞',type:'mc',
+ q:'「在圖書館讀書」中，「在」屬於哪種詞類？',
+ opts:['A 動詞','B 形容詞','C 介詞','D 助詞'],ans:2,
+ explain:'「在」放在「圖書館」前面，表示地點，是介詞（前置詞）。'},
+
+{t:'pos',era:'詞類・連詞',type:'mc',
+ q:'「雖然下雨，但他仍舊出門」中，「雖然」屬於哪種詞類？',
+ opts:['A 副詞','B 介詞','C 助詞','D 連詞'],ans:3,
+ explain:'「雖然」連接兩個分句，是連詞（連接詞），表示讓步轉折關係。'},
+
+{t:'pos',era:'詞類・助詞',type:'mc',
+ q:'「他走得很快」中，「得」屬於哪種詞類？',
+ opts:['A 動詞','B 助詞','C 副詞','D 介詞'],ans:1,
+ explain:'「得」放在動詞後，引出補語，是結構助詞（補語助詞），沒有實際意義。'},
+
+{t:'pos',era:'詞類・嘆詞',type:'mc',
+ q:'「啊！這風景真美！」中，「啊」屬於哪種詞類？',
+ opts:['A 副詞','B 名詞','C 嘆詞','D 助詞'],ans:2,
+ explain:'「啊」表示驚嘆的感情，是嘆詞（感嘆詞），通常獨立於句子之外。'},
+
+{t:'pos',era:'詞類配對',type:'match',
+ q:'請將詞語與正確詞類配對：',
+ pairs:[['迅速（形容速度）','形容詞'],['閱讀（閱讀書本）','動詞'],['把（把書拿來）','介詞'],['哇（驚嘆）','嘆詞']],
+ explain:'迅速＝形容詞；閱讀＝動詞；把（介紹對象）＝介詞；哇＝嘆詞。'},
+
+{t:'pos',era:'詞類・助詞辨析',type:'mc',
+ q:'「他高興地唱歌」中，「地」是哪種助詞？',
+ opts:['A 的（名詞修飾語）','B 地（動詞修飾語）','C 得（補語標誌）','D 了（完成態）'],ans:1,
+ explain:'「地」放在副詞或形容詞後，修飾動詞，是狀語助詞。「高興地唱歌」＝高興地做「唱歌」這個動作。'},
+
+{t:'pos',era:'詞類・的/地/得辨析',type:'mc',
+ q:'「她唱___真好聽」的空格應填入哪個助詞？',
+ opts:['A 的','B 地','C 得','D 了'],ans:2,
+ explain:'「唱得真好聽」的「得」是補語助詞，引出補語「真好聽」，說明動作的程度或結果。'},
+
+// ══ 顏色字 ══
+{t:'color',era:'顏色字・白色系',type:'mc',
+ q:'「皓月當空」中，「皓」代表什麼顏色？',
+ opts:['A 金黃色','B 潔白明亮','C 深藍色','D 紅色'],ans:1,
+ explain:'「皓」表示潔白、明亮，「皓月」即明亮潔白的月亮。白色系用字：皓、素、皎、銀、霜。'},
+
+{t:'color',era:'顏色字・白色系',type:'mc',
+ q:'「素服」的「素」指什麼顏色？',
+ opts:['A 紅色','B 黑色','C 白色','D 藍色'],ans:2,
+ explain:'「素」代表白色、素白，「素服」是白色衣服，古代常用於喪禮。'},
+
+{t:'color',era:'顏色字・白色系',type:'mc',
+ q:'「霜鬢」的「霜」暗示什麼？',
+ opts:['A 天氣寒冷','B 頭髮花白（年老）','C 純潔無暇','D 冬季景色'],ans:1,
+ explain:'「霜鬢」以霜的白色來比喻白髮，暗示年老。「霜」在顏色字中代表白色。'},
+
+{t:'color',era:'顏色字・黑色系',type:'mc',
+ q:'「皂白不分」中的「皂」是什麼顏色？',
+ opts:['A 白色','B 黃色','C 黑色','D 灰色'],ans:2,
+ explain:'「皂」代表黑色，「不分皂白」即不分黑白、是非不明。「皂」字原指黑色的皂角。'},
+
+{t:'color',era:'顏色字・黑色系',type:'mc',
+ q:'「烏雲密布」中的「烏」表示什麼顏色？',
+ opts:['A 白色','B 灰色','C 藍色','D 黑色'],ans:3,
+ explain:'「烏」表示黑色，「烏雲」即黑雲。黑色系顏色字：烏、墨、玄、皂、黛。'},
+
+{t:'color',era:'顏色字・紅色系',type:'mc',
+ q:'「丹心」的「丹」表示什麼顏色？',
+ opts:['A 紅色','B 白色','C 黃色','D 黑色'],ans:0,
+ explain:'「丹」表示紅色，「丹心」即赤誠的心，「丹」在古代常指朱紅色的顏料。'},
+
+{t:'color',era:'顏色字・紅色系',type:'mc',
+ q:'「朱門」的「朱」表示什麼顏色？',
+ opts:['A 黑色','B 白色','C 紅色','D 金色'],ans:2,
+ explain:'「朱」表示大紅色，「朱門」即紅色大門，古代貴族的府第。紅色系：丹、朱、緋、赤、殷。'},
+
+{t:'color',era:'顏色字・青/綠/藍色系',type:'mc',
+ q:'「碧海青天」中，「碧」與「青」各指哪種顏色類型？',
+ opts:['A 兩者都是藍色','B 碧是青綠色、青是藍色或青綠色','C 碧是白色、青是黑色','D 兩者都是綠色'],ans:1,
+ explain:'「碧」是青綠色（如碧玉），「青」可指藍色或青綠色，古代「青」字範圍廣泛。青系：青、碧、翠、蒼、藍。'},
+
+{t:'color',era:'顏色字・金/黃色系',type:'mc',
+ q:'「金秋十月」的「金」在此表示什麼？',
+ opts:['A 黃金值錢','B 秋天的金黃色澤','C 金屬質感','D 金色光芒'],ans:1,
+ explain:'「金秋」以金黃色代表秋天，因為秋天樹葉變黃，滿眼金黃，且五行中秋天屬金。'},
+
+{t:'color',era:'顏色字辨析',type:'match',
+ q:'請將顏色字與代表顏色配對：',
+ pairs:[['皓（皓月）','白色'],['丹（丹心）','紅色'],['烏（烏雲）','黑色'],['碧（碧海）','青綠色']],
+ explain:'皓＝白色；丹＝紅色；烏＝黑色；碧＝青綠色。'},
+
+{t:'color',era:'顏色字・綜合',type:'mc',
+ q:'「翠竹搖曳」中「翠」表示什麼顏色？',
+ opts:['A 深藍','B 翠綠','C 深紫','D 棕褐'],ans:1,
+ explain:'「翠」表示翠綠色，原指翠鳥的羽毛顏色，深綠而鮮豔。「翠竹」即青翠的竹子。'},
+
+// ══ 方位詞 ══
+{t:'direction',era:'方位詞・實詞用法',type:'mc',
+ q:'「山頂之上，白雲繚繞」中，「上」是實詞還是虛詞用法？',
+ opts:['A 實詞（有實際位置含義）','B 虛詞（無實際位置含義）','C 介詞','D 動詞'],ans:0,
+ explain:'「山頂之上」的「上」表示確實的空間位置（山頂的上方），是實詞用法。'},
+
+{t:'direction',era:'方位詞・虛詞用法',type:'mc',
+ q:'「事實上，他早就知道了」中，「上」是實詞還是虛詞用法？',
+ opts:['A 實詞（有實際位置含義）','B 虛詞（抽象意義）','C 動詞','D 助詞'],ans:1,
+ explain:'「事實上」的「上」沒有實際的空間位置意義，是虛詞用法，表示「在…方面、就…而言」。'},
+
+{t:'direction',era:'方位詞・實/虛',type:'mc',
+ q:'「思想上要進步」的「上」是哪種用法？',
+ opts:['A 實詞（確切位置）','B 虛詞（在…方面）','C 動詞（向上移動）','D 時間詞'],ans:1,
+ explain:'「思想上」的「上」是虛詞，表示「在思想方面」，沒有實際的空間位置意義。'},
+
+{t:'direction',era:'方位詞・實/虛辨析',type:'mc',
+ q:'「桌子上有一本書」和「歷史上從未有過」，兩句「上」的用法？',
+ opts:['A 兩者都是實詞','B 兩者都是虛詞','C 前句實詞、後句虛詞','D 前句虛詞、後句實詞'],ans:2,
+ explain:'「桌子上」的「上」指確切空間位置（實詞）；「歷史上」的「上」表示「在歷史方面/範疇」（虛詞）。'},
+
+{t:'direction',era:'方位詞配對',type:'match',
+ q:'請判斷哪些是方位詞虛詞用法：',
+ pairs:[['天空上方（空間位置）','實詞'],['道德上的問題（在…方面）','虛詞'],['向左轉（確定方向）','實詞'],['感情上難以割捨（抽象層面）','虛詞']],
+ explain:'有確切空間位置＝實詞；「在…方面」或抽象意義＝虛詞。'},
+
+{t:'direction',era:'方位詞・內外',type:'mc',
+ q:'「城內居民紛紛逃離」的「內」是實詞還是虛詞？',
+ opts:['A 實詞（城裡面的確切位置）','B 虛詞（在…範圍內）','C 形容詞','D 動詞'],ans:0,
+ explain:'「城內」的「內」指城的內部，有確切的空間位置，是實詞用法。'},
+
+{t:'direction',era:'方位詞・前後',type:'mc',
+ q:'「目前，我們需要努力」的「前」是哪種用法？',
+ opts:['A 實詞（確切的前方位置）','B 虛詞（時間上的現在）','C 動詞','D 副詞'],ans:1,
+ explain:'「目前」的「前」表示「當下、現在」，是時間概念，已虛化為虛詞用法。'},
+
+// ══ 連詞 ══
+{t:'conj',era:'連詞・並列關係',type:'mc',
+ q:'「她既聰明又努力」中，「既…又…」表示哪種關係？',
+ opts:['A 轉折關係','B 並列關係','C 因果關係','D 遞進關係'],ans:1,
+ explain:'「既…又…」是並列關係的連詞，同時呈現兩個並列的情況或特點。'},
+
+{t:'conj',era:'連詞・遞進關係',type:'mc',
+ q:'「他不但努力學習，而且還積極發問」中，連詞表示哪種關係？',
+ opts:['A 並列關係','B 遞進關係','C 選擇關係','D 讓步關係'],ans:1,
+ explain:'「不但…而且…」是遞進關係，後句「積極發問」在程度上比「努力學習」更進一步。'},
+
+{t:'conj',era:'連詞・因果關係',type:'mc',
+ q:'「由於天氣惡劣，因此比賽延期」中，連詞表示哪種關係？',
+ opts:['A 轉折關係','B 假設關係','C 因果關係','D 選擇關係'],ans:2,
+ explain:'「由於…因此…」是因果關係，「天氣惡劣」是原因，「比賽延期」是結果。'},
+
+{t:'conj',era:'連詞・選擇關係',type:'mc',
+ q:'「你要嘛道歉，要嘛離開」中，連詞表示哪種關係？',
+ opts:['A 並列關係','B 遞進關係','C 轉折關係','D 選擇關係'],ans:3,
+ explain:'「要嘛…要嘛…」是選擇關係，從兩個選項中擇一，「非此即彼」。'},
+
+{t:'conj',era:'連詞・讓步關係',type:'mc',
+ q:'「即使失敗了，他也不放棄」中，連詞表示哪種關係？',
+ opts:['A 因果關係','B 讓步關係','C 假設關係','D 並列關係'],ans:1,
+ explain:'「即使…也…」是讓步關係，承認某種假設情況，但強調結果不受影響。'},
+
+{t:'conj',era:'連詞・轉折關係',type:'mc',
+ q:'「他努力了，但結果並不理想」中，「但」表示哪種關係？',
+ opts:['A 遞進關係','B 因果關係','C 轉折關係','D 選擇關係'],ans:2,
+ explain:'「但」是轉折連詞，前後分句意思相對或相反，「努力」與「結果不理想」形成對比。'},
+
+{t:'conj',era:'連詞・假設關係',type:'mc',
+ q:'「如果你願意努力，就一定能成功」中，連詞表示哪種關係？',
+ opts:['A 因果關係','B 讓步關係','C 假設關係','D 轉折關係'],ans:2,
+ explain:'「如果…就…」是假設關係，前句提出假設條件，後句說明在此條件下的結果。'},
+
+{t:'conj',era:'連詞・目的關係',type:'mc',
+ q:'「為了考好成績，他每天用功」中，「為了」表示哪種關係？',
+ opts:['A 因果關係','B 假設關係','C 目的關係','D 遞進關係'],ans:2,
+ explain:'「為了」表示目的，前句說明採取行動的目的，後句說明為此所做的行動。'},
+
+{t:'conj',era:'連詞・條件關係',type:'mc',
+ q:'「只要努力，就一定有收穫」中，連詞表示哪種關係？',
+ opts:['A 假設關係','B 充分條件關係','C 必要條件關係','D 因果關係'],ans:1,
+ explain:'「只要…就…」是充分條件關係，表示有前句的條件，後句必然成立。'},
+
+{t:'conj',era:'連詞・必要條件',type:'mc',
+ q:'「只有努力，才能成功」中，連詞表示哪種關係？',
+ opts:['A 充分條件','B 必要條件','C 假設關係','D 讓步關係'],ans:1,
+ explain:'「只有…才…」是必要條件關係，表示前句的條件是後句成立的必要前提，缺少前句條件，後句就不成立。'},
+
+{t:'conj',era:'連詞綜合配對',type:'match',
+ q:'請將連詞與對應的關係配對：',
+ pairs:[['不但…而且…','遞進關係'],['雖然…但是…','讓步轉折'],['如果…就…','假設關係'],['因為…所以…','因果關係']],
+ explain:'不但而且＝遞進；雖然但是＝讓步轉折；如果就＝假設；因為所以＝因果。'},
+
+{t:'conj',era:'連詞辨析',type:'mc',
+ q:'「儘管風雨交加，他們還是如期出發」中，「儘管…還是…」表示哪種關係？',
+ opts:['A 遞進關係','B 並列關係','C 假設關係','D 讓步關係'],ans:3,
+ explain:'「儘管…還是…」是讓步關係，承認風雨的阻礙（讓步），但強調結果不受影響（如期出發）。'},
+
+{t:'conj',era:'連詞・甚至',type:'mc',
+ q:'「大家都來了，甚至連住在外地的朋友也趕來了」中，「甚至」表示哪種關係？',
+ opts:['A 並列關係','B 遞進關係','C 選擇關係','D 轉折關係'],ans:1,
+ explain:'「甚至」表示遞進，後句比前句所說的程度更深、範圍更廣（連遠方的朋友也來了）。'},
+
+// ══ 成語詞語 ══
+{t:'idiom',era:'成語・一蹴而就',type:'mc',
+ q:'「一蹴而就」的意思是？',
+ opts:['A 一步一步慢慢完成','B 一腳踢到就成功，比喻事情輕易完成','C 一次嘗試就放棄','D 跑步一次到達目的地'],ans:1,
+ explain:'「一蹴而就」比喻事情非常容易，一下子就完成了。「蹴」是踢的意思。',
+ idiom:{word:'一蹴而就',def:'踢一腳就成功，比喻事情輕而易舉，一下子就完成。多用於否定句，如「非一蹴而就」。',ex:'例：學問不是一蹴而就的，需要長期積累。'}},
+
+{t:'idiom',era:'成語・白駒過隙',type:'mc',
+ q:'「白駒過隙」比喻什麼？',
+ opts:['A 馬跑得很快','B 時光飛逝，歲月短暫','C 白色的馬很美麗','D 機會稍縱即逝'],ans:1,
+ explain:'「白駒過隙」用白馬飛快跑過縫隙來比喻時光飛逝，歲月短暫。',
+ idiom:{word:'白駒過隙',def:'白色的馬飛快地跑過縫隙，比喻時光飛速流逝，轉眼即過。',ex:'例：白駒過隙，轉眼間已是數載，令人感嘆。'}},
+
+{t:'idiom',era:'成語・不以為然',type:'mc',
+ q:'「不以為然」的意思是？',
+ opts:['A 認為理所當然','B 不認為如此，表示不同意或懷疑','C 無所謂，不在意','D 不以為意，很輕鬆'],ans:1,
+ explain:'「不以為然」表示不認為是這樣，即不贊同、持不同看法。「然」是「對、是」的意思。',
+ idiom:{word:'不以為然',def:'不認為是對的，表示不贊同或反對某種說法或做法。',ex:'例：他對老師的建議不以為然，仍然堅持己見。'}},
+
+{t:'idiom',era:'成語・滄海桑田',type:'mc',
+ q:'「滄海桑田」比喻什麼？',
+ opts:['A 大海和農田的景色','B 世事變化無常，變化極大','C 海邊種桑樹','D 農業生活的辛苦'],ans:1,
+ explain:'「滄海桑田」比喻世事變化巨大，昔日的大海可以變成農田。',
+ idiom:{word:'滄海桑田',def:'滄海變成桑田，桑田又變成滄海，比喻世事變遷，變化極大。',ex:'例：百年過去，這裡已是滄海桑田，面貌全非。'}},
+
+{t:'idiom',era:'成語・囫圇吞棗',type:'mc',
+ q:'「囫圇吞棗」比喻什麼？',
+ opts:['A 吃東西太快','B 學習或理解不仔細，不加消化就接受','C 做事太粗心','D 果實沒成熟就吃'],ans:1,
+ explain:'「囫圇吞棗」比喻讀書或學習不求甚解，不加消化就照單全收。',
+ idiom:{word:'囫圇吞棗',def:'把棗子整個吞下去，不加咀嚼。比喻讀書學習不求甚解，不加分析思考就接受。',ex:'例：學習要消化吸收，不能囫圇吞棗。'}},
+
+{t:'idiom',era:'成語・廢寢忘食',type:'mc',
+ q:'「廢寢忘食」的近義詞是？',
+ opts:['A 無所事事','B 孜孜不倦','C 從容不迫','D 安逸享樂'],ans:1,
+ explain:'「廢寢忘食」形容專心致志，連睡覺吃飯都忘了。近義詞「孜孜不倦」同樣形容勤奮不懈。',
+ idiom:{word:'廢寢忘食',def:'廢棄睡覺、忘記吃飯，形容對某事非常專注投入，全力以赴。',ex:'例：他為了準備考試，廢寢忘食地苦讀。'}},
+
+{t:'idiom',era:'成語・無懈可擊',type:'mc',
+ q:'「無懈可擊」形容什麼？',
+ opts:['A 沒有任何弱點可以攻擊，形容完美無缺','B 打架打不贏','C 沒有敵人','D 防禦能力很強'],ans:0,
+ explain:'「無懈可擊」形容事物或論述嚴密、完美，沒有任何漏洞或弱點。',
+ idiom:{word:'無懈可擊',def:'沒有鬆懈的地方可以攻擊，比喻事情做得嚴密周全，找不出任何缺點。',ex:'例：他的計劃周詳細緻，幾乎無懈可擊。'}},
+
+{t:'idiom',era:'成語・鞭長莫及',type:'mc',
+ q:'「鞭長莫及」比喻什麼？',
+ opts:['A 鞭子打不到','B 雖然想管卻力不足，無法達到目的','C 距離太遠','D 事情超出能力範圍'],ans:1,
+ explain:'「鞭長莫及」比喻雖然有心，但力量或條件不足，無法管到那麼遠。',
+ idiom:{word:'鞭長莫及',def:'鞭子雖長，但打不到馬肚子。比喻雖想管理或幫助，但因距離或條件限制而無法達到。',ex:'例：他人在海外，對家中事務鞭長莫及，十分無奈。'}},
+
+{t:'idiom',era:'成語・近義反義',type:'match',
+ q:'請將成語與其反義詞配對：',
+ pairs:[['廢寢忘食（勤奮）','無所事事（懶惰）'],['囫圇吞棗（不求甚解）','精益求精（追求完美）'],['滄海桑田（巨大變化）','一成不變（毫無改變）'],['不以為然（不同意）','深以為然（深表贊同）']],
+ explain:'廢寢忘食↔無所事事；囫圇吞棗↔精益求精；滄海桑田↔一成不變；不以為然↔深以為然。'},
+
+{t:'idiom',era:'成語・相輔相成',type:'mc',
+ q:'「相輔相成」的意思是？',
+ opts:['A 兩者相互對立','B 互相配合、相互促進','C 一起完成任務','D 兩者缺一不可'],ans:1,
+ explain:'「相輔相成」指兩個事物互相補充、相互促進，一起發揮更好的效果。',
+ idiom:{word:'相輔相成',def:'互相補充，相互促進，兩者合在一起，效果比各自單獨更好。',ex:'例：理論與實踐相輔相成，缺一不可。'}},
+
+{t:'idiom',era:'成語・美不勝收',type:'mc',
+ q:'「美不勝收」的「勝」是哪個意思？',
+ opts:['A 勝利','B 優秀','C 盡、完全','D 超過'],ans:2,
+ explain:'「美不勝收」的「勝」是「盡、完全」的意思，指美好的事物多到看不完、收不盡。',
+ idiom:{word:'美不勝收',def:'美好的事物太多，根本看不過來，欣賞不完。形容景色或事物極為美麗豐富。',ex:'例：博物館的展品美不勝收，令人目不暇接。'}},
+
+// ══ 修辭法 ══
+{t:'rhetoric',era:'修辭・轉化擬人',type:'mc',
+ q:'「春風輕撫臉頰，像慈母的手」是哪種修辭？',
+ opts:['A 誇飾','B 轉化（擬人）','C 排比','D 映襯'],ans:1,
+ explain:'把「春風」賦予人（慈母）的動作與特質，是「轉化」修辭中的「擬人法」。'},
+
+{t:'rhetoric',era:'修辭・轉化擬物',type:'mc',
+ q:'「你這個書呆子，整天只會埋頭苦讀！」中，把人比作「書呆子」是哪種轉化？',
+ opts:['A 擬人法','B 擬物法','C 象徵','D 誇飾'],ans:1,
+ explain:'把人比作或說成物（書呆子≈書本的呆木頭），是「轉化」中的「擬物法」。'},
+
+{t:'rhetoric',era:'修辭・排比',type:'mc',
+ q:'「愛是包容，愛是理解，愛是付出」是哪種修辭？',
+ opts:['A 對偶','B 頂真','C 排比','D 層遞'],ans:2,
+ explain:'三個以上結構相似、語氣一致的句子並列，是「排比」修辭，增強語勢和感染力。'},
+
+{t:'rhetoric',era:'修辭・層遞',type:'mc',
+ q:'「層遞」修辭的特點是？',
+ opts:['A 三句以上結構相同並排','B 事物按照程度高低、大小遠近遞升或遞降排列','C 自問自答','D 用誇大的語氣表達'],ans:1,
+ explain:'「層遞」是按照事物的程度、大小、輕重等，依次由低到高（或由高到低）排列，形成層層遞進的效果。'},
+
+{t:'rhetoric',era:'修辭・映襯',type:'mc',
+ q:'「映襯」修辭的定義是？',
+ opts:['A 對比兩種事物的不同','B 用反面或相關事物來陪襯，使正面意義更突出','C 以輕托重，以小見大','D 正反兩者都說出來'],ans:1,
+ explain:'「映襯」是利用性質相反或相對的兩種事物互相對照，使彼此更為鮮明突出。'},
+
+{t:'rhetoric',era:'修辭・誇飾',type:'mc',
+ q:'「飛流直下三千尺，疑是銀河落九天」主要使用哪種修辭？',
+ opts:['A 設問','B 擬人','C 誇飾','D 對偶'],ans:2,
+ explain:'「三千尺」「銀河落九天」用誇大的數字和比喻來形容瀑布的壯觀，是「誇飾」修辭。'},
+
+{t:'rhetoric',era:'修辭・頂真',type:'mc',
+ q:'「頂真」修辭的特點是？',
+ opts:['A 上下句字數相等、結構相同','B 後句以前句的末尾詞語作開頭，首尾相接','C 連用相似結構的句子','D 提問後自己回答'],ans:1,
+ explain:'「頂真」是用前句的結尾詞語作下句的開頭，使文章銜接緊密，如「讀書破萬卷，萬卷難盡覽」。'},
+
+{t:'rhetoric',era:'修辭・設問',type:'mc',
+ q:'「問君能有幾多愁？恰似一江春水向東流。」使用哪種設問？',
+ opts:['A 提問（等待回答）','B 反詰（反問）','C 懸問（自問自答）','D 不是設問'],ans:2,
+ explain:'「問君能有幾多愁」提出問題，「恰似一江春水向東流」自己回答，是「懸問」（自問自答）。'},
+
+{t:'rhetoric',era:'修辭・對偶',type:'mc',
+ q:'「春蠶到死絲方盡，蠟炬成灰淚始乾」是哪種修辭？',
+ opts:['A 排比','B 對偶','C 頂真','D 層遞'],ans:1,
+ explain:'上下兩聯字數相等（各7字）、結構相同（主謂賓）、意思相近，是「對偶」修辭。'},
+
+{t:'rhetoric',era:'修辭綜合',type:'match',
+ q:'請將例句與修辭配對：',
+ pairs:[['太陽笑著跳出山頭（賦予人性）','擬人（轉化）'],['他力大無窮，能移山倒海（誇大）','誇飾'],['生命是一條河，流向大海（打比方）','比喻'],['問：春天在哪裡？答：春天在花朵裡。','懸問（設問）']],
+ explain:'賦予人性＝擬人；誇大＝誇飾；打比方＝比喻；自問自答＝懸問。'},
+
+{t:'rhetoric',era:'修辭・比喻',type:'mc',
+ q:'「明喻」的特點是？',
+ opts:['A 不用比喻詞，直接把甲說成乙','B 用「像、如、似、宛如」等比喻詞連接本體和喻體','C 本體省略，只有喻體','D 用象徵手法暗示'],ans:1,
+ explain:'「明喻」明確用「像、如、似、好比」等比喻詞連接被比喻的事物（本體）和用來比喻的事物（喻體）。'},
+
+// ══ 句型知識 ══
+{t:'sentence',era:'句型・敘事句',type:'mc',
+ q:'下列哪個句子是「敘事句」？',
+ opts:['A 花兒真美麗！','B 昨天放學後，我們去打球，玩得很開心。','C 難道我們不應該珍惜時間嗎？','D 啊，好涼爽的夜晚！'],ans:1,
+ explain:'「敘事句」是記錄事件經過的句子。選項B完整描述了一件事的時間、經過和結果。'},
+
+{t:'sentence',era:'句型・描寫句',type:'mc',
+ q:'「湛藍的天空中，幾朵白雲悠悠漂過」是哪種句型？',
+ opts:['A 敘事句','B 描寫句','C 抒情句','D 說明句'],ans:1,
+ explain:'「描寫句」對人事物的外貌、動作或環境進行細緻的描繪，此句描寫天空景象。'},
+
+{t:'sentence',era:'句型・抒情句',type:'mc',
+ q:'「每當看到故鄉的山，心中便湧起無限的思念」是哪種句型？',
+ opts:['A 敘事句','B 描寫句','C 抒情句','D 說明句'],ans:2,
+ explain:'「抒情句」直接或間接地表達情感，此句表達對故鄉的思念之情。'},
+
+{t:'sentence',era:'句型・說明句',type:'mc',
+ q:'「光合作用是植物利用陽光將二氧化碳和水轉化為養分的過程」是哪種句型？',
+ opts:['A 敘事句','B 描寫句','C 抒情句','D 說明句'],ans:3,
+ explain:'「說明句」解釋概念、說明原理或介紹事物，此句解釋光合作用的定義和過程。'},
+
+{t:'sentence',era:'句型・倒裝',type:'mc',
+ q:'「多好的孩子啊，這個！」的正常語序是？',
+ opts:['A 這個好孩子啊！','B 這個孩子多好啊！','C 孩子好這個啊！','D 啊好孩子這個！'],ans:1,
+ explain:'原句將謂語「多好」提前，造成倒裝效果，正常語序是「這個孩子多好啊！」（主＋謂）。'},
+
+{t:'sentence',era:'句型・無主句',type:'mc',
+ q:'「下雨了！快回家！」屬於哪種句型？',
+ opts:['A 敘事句（有主語）','B 無主句（省略或沒有主語）','C 兼語句','D 倒裝句'],ans:1,
+ explain:'「下雨了」和「快回家」都省略或沒有明確的主語，是「無主句」。無主句在口語和祈使句中常見。'},
+
+{t:'sentence',era:'句型・兼語句',type:'mc',
+ q:'「老師讓我代表班級演講」中，「我」是什麼成分？',
+ opts:['A 只是「讓」的賓語','B 只是「演講」的主語','C 既是「讓」的賓語，也是「演講」的主語（兼語）','D 狀語'],ans:2,
+ explain:'「我」既是「讓」的賓語（老師讓了誰），又是「演講」的主語（誰演講），這種結構叫「兼語句」。'},
+
+{t:'sentence',era:'句型配對',type:'match',
+ q:'請將句子與句型配對：',
+ pairs:[['昨天，他走了三十里路（記述事件）','敘事句'],['秋天到了，真讓人懷念（表達情感）','抒情句'],['好美的夕陽哪（倒裝感嘆）','倒裝句'],['是誰發明了電腦？是圖靈等人（自問自答）','設問句']],
+ explain:'記事＝敘事；表情感＝抒情；謂語前置感嘆＝倒裝；自問自答＝設問。'},
+
+// ══ 聯綿詞 ══
+{t:'lianmian',era:'聯綿詞・雙聲',type:'mc',
+ q:'「彷彿」是哪種聯綿詞？',
+ opts:['A 雙聲（聲母相同）','B 疊韻（韻母相同）','C 非雙聲疊韻','D 疊音（兩字相同）'],ans:0,
+ explain:'「彷（fǎng）彿（fú）」聲母同為 f，是雙聲聯綿詞。雙聲聯綿詞例：彷彿、忐忑、玲瓏。'},
+
+{t:'lianmian',era:'聯綿詞・疊韻',type:'mc',
+ q:'「窈窕」是哪種聯綿詞？',
+ opts:['A 雙聲（聲母相同）','B 疊韻（韻母相同）','C 非雙聲疊韻','D 疊音（兩字相同）'],ans:1,
+ explain:'「窈（yǎo）窕（tiǎo）」韻母同為 ao（iào），是疊韻聯綿詞。疊韻例：窈窕、徘徊、輾轉。'},
+
+{t:'lianmian',era:'聯綿詞・疊音',type:'mc',
+ q:'「依依不捨」的「依依」是哪種聯綿詞？',
+ opts:['A 雙聲','B 疊韻','C 非雙聲疊韻','D 疊音（前後兩字相同）'],ans:3,
+ explain:'「依依」兩字完全相同，是疊音聯綿詞。疊音例：依依、茫茫、瑟瑟、悠悠。'},
+
+{t:'lianmian',era:'聯綿詞・非雙聲疊韻',type:'mc',
+ q:'「蹉跎」是哪種聯綿詞？',
+ opts:['A 雙聲','B 疊韻','C 非雙聲疊韻','D 疊音'],ans:2,
+ explain:'「蹉（cuō）跎（tuó）」聲母不同（c≠t），韻母也不同（uo≠o嚴格說），是非雙聲疊韻的聯綿詞。'},
+
+{t:'lianmian',era:'聯綿詞・雙聲例',type:'mc',
+ q:'下列哪個是「雙聲聯綿詞」？',
+ opts:['A 窈窕（疊韻）','B 徘徊（疊韻）','C 忐忑（tǎn tè，聲母t相同）','D 茫茫（疊音）'],ans:2,
+ explain:'「忐忑」聲母同為 t，是雙聲聯綿詞。窈窕、徘徊是疊韻；茫茫是疊音。'},
+
+{t:'lianmian',era:'聯綿詞・疊韻例',type:'mc',
+ q:'下列哪個是「疊韻聯綿詞」？',
+ opts:['A 彷彿（雙聲）','B 玲瓏（雙聲）','C 輾轉（zhǎn zhuǎn，韻母an相近）','D 依依（疊音）'],ans:2,
+ explain:'「輾轉」韻母相近，是疊韻聯綿詞。彷彿、玲瓏是雙聲；依依是疊音。'},
+
+{t:'lianmian',era:'聯綿詞配對',type:'match',
+ q:'請將聯綿詞與類型配對：',
+ pairs:[['茫茫（兩字相同）','疊音'],['彷彿（f/f，聲母同）','雙聲'],['徘徊（ái/uái，韻母相近）','疊韻'],['混沌（聲韻皆不同）','非雙聲疊韻']],
+ explain:'茫茫＝疊音；彷彿＝雙聲；徘徊＝疊韻；混沌＝非雙聲疊韻。'},
+
+{t:'lianmian',era:'聯綿詞・特性',type:'mc',
+ q:'關於聯綿詞，下列說法何者正確？',
+ opts:['A 每個字都有獨立意義，可以拆開使用','B 兩個字合在一起才有意義，不能分開理解','C 兩個字意思相反','D 一定是形容詞'],ans:1,
+ explain:'聯綿詞是由兩個音節合成的單純詞，兩個字合在一起才表示一個完整意義，不能拆分理解，如「蝴蝶」不能說「蝴」是一隻，「蝶」是另一隻。'},
+
+];
+
+// ══ STATE & LOGIC ══
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+
+document.querySelectorAll('.nav-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.panel).classList.add('active');
+    if(tab.dataset.panel==='wrong')renderWP();
+  });
+});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+function updateGo(){
+  S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);
+  const btn=document.getElementById('goBtn');
+  if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}
+  else{btn.disabled=true;btn.textContent='請選擇主題與模式';}
+}
+document.getElementById('goBtn').addEventListener('click',startGame);
+
+function startGame(){
+  S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);
+  S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;
+  const isLong=S.mode==='normal'||S.mode==='timed';
+  let pool=QB.filter(q=>S.topics.includes(q.t));
+  pool=shuffle(pool);
+  S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));
+  S.cur=0;showScreen('game');renderQ();
+}
+function startWrongPractice(){
+  const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}
+  S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';
+  S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();
+}
+
+function renderQ(){
+  if(S.cur>=S.qs.length){showResult();return;}
+  const q=S.qs[S.cur];S.answered=false;
+  const total=S.qs.length;
+  document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;
+  document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;
+  document.getElementById('gScore').textContent=`${S.score} 分`;
+  if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));
+  else document.getElementById('gLives').textContent='';
+  const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題',fsy:'形音義辨析',struct:'語法結構'};
+  const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort',fsy:'fsy',struct:'struct'};
+  document.getElementById('qtag').textContent=tMap[q.type]||'題目';
+  document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;
+  document.getElementById('qtext').textContent=q.q;
+  document.getElementById('qsub').textContent=q.hint||'';
+  const area=document.getElementById('ans-area');area.innerHTML='';
+  document.getElementById('idiomBox').className='idiom-box';
+  document.getElementById('fbbox').className='fb-box';
+  document.getElementById('nextBtn').className='next-btn';
+  if(q.type==='fsy')renderFSY(q,area);
+  else if(q.type==='mc'||q.type==='struct')renderMC(q,area);
+  else if(q.type==='tf')renderTF(q,area);
+  else if(q.type==='fill')renderFill(q,area);
+  else if(q.type==='match')renderMatch(q,area);
+  else if(q.type==='sort')renderSort(q,area);
+  clearInterval(S.timer);
+  const te=document.getElementById('gTimer');
+  if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}
+  else te.style.display='none';
+}
+
+function renderFSY(q,area){
+  const tbl=document.createElement('table');tbl.className='fsy-table';
+  tbl.innerHTML=`<tr><th>字形</th><th>讀音</th><th>字義</th><th>詞例</th></tr>`+
+    q.chars.map(c=>`<tr><td><strong style="font-size:1.2rem;">${c.char}</strong></td><td>${c.ping}</td><td>${c.def}</td><td style="font-size:.75rem;">${c.ex}</td></tr>`).join('');
+  area.appendChild(tbl);
+  const sub=document.createElement('div');
+  sub.style.cssText='font-weight:700;font-size:.92rem;color:var(--ink);margin:10px 0 9px;line-height:1.6;';
+  sub.textContent=q.askQ;area.appendChild(sub);
+  renderMC(q,area);
+}
+
+function renderMC(q,area){
+  const grid=document.createElement('div');grid.className='opts';
+  q.opts.forEach((o,i)=>{
+    const btn=document.createElement('button');btn.className='opt';btn.textContent=o;
+    btn.addEventListener('click',()=>{
+      if(S.answered)return;S.answered=true;clearInterval(S.timer);
+      const ok=i===q.ans;
+      grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});
+      finish(ok,q);
+    });
+    grid.appendChild(btn);
+  });
+  area.appendChild(grid);
+}
+
+function renderTF(q,area){
+  const row=document.createElement('div');row.className='tf-row';
+  ['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{
+    const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;
+    btn.addEventListener('click',()=>{
+      if(S.answered)return;S.answered=true;clearInterval(S.timer);
+      const userT=i===0,ok=userT===q.ans;
+      row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});
+      finish(ok,q);
+    });
+    row.appendChild(btn);
+  });
+  area.appendChild(row);
+}
+
+function renderFill(q,area){
+  const row=document.createElement('div');row.className='fill-row';
+  const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';
+  const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';
+  const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確：${q.ans}`);};
+  btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});
+  row.append(inp,btn);area.appendChild(row);
+}
+
+function renderMatch(q,area){
+  const wrap=document.createElement('div');wrap.className='match-wrap';
+  const lCol=document.createElement('div');lCol.className='match-col';
+  const rCol=document.createElement('div');rCol.className='match-col';
+  const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);
+  let lPicked=null,rPicked=null,matched=0;
+  pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});
+  shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});
+  wrap.append(lCol,rCol);area.appendChild(wrap);
+  function tryM(){
+    if(!lPicked||!rPicked)return;
+    const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);
+    if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}
+    else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}
+    lPicked=null;rPicked=null;
+  }
+  wrap.addEventListener('click',e=>{
+    if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;
+    if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}
+    else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}
+    tryM();
+  });
+}
+
+let dragEl=null;
+function renderSort(q,area){
+  const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));
+  const list=document.createElement('div');list.className='sort-list';
+  shuffled.forEach(item=>{
+    const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;
+    el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;
+    el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});
+    el.addEventListener('dragend',()=>el.classList.remove('dragging'));
+    el.addEventListener('dragover',e=>e.preventDefault());
+    el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});
+    list.appendChild(el);
+  });
+  area.appendChild(list);
+  const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';
+  chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});
+  area.appendChild(chk);
+}
+
+function finish(ok,q,extraMsg){
+  const pts=calcPts(ok,q.type);
+  if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}
+  else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}
+  if(q.idiom){document.getElementById('ibWord').textContent=q.idiom.word;document.getElementById('ibDef').textContent=q.idiom.def;document.getElementById('ibEx').textContent=q.idiom.ex||'';document.getElementById('idiomBox').className='idiom-box show';}
+  document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';
+  let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;
+  document.getElementById('fbmsg').textContent=msg;
+  document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;
+  const nb=document.getElementById('nextBtn');nb.className='next-btn show';
+  const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;
+  nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';
+  nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};
+}
+
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7,fsy:6,struct:5}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+
+function startTimer(sec){
+  S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';
+  S.timer=setInterval(()=>{
+    S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';
+    if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];
+      document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';
+      document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);
+      if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);
+      if(q.idiom){document.getElementById('ibWord').textContent=q.idiom.word;document.getElementById('ibDef').textContent=q.idiom.def;document.getElementById('ibEx').textContent=q.idiom.ex||'';document.getElementById('idiomBox').className='idiom-box show';}
+      const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}
+  },1000);
+}
+
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+
+function showResult(){
+  clearInterval(S.timer);showScreen('result');
+  const max=S.qs.length*6;const pct=max>0?S.score/max:0;
+  let emoji,title,msg;
+  if(pct>=.9){emoji='🏆';title='國文高手！';msg='第三冊的內容你掌握得非常好！繼續保持！';}
+  else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點多複習！';}
+  else if(pct>=.5){emoji='📖';title='加油！';msg='有些地方需要再複習，去錯題複習區針對加強！';}
+  else{emoji='💪';title='繼續努力！';msg='把講義再仔細看一遍，然後針對錯題練習！';}
+  document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;
+  document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;
+  document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';
+  document.getElementById('rMsg').textContent=msg;
+  const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);
+  if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}
+  else document.getElementById('rWeak').style.display='none';
+  const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強練習`:'';
+  if(pct>=.75)confetti();
+}
+
+function renderWP(){
+  const bank=loadWB();const panel=document.getElementById('wrongPanel');
+  const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');
+  if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}
+  const top=bank.sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));
+  panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--gold);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;
+  pw.style.display='block';cl.style.display='block';
+}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#1a7a4a','#e8a020','#c0392b','#5c2a83','#f0fff4'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

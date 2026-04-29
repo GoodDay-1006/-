@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>歷史闖關王 第六冊</title>
+<style>
+:root{
+  --bg:#f0fff4;--ink:#0a1a2a;--red:#c0392b;--gold:#1a7a3a;
+  --teal:#156a30;--blue:#0e4a20;--accent:#27ae60;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(10,80,30,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(39,174,96,.09) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(26,122,58,.06) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#c8f0d8 0%,var(--bg) 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(10,26,42,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(10,26,42,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(10,26,42,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(10,26,42,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(10,26,42,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#c8f0d8;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(10,26,42,.48);margin-top:3px;line-height:1.4;}
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(10,26,42,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(10,26,42,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(10,26,42,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(10,26,42,.38);border:1px solid rgba(10,26,42,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:var(--red);animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#d4edd8;color:#1a7a3a;}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:var(--green);}
+.qtag.match{background:#d4edd8;color:#156a30;}
+.qtag.sort{background:#c8f0d8;color:#0e4a20;}
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(10,26,42,.43);margin-bottom:11px;font-style:italic;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#eafaf0;border:2px solid #a8ddb8;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#c8f0d8;}
+.opt.ok{background:#d4f5e2;border-color:var(--green);color:var(--green);font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #a8ddb8;background:#eafaf0;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:var(--green);}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:var(--green);background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#eafaf0;border:2px solid #a8ddb8;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:#e6b800;background:#c8f0d8;font-weight:700;}
+.match-item.matched{border-color:var(--green);background:#d4f5e2;color:var(--green);font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#eafaf0;border:2px solid #a8ddb8;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--accent);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:var(--green);border-left:4px solid var(--green);}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+#result{background:linear-gradient(155deg,#c8f0d8 0%,var(--bg) 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(10,26,42,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(10,26,42,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(10,26,42,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#eafaf0;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">歷史闖關王</div>
+    <div class="home-badge">歷史 第六冊 · 單元11–12 · 會考複習</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip" data-t="u11a">單元11・美國獨立革命</div>
+      <div class="tchip" data-t="u11b">單元11・法國大革命與拿破崙</div>
+      <div class="tchip" data-t="u11c">單元11・德意志與義大利統一</div>
+      <div class="tchip" data-t="u11d">單元11・帝國主義與第一次世界大戰</div>
+      <div class="tchip" data-t="u12a">單元12・俄國革命與經濟大恐慌</div>
+      <div class="tchip" data-t="u12b">單元12・極權政治興起與二次大戰</div>
+      <div class="tchip" data-t="u12c">單元12・聯合國與戰後局勢</div>
+      <div class="tchip" data-t="u12d">單元12・冷戰與多元化時代</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+<div class="screen" id="game">
+  <div class="gbar">
+    <div><div class="gbar-left" id="gInfo">第 1 / 50 題</div><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;"><div class="gbar-timer" id="gTimer" style="display:none;">20</div><div><div class="gbar-score" id="gScore">0 分</div><div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox"><div class="fb-title" id="fbtitle"></div><div id="fbmsg"></div></div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div><div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div><div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div><div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+<div class="combo" id="combo"></div>
+<script>
+const SK='hist_b6_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+// ===== 單元11 美國獨立革命 =====
+{type:'mc',t:'u11a',era:'美國獨立・背景導火線',q:'1773年「波士頓茶葉事件」的直接原因是什麼？',opts:['美洲殖民地人民反對英國派軍駐紮','英國向殖民地徵收茶稅，殖民地人民將英商茶葉倒入海中，抗議無代表卻被徵稅','英國禁止殖民地與其他國家通商','英國強迫殖民地人民信奉英國國教'],ans:1,explain:'波士頓茶葉事件的背景：北美13州殖民地居民認為自己在英國國會沒有代表，政府無權任意徵稅（「無代表不納稅」）。1773年殖民地人民將英商船隻上的茶葉倒入波士頓港，成為美國獨立革命的重要導火線。'},
+{type:'mc',t:'u11a',era:'美國獨立・獨立宣言',q:'1776年7月4日發表的《獨立宣言》，其核心思想主要吸收了哪位思想家的主張？',opts:['孟德斯鳩的三權分立說','洛克的天賦人權與社會契約論','盧梭的人民主權說','亞當斯密的自由放任說'],ans:1,explain:'《獨立宣言》由傑佛遜起草，核心主張吸收啟蒙思想：主要是洛克的天賦人權（生命、自由、財產）與社會契約論。宣言中明確指出人人生而平等，擁有不可剝奪的天賦權利。'},
+{type:'mc',t:'u11a',era:'美國獨立・制憲',q:'美國獨立後制定憲法，採用孟德斯鳩的三權分立原則，這三權是指什麼？',opts:['君主權、貴族權、平民權','行政權、立法權、司法權','軍事權、外交權、財政權','聯邦權、州權、地方權'],ans:1,explain:'美國憲法採孟德斯鳩三權分立精神：（1）行政—總統（2）立法—國會（3）司法—最高法院，三者相互制衡。美國憲法是世界上第一部成文憲法，成為後來許多民主共和國效法的典範。'},
+{type:'tf',t:'u11a',era:'美國獨立・影響',q:'美國獨立革命鼓舞了法國大革命的爆發，美國的三權分立制度也成為許多民主共和國仿效的典範。',ans:true,explain:'正確。美國獨立宣言中天賦人權、社會契約的觀念傳至法國，深刻影響1789年法國大革命的爆發；美國憲法的三權分立、聯邦制度也成為後來許多民主共和國學習仿效的對象。'},
+{type:'fill',t:'u11a',era:'美國獨立・重要文獻',q:'1776年7月4日，13州代表在費城大陸會議上發表《________》，正式宣布脫離英國，建立獨立整合的國家。',ans:'獨立宣言',explain:'《獨立宣言》（Declaration of Independence）由傑佛遜主要起草，於1776年7月4日發表，宣告美國脫離英國統治。這一天成為美國國慶日（Independence Day）。'},
+// ===== 單元11 法國大革命與拿破崙 =====
+{type:'mc',t:'u11b',era:'法國大革命・背景',q:'法國大革命（1789年）爆發的主要社會背景是什麼？',opts:['法國被英國軍事佔領，人民奮起抵抗','中世紀以來貴族與教士享有特權免稅，平民（第三階級）卻負擔沉重稅賦，加上財政危機，不滿情緒爆發','法國工業革命導致大量工人失業，引發社會動盪','法國國王遭暗殺，引發政治動盪'],ans:1,explain:'法國大革命的社會背景：（1）等級制度不公平：教士（第一等）、貴族（第二等）享特權免稅，而佔人口多數的平民（第三等）稅賦繁重（2）18世紀財政危機（3）啟蒙思想影響，人民對不平等制度不滿（4）法王路易十六召開三級會議試圖增稅，引發衝突。'},
+{type:'mc',t:'u11b',era:'法國大革命・發展',q:'法國大革命中，《人權宣言》的核心內容主張什麼？',opts:['法國應建立君主立憲政體，限制王權','保障人民自由、平等等天賦人權，反對封建特權','主張廢除所有宗教，以理性代替信仰','宣告法國對歐洲各國的戰爭意圖'],ans:1,explain:'1789年8月國民大會通過《人權宣言》（Declaration of the Rights of Man and Citizen），主張：（1）人生而自由且在權利上平等（2）天賦人權包括自由、財產、安全及反抗壓迫（3）法律面前人人平等（4）主權在民，政府權力來自人民。'},
+{type:'mc',t:'u11b',era:'法國大革命・拿破崙',q:'拿破崙的重要成就「拿破崙法典」（民法典）的意義是什麼？',opts:['廢除私有財產，建立平等社會','推動政治、教育等改革，保障人民生命財產安全，成為後來歐洲各國民法的重要參考','強制要求所有人信仰天主教','將法國的土地重新分配給農民'],ans:1,explain:'拿破崙法典（1804年）的重要性：（1）確立私有財產不可侵犯（2）保障法律面前人人平等（3）宗教自由（4）廢除封建特權。在拿破崙征服地區推行，成為後來歐洲大陸各國民法典的基礎。'},
+{type:'mc',t:'u11b',era:'法國大革命・維也納會議',q:'1814-1815年維也納會議的主要目的和結果是什麼？',opts:['討論如何推廣法國大革命的自由平等精神','由奧地利美泰涅主導，重整歐洲政治秩序，恢復各王朝的正統地位，維持各國勢力均衡','建立民主選舉制度，讓各國人民自決','決定對拿破崙的刑罰，將他流放海外'],ans:1,explain:'維也納會議（1814-1815年）由奧地利外交大臣美泰涅主導，目標：（1）重整歐洲政治秩序（2）恢復拿破崙征服後各王室的正統政權（3）維持歐洲各國勢力均衡。結果歐洲王室勢力一時復辟，直到19世紀中期後才面臨民主改革挑戰。'},
+{type:'tf',t:'u11b',era:'法國大革命・拿破崙敗亡',q:'拿破崙於1812年遠征俄國失利，1815年在滑鐵盧之役被歐洲各國聯軍擊敗，標誌拿破崙時代的結束。',ans:true,explain:'正確。拿破崙兩次重大失敗：（1）1812年遠征俄國失利，寒冬與戰略失誤使法軍潰敗（2）1815年在比利時滑鐵盧被英、普、奧等歐洲聯軍擊敗，被流放至聖赫勒拿島，結束拿破崙時代。'},
+{type:'sort',t:'u11b',era:'法國大革命・事件順序',q:'請將法國大革命相關事件依時間先後排列：',items:['召開三級會議，平民代表組成國民大會（1789年）','攻佔巴士底監獄，革命爆發（1789年7月14日）','拿破崙建立法蘭西帝國（1804年）','維也納會議重整歐洲秩序（1814-1815年）'],correctOrder:[0,1,2,3],explain:'法國大革命時序：1789年三級會議→巴士底監獄被攻佔（革命爆發）→恐怖統治→督政府→執政府（拿破崙掌權）→1804年拿破崙稱帝→1812年俄國失利→1815年滑鐵盧敗亡→維也納會議。'},
+// ===== 單元11 德意志與義大利統一 =====
+{type:'mc',t:'u11c',era:'德意志統一・背景人物',q:'德意志統一的關鍵人物俾斯麥（Otto von Bismarck）的主要策略是什麼？',opts:['以民主選舉的方式凝聚各邦人民共識','以「鐵血政策」，透過戰爭取得統一，先後擊敗奧地利和法國','以宗教改革統一各邦的信仰，形成共識','透過外交談判，說服各邦自願合併'],ans:1,explain:'俾斯麥是普魯士王國首相，以「鐵血政策」（blood and iron）推動統一：（1）建立關稅同盟促進經濟統一（2）1866年普奧戰爭擊敗奧地利（3）1870-71年普法戰爭擊敗法國，取得亞爾薩斯—洛林（4）1871年在法國巴黎凡爾賽宮宣布建立德意志帝國。'},
+{type:'mc',t:'u11c',era:'德意志統一・完成',q:'德意志帝國正式宣告成立的時間和地點是？',opts:['1866年，柏林的普魯士王宮','1871年，法國巴黎的凡爾賽宮','1848年，法蘭克福的國民議會','1815年，維也納的外交會議'],ans:1,explain:'1871年1月，在法國巴黎的凡爾賽宮，普魯士國王威廉一世被擁立為德意志帝國皇帝，德意志帝國正式建立。在法國境內宣告統一，是俾斯麥對法國刻意的外交羞辱。'},
+{type:'mc',t:'u11c',era:'義大利統一・三傑',q:'義大利統一運動「三傑」中，哪一位的任務是「率領紅衫軍征服義大利南部」？',opts:['馬志尼','加富爾','加里波底','伊曼紐二世'],ans:2,explain:'義大利統一三傑：（1）馬志尼—以「復興古羅馬光榮」為號召，擺設民族意識（2）加富爾—薩丁尼亞王國首相，以外交手段排除奧地利，請求法國協助（3）加里波底—率領紅衫軍（千人隊）征服義大利南部，最終將南部土地獻給薩丁尼亞王國。'},
+{type:'tf',t:'u11c',era:'義大利統一・完成',q:'義大利統一的核心領導國家是薩丁尼亞王國，1861年建立義大利王國，1870年又取得教皇控制的羅馬，以羅馬為首都，完成統一。',ans:true,explain:'正確。義大利統一的過程：（1）薩丁尼亞王國為核心（2）加富爾排除奧地利（3）加里波底征服南部（4）1861年義大利王國成立（5）1870年普法戰爭期間，法軍撤出羅馬，義大利軍隊趁機取得羅馬，以羅馬為首都，統一大業完成。'},
+{type:'match',t:'u11c',era:'德意志與義大利統一比較',q:'請將德意志、義大利統一的相關人物與角色配對：',pairs:[['威廉一世','德意志統一後的第一位德意志帝國皇帝'],['俾斯麥','普魯士王國首相，鐵血政策推動德統一'],['伊曼紐二世','義大利統一後的第一位義大利國王'],['加富爾','薩丁尼亞王國首相，外交策略推動義大利統一']],explain:'德意志統一：普魯士國王威廉一世為皇帝，俾斯麥為首相執行鐵血政策。義大利統一：薩丁尼亞國王伊曼紐二世為義大利國王，加富爾為首相主導外交，加里波底軍事征服南部，馬志尼精神領袖。'},
+// ===== 單元11 帝國主義與一戰 =====
+{type:'mc',t:'u11d',era:'帝國主義・特徵',q:'19世紀帝國主義的主要特徵是什麼？',opts:['以傳教為主要動機，強調精神文明的傳播','工業革命後，列強為尋求原料、市場及勞工，積極向外擴張，建立殖民地，全面掌控他國的政治、外交與經濟'],ans:1,explain:'19世紀帝國主義特徵：（1）工業革命後需要大量原料產地與商品市場（2）列強積極爭奪殖民地（3）民族主義與種族優越意識推波助瀾（4）社會達爾文主義強調「適者生存」，為侵略提供藉口（5）所謂「白人的負擔」（文化使命）合理化殖民統治。'},
+{type:'mc',t:'u11d',era:'帝國主義・非洲',q:'19世紀末，非洲帝國主義侵略的結果如何？',opts:['非洲各國成功聯合抵抗，維持獨立','19世紀末，除賴比瑞亞與衣索比亞外，非洲幾乎全被歐洲列強瓜分殖民','非洲由中國主導，建立了以儒家文化為基礎的殖民制度','非洲各國透過外交手段，與列強簽訂平等條約，維護主權'],ans:1,explain:'19世紀末，歐洲列強掀起瓜分非洲狂潮，幾乎全非洲淪為殖民地。只有賴比瑞亞（美國黑人解放奴隸建立）和衣索比亞（1896年阿杜瓦之戰打敗義大利）維持獨立。列強在非洲劃定的邊界忽視了原有民族分布，埋下後來邊界紛爭的根源。'},
+{type:'mc',t:'u11d',era:'第一次世界大戰・同盟陣營',q:'第一次世界大戰的「三國同盟」與「三國協約」分別是哪些國家？',opts:['三國同盟：德、奧、義；三國協約：英、法、俄','三國同盟：英、法、美；三國協約：德、奧、日','三國同盟：德、法、俄；三國協約：英、美、義','三國同盟：美、日、中；三國協約：德、奧、土'],ans:0,explain:'一次大戰前形成兩大陣營：（1）三國同盟（1882年）：德國、奧匈帝國、義大利（2）三國協約：英國、法國、俄國。開戰後義大利倒戈加入協約國（英、法、俄），後來美國也加入協約國。'},
+{type:'mc',t:'u11d',era:'第一次世界大戰・導火線',q:'第一次世界大戰爆發的直接導火線是什麼？',opts:['德國宣布無限制潛艇戰，擊沉多艘英國商船','1914年6月，奧匈帝國王位繼承人斐迪南大公在塞拉耶佛遭刺殺，引發奧、塞之間的衝突，演變為全面戰爭','英國對德國殖民地的侵犯，引發報復','法國入侵德國邊境，觸發德軍反擊'],ans:1,explain:'一次大戰直接導火線：1914年6月，奧匈帝國王位繼承人斐迪南大公（Franz Ferdinand）在波士尼亞的塞拉耶佛遭塞爾維亞民族主義者刺殺。奧匈帝國向塞爾維亞宣戰，各國因同盟關係相繼捲入，演變為世界大戰。'},
+{type:'mc',t:'u11d',era:'第一次世界大戰・結束',q:'第一次世界大戰結束後，1919年巴黎和會簽訂了什麼條約，以及其對德國的主要懲罰是什麼？',opts:['《日內瓦公約》，要求德國割讓所有殖民地給中國','《凡爾賽條約》，德國割地、賠款、裁軍、被迫承認戰爭罪責','《聯合國憲章》，要求德國加入新成立的聯合國','《慕尼黑協定》，要求德國停止軍備擴張'],ans:1,explain:'1919年巴黎和會《凡爾賽條約》對德國的懲罰：（1）割讓亞爾薩斯—洛林給法國（2）鉅額戰爭賠款（3）軍備限制（4）承認戰爭責任（戰爭罪責條款）。這些嚴苛條款使德國經濟惡化，民心不滿，成為日後納粹興起的重要背景。'},
+{type:'tf',t:'u11d',era:'第一次世界大戰・美國參戰',q:'1917年，美國因德國實施無限制潛艇戰、以及煽動墨西哥反美，正式宣戰加入協約國陣營，成為一戰轉機。',ans:true,explain:'正確。美國參戰轉機：（1）德國對所有船隻（包括中立國）實施無限制潛艇戰（2）齊默爾曼電報─德國試圖慫恿墨西哥進攻美國。1917年美國對德宣戰，為協約國注入大量兵力與資源，加速了戰爭結束。'},
+{type:'sort',t:'u11d',era:'第一次世界大戰・時序',q:'請將一次大戰相關事件依時間先後排列：',items:['薩拉耶佛刺殺事件，戰爭爆發（1914年6月）','西線形成壕溝戰的僵局','美國正式對德宣戰（1917年）','德國簽署停戰協議，一戰結束（1918年11月）'],correctOrder:[0,1,2,3],explain:'一次大戰時序：1914年薩拉耶佛→戰爭爆發→西線壕溝戰僵局→1917年美國參戰（轉機）+俄國革命退出→1918年11月德國停戰→1919年《凡爾賽條約》。'},
+// ===== 單元12 俄國革命與經濟大恐慌 =====
+{type:'mc',t:'u12a',era:'俄國革命・十月革命',q:'1917年俄國發生兩次革命，十月革命的結果是什麼？',opts:['推翻沙皇，建立君主立憲政體','列寧領導布爾什維克黨發動革命，推翻臨時政府，建立世界上第一個共產主義政權','俄國宣布退出一次大戰，與德國和談','俄國建立民主共和政府，舉行自由選舉'],ans:1,explain:'俄國1917年兩次革命：（1）二月革命（3月）─人民反對沙皇，推翻羅曼諾夫王朝，建立臨時政府（2）十月革命（11月）─列寧布爾什維克黨以「和平！土地！麵包！」為口號推翻臨時政府，建立世界第一個共產政權，即後來的蘇聯。'},
+{type:'mc',t:'u12a',era:'俄國革命・史達林政策',q:'史達林執政時期推行「計畫經濟」的主要目標是什麼？',opts:['鼓勵私人企業自由競爭，提升經濟效率','強化國防工業，推行工業化，使蘇聯成為工業強國；但民生仍然困難'],ans:1,explain:'史達林的計畫經濟（1928年起）：（1）由國家統一計畫、分配所有經濟資源（2）目標是快速工業化（3）農業集體化強迫農民加入集體農場（4）雖使重工業和軍事工業大幅成長，但消費品短缺，民生仍然困苦，且大量異見者遭清算迫害。'},
+{type:'mc',t:'u12a',era:'經濟大恐慌・原因',q:'1929年美國股市崩盤引發經濟大恐慌的連鎖效應，下列何者不是其原因或過程？',opts:['美國股市狂跌，銀行倒閉','農工業生產過剩，外銷減少','各國競相提高關稅，形成貿易壁壘，使國際貿易萎縮','蘇聯計畫經濟的成功使各國爭相仿效，引發競爭'],ans:3,explain:'1929年經濟大恐慌原因：（1）一戰後美國生產過剩，農工業供過於求（2）1929年美國股市崩盤，銀行倒閉連鎖（3）失業率暴增（4）各國競相提高關稅保護本國，國際貿易萎縮形成惡性循環。蘇聯計畫經濟反而是在大恐慌中維持增長，但這不是大恐慌的原因。'},
+{type:'mc',t:'u12a',era:'經濟大恐慌・羅斯福新政',q:'美國總統羅斯福應對經濟大恐慌的「新政（New Deal）」主要措施是什麼？',opts:['推行自由放任政策，減少政府干預，讓市場自然恢復','以政府力量推動大型公共工程提供就業，建立社會福利制度保障民生'],ans:1,explain:'羅斯福新政（1933年起）：（1）大型公共工程（水壩、公路、學校等）提供就業機會（2）建立社會福利制度（失業救濟、老人退休金）（3）銀行法規改革（4）農業生產調整。新政打破傳統自由放任原則，以政府積極干預救濟經濟，成為現代福利國家的基礎。'},
+{type:'tf',t:'u12a',era:'經濟大恐慌・政治影響',q:'經濟大恐慌使德、義、日等國因經濟困難而滋生極端民族主義，人民盼望強大的政府，助長了極權政治的興起。',ans:true,explain:'正確。經濟大恐慌的政治後果：（1）德國─納粹黨（希特勒）以解決失業、恢復國家榮耀為訴求崛起（2）義大利─法西斯（墨索里尼）早已掌權（3）日本─軍國主義抬頭，對外擴張取得資源。極端民族主義與極權政治的興起，是二次大戰的重要背景。'},
+// ===== 單元12 極權政治興起與二次大戰 =====
+{type:'mc',t:'u12b',era:'極權政治・希特勒',q:'希特勒與納粹黨崛起的主要背景是什麼？',opts:['德國在一次大戰中獲得勝利，民族自信心高漲','《凡爾賽條約》苛刻條款使經濟惡化、通貨膨脹嚴重，加上大恐慌打擊，納粹黨以反共、反猶、恢復社會秩序等訴求獲得支持，1933年希特勒合法取得政權'],ans:1,explain:'希特勒崛起背景：（1）《凡爾賽條約》的戰爭罪責與巨額賠款使德國經濟崩潰（2）1929年大恐慌再度打擊（3）共產黨威脅社會安全（4）希特勒以「反共、反猶太、恢復德國光榮」為口號，1933年透過選舉合法取得總理職位，隨後集黨軍政大權於一身。'},
+{type:'mc',t:'u12b',era:'極權政治・墨索里尼',q:'義大利法西斯黨墨索里尼崛起的主要背景與訴求是什麼？',opts:['義大利在一戰中失敗，民心渙散','義大利雖為一戰戰勝國，但在巴黎和會未獲預期的領土；戰後經濟困難、社會動盪，法西斯黨以反共、復興古羅馬光榮為訴求獲得支持'],ans:1,explain:'墨索里尼（Mussolini）崛起：（1）義大利雖是戰勝國，但巴黎和會領土收穫不如預期，有「殘缺的勝利」之說（2）戰後經濟低迷、共產黨勢力擴大（3）法西斯黨以反共、民族主義為號召（4）1922年「向羅馬進軍」，國王任命墨索里尼為總理，掌握政權。'},
+{type:'mc',t:'u12b',era:'二次大戰・爆發',q:'第二次世界大戰的爆發時間和直接原因是什麼？',opts:['1941年，日本偷襲美國珍珠港，美國參戰引爆世界大戰','1939年，德國入侵波蘭，英、法對德宣戰，第二次世界大戰正式爆發'],ans:1,explain:'二次大戰爆發：1939年9月，德國以閃電戰入侵波蘭，英、法依照同盟條約對德宣戰，二次大戰在歐洲正式爆發。1941年日本偷襲珍珠港，美國加入協盟國，戰爭規模擴及全球。'},
+{type:'mc',t:'u12b',era:'二次大戰・珍珠港',q:'1941年12月，日本偷襲珍珠港的意義是什麼？',opts:['日本藉此佔領夏威夷，控制太平洋','促使美國加入盟國，亞歐戰場合而為一，形成美、英、蘇等同盟國對抗軸心國的全球格局'],ans:1,explain:'珍珠港事變（1941年12月7日）：日本突襲美國太平洋基地，造成重大傷亡。美國因此對日本宣戰，同時德、義對美宣戰。亞歐戰場合一，形成「同盟國（美、英、蘇等）vs 軸心國（德、義、日）」的全球大戰格局。'},
+{type:'mc',t:'u12b',era:'二次大戰・結束',q:'第二次世界大戰結束的時間與關鍵事件是什麼？',opts:['1944年6月，盟軍諾曼第登陸後，德國立即投降，日本也隨即投降，戰爭結束','1945年5月德國投降（歐洲戰場結束），1945年8月美國投下原子彈於廣島、長崎，8月15日日本宣布無條件投降，二戰正式結束'],ans:1,explain:'二次大戰結束：（1）歐洲戰場─1944年6月諾曼第登陸（D-Day），盟軍反攻，1945年5月德國無條件投降（2）太平洋戰場─1945年8月美國在廣島（8/6）和長崎（8/9）投下原子彈，8月15日日本宣布投降，9月2日正式簽署降書。'},
+{type:'sort',t:'u12b',era:'二次大戰・歐洲戰場順序',q:'請將二次大戰歐洲戰場重要事件依時間先後排列：',items:['德國入侵波蘭，二戰爆發（1939年）','日本偷襲珍珠港，美國參戰（1941年）','盟軍諾曼第登陸，開始反攻（1944年6月）','德國投降，歐洲戰場結束（1945年5月）'],correctOrder:[0,1,2,3],explain:'二次大戰歐洲戰場時序：1939年波蘭→1940年法國淪陷、不列顛空戰→1941年德蘇開戰、珍珠港→1942-43年北非戰場→1943年義大利投降→1944年諾曼第登陸→1945年5月德國投降。'},
+{type:'tf',t:'u12b',era:'二次大戰・軸心國成員',q:'二次大戰中，德國、義大利與日本組成「軸心國」陣營，而英國、法國、美國和蘇聯則構成「同盟國」陣營的主要成員。',ans:true,explain:'正確。二次大戰兩大陣營：軸心國（Axis Powers）─德、義、日為核心；同盟國（Allied Powers）─英、法（法國後來有「自由法國」繼續抵抗）、蘇聯（1941年起）、美國（1941年起）、中國（國民政府）等，後來有40多國加入。'},
+// ===== 單元12 聯合國與戰後局勢 =====
+{type:'mc',t:'u12c',era:'聯合國・成立',q:'聯合國（UN）成立的背景、時間和目的是什麼？',opts:['一次大戰後，1920年成立，由美國威爾遜總統主導，總部設於美國紐約','二次大戰後期，1945年成立，總部設於美國紐約，以維護國際和平安全、促進人權與各國合作為目標'],ans:1,explain:'聯合國（United Nations）：（1）背景─國際聯盟無法有效制裁侵略者（如日本侵華、德國擴張）（2）1945年成立，總部設於美國紐約（3）重要機構：安全理事會（美、英、法、中、俄為常任理事國，享否決權）、大會（一國一票）（4）目標：維護和平、促進人權、文教合作等。'},
+{type:'mc',t:'u12c',era:'聯合國・國際聯盟比較',q:'國際聯盟（1920年）與聯合國（1945年）相比，國際聯盟最主要的缺點是什麼？',opts:['國際聯盟總部設在錯誤的地點，無法有效運作','國際聯盟缺乏武力，且美國未加入，使其成效不彰；決議需全體一致通過，使小國也能阻礙大會決議'],ans:1,explain:'國際聯盟缺點：（1）美國未加入（美國會拒絕批准）（2）缺乏強制武力（3）決議需全體一致同意，容易被少數否決。相比之下，聯合國設有安全理事會（可採取強制措施），並設立常任理事國制度，改善了決策效率。'},
+{type:'tf',t:'u12c',era:'聯合國・巴黎和會',q:'1919年巴黎和會提出「民族自決」原則，以及威爾遜提出的「十四點原則」，但這些原則在實際執行中成效有限，美國甚至未批准加入國際聯盟。',ans:true,explain:'正確。1919年巴黎和會：威爾遜（美國總統）提出十四點原則（民族自決、公開外交、裁減軍備、建立國際聯盟等），但（1）美國國會拒絕批准，未加入國際聯盟（2）民族自決原則主要適用於戰敗國領土，對亞非殖民地未落實（3）德國被苛刻對待，種下二戰根源。'},
+{type:'match',t:'u12c',era:'戰時會議配對',q:'請將二次大戰中的重要會議與其討論內容配對：',pairs:[['開羅會議（1943年）','中、美、英討論東亞問題，決定日本必須無條件投降'],['雅爾達會議（1945年）','美（羅斯福）、英（邱吉爾）、蘇（史達林）決定戰後德國處置與蘇聯參加太平洋戰爭'],['波茨坦公告（1945年）','要求日本無條件投降的最後通牒'],['舊金山會議（1945年）','通過《聯合國憲章》，正式建立聯合國']],explain:'二戰重要會議：（1）開羅（1943）─蔣、羅、邱討論東亞（2）德黑蘭（1943）─羅、邱、史討論諾曼第登陸（3）雅爾達（1945/2）─戰後德國處置，蘇聯參加太平洋戰爭（4）波茨坦公告（1945/7）─促日本投降（5）舊金山（1945）─建立聯合國。'},
+// ===== 單元12 冷戰與多元化時代 =====
+{type:'mc',t:'u12d',era:'冷戰・形成原因',q:'二次大戰後美蘇「冷戰」的主要特徵是什麼？',opts:['美蘇之間爆發了多次直接的大規模軍事衝突，雙方傷亡慘重','美蘇在政治、思想、軍事等方面對峙，各自建立同盟體系，但為避免核戰而未直接開戰，改以代理人戰爭、軍備競賽等方式對抗'],ans:1,explain:'冷戰（Cold War，1947-1991年）特徵：（1）意識形態對立─民主資本主義（美）vs 共產主義（蘇）（2）軍事集團─北大西洋公約組織（NATO）vs 華沙公約組織（WTO）（3）避免直接開戰（核武威脅），但有代理人戰爭（韓戰、越戰、阿富汗等）（4）軍備競賽與太空競賽。'},
+{type:'mc',t:'u12d',era:'冷戰・柏林危機',q:'1948-1949年柏林危機的經過是什麼？',opts:['蘇聯與西方各國爆發武裝衝突，爭奪柏林控制權','蘇聯封鎖西柏林（美、英、法佔領區），切斷陸路交通；美英等國以空運補給西柏林，蘇聯最終解除封鎖'],ans:1,explain:'柏林危機（1948-1949）：（1）背景─二戰後德國由美英法蘇四國佔領，柏林在蘇佔區內但由四國共管（2）1948年蘇聯封鎖西柏林陸路（3）美英以「柏林空運」每天數百架次飛機補給西柏林（4）蘇聯1949年解除封鎖（5）後來蘇聯建立柏林圍牆（1961年），阻止東德人民出走，成為冷戰象徵。'},
+{type:'mc',t:'u12d',era:'冷戰・古巴危機',q:'1962年古巴飛彈危機的結果是什麼？',opts:['蘇聯成功在古巴部署飛彈，形成對美國的永久威脅','美蘇雙方協商後，蘇聯撤除古巴飛彈，美國解除對古巴的海軍封鎖，世界避免了核戰爆發'],ans:1,explain:'古巴飛彈危機（1962年10月）是冷戰最危急的時刻：（1）蘇聯在古巴建立飛彈基地，威脅美國本土（2）甘迺迪總統宣布對古巴海軍封鎖（3）緊張對峙約13天（4）最終赫魯雪夫同意撤除飛彈，美國承諾不入侵古巴並撤出土耳其飛彈。世界避免了核戰。'},
+{type:'mc',t:'u12d',era:'冷戰・蘇聯解體',q:'1991年蘇聯解體的主要原因包括哪些？',opts:['美國直接軍事攻擊蘇聯，迫使其解體','戈巴契夫改革（開放政策、重建）引發東歐民主化浪潮，各加盟國紛紛宣布獨立，1991年蘇聯正式解體，冷戰結束'],ans:1,explain:'蘇聯解體（1991年）：（1）戈巴契夫的「開放政策」（Glasnost）和「重建」（Perestroika）鬆動了政治管制（2）1989年東歐非共化─柏林圍牆倒塌（3）各加盟共和國宣布獨立（4）1991年8月政變失敗後，各共和國陸續獨立（5）1991年12月蘇聯正式解體，由俄羅斯等15個國家繼承。'},
+{type:'tf',t:'u12d',era:'冷戰・第三世界',q:'二次大戰後，亞非地區出現許多新興獨立國家，這些不加入美蘇冷戰任何一方的國家組成「第三世界」，在國際舞台扮演重要角色。',ans:true,explain:'正確。第三世界（Third World）：（1）背景─二戰後歐洲殖民帝國衰退，亞非各地民族獨立運動興起（2）1955年亞非會議（萬隆會議）─強調不結盟（3）不加入美蘇任何一方，維持中立（4）成員眾多但實力較弱，在聯合國大會中有一定發言權。'},
+{type:'mc',t:'u12d',era:'冷戰・韓戰',q:'韓戰（1950-1953年）的重要意義是什麼？',opts:['美蘇兩國直接開戰，是冷戰期間唯一一次超強正面衝突','冷戰期間代理人戰爭的典型案例，美國為首的聯合國軍隊與中國參戰的北韓對峙，最終以停戰協議結束，朝鮮半島至今分裂'],ans:1,explain:'韓戰（1950-1953）：（1）北韓（蘇聯支持）入侵南韓→聯合國（以美軍為主）支援南韓→中共出兵援助北韓（2）代理人戰爭的典型（美蘇未直接交戰）（3）1953年停戰協議，以北緯38度線為界（4）朝鮮半島至今仍是分裂狀態，是冷戰遺留問題。'},
+{type:'match',t:'u12d',era:'冷戰重要事件配對',q:'請將冷戰時期的重要事件與其時間或意義配對：',pairs:[['柏林圍牆倒塌','1989年，象徵東歐非共化與冷戰終結'],['古巴飛彈危機','1962年，冷戰最危急時刻，美蘇核戰邊緣'],['韓戰','1950年，冷戰代理人戰爭，朝鮮半島至今分裂'],['蘇聯解體','1991年，戈巴契夫改革失控，冷戰正式結束']],explain:'冷戰重要事件：柏林圍牆（1961年建，1989年倒）象徵分裂與統一；古巴危機（1962）最危急時刻；韓戰（1950-53）代理人戰爭；蘇聯解體（1991）冷戰正式結束，進入多元化時代。'},
+{type:'mc',t:'u12d',era:'冷戰・以阿衝突',q:'以色列與阿拉伯國家衝突的起源是什麼？',opts:['以色列先攻擊阿拉伯國家，強奪石油資源','二戰後，猶太人在英美支持下於巴勒斯坦地區建立以色列（1948年），阿拉伯人被迫離難，引發周邊伊斯蘭阿拉伯國家不滿，多次爆發以阿戰爭，中東局勢至今仍動盪不安'],ans:1,explain:'以阿衝突起源：（1）猶太人因二戰大屠殺（Holocaust）及英國《貝爾福宣言》（支持建立猶太家園）（2）1948年以色列建國，阿拉伯人被迫離鄉（3）周邊阿拉伯國家不承認以色列（4）多次以阿戰爭（1948、1956、1967「六日戰爭」、1973）（5）中東石油使問題更加複雜，影響至今。'},
+{type:'fill',t:'u12d',era:'冷戰・北約',q:'冷戰期間，美國聯合西歐民主國家成立的軍事防禦組織，正式名稱為「________公約組織」，簡稱北約。',ans:'北大西洋',alts:['北大西洋公約'],explain:'北大西洋公約組織（NATO，North Atlantic Treaty Organization）於1949年成立，美國為首，聯合西歐民主國家，以圍堵蘇聯共產勢力。蘇聯則帶領東歐共產國家組成「華沙公約組織」（WTO）對抗。'},
+{type:'mc',t:'u12d',era:'多元化時代・特徵',q:'冷戰結束後，當代世界（多元化時代）的主要特徵是什麼？',opts:['美國成為世界唯一超強，所有國際衝突均由美國主導解決','冷戰兩極體系瓦解，各國政治、經濟和宗教問題形成多極競爭，各地區域衝突及恐怖攻擊增多'],ans:1,explain:'冷戰後多元化時代特徵：（1）美蘇兩極格局瓦解（2）多個強權並立（美、中、俄、歐盟等）（3）區域衝突頻繁（巴爾幹、中東、非洲）（4）恐怖主義威脅（911事件等）（5）全球化帶來新挑戰（氣候變遷、難民問題）（6）美中競爭成為新焦點。'}
+];
+
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.panel).classList.add('active');if(tab.dataset.panel==='wrong')renderWP();});});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+function updateGo(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);const btn=document.getElementById('goBtn');if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}else{btn.disabled=true;btn.textContent='請選擇單元與模式';}}
+document.getElementById('goBtn').addEventListener('click',startGame);
+function startGame(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;const isLong=S.mode==='normal'||S.mode==='timed';let pool=QB.filter(q=>S.topics.includes(q.t));pool=shuffle(pool);S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));S.cur=0;showScreen('game');renderQ();}
+function startWrongPractice(){const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();}
+function renderQ(){if(S.cur>=S.qs.length){showResult();return;}const q=S.qs[S.cur];S.answered=false;const total=S.qs.length;document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));else document.getElementById('gLives').textContent='';const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort'};document.getElementById('qtag').textContent=tMap[q.type]||'題目';document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;document.getElementById('qtext').textContent=q.q;document.getElementById('qsub').textContent=q.hint||'';const area=document.getElementById('ans-area');area.innerHTML='';document.getElementById('fbbox').className='fb-box';document.getElementById('nextBtn').className='next-btn';if(q.type==='mc')renderMC(q,area);else if(q.type==='tf')renderTF(q,area);else if(q.type==='fill')renderFillQ(q,area);else if(q.type==='match')renderMatch(q,area);else if(q.type==='sort')renderSort(q,area);clearInterval(S.timer);const te=document.getElementById('gTimer');if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}else te.style.display='none';}
+function renderMC(q,area){const grid=document.createElement('div');grid.className='opts';q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt';btn.textContent=o;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const ok=i===q.ans;grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});finish(ok,q);});grid.appendChild(btn);});area.appendChild(grid);}
+function renderTF(q,area){const row=document.createElement('div');row.className='tf-row';['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const userT=i===0,ok=userT===q.ans;row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});finish(ok,q);});row.appendChild(btn);});area.appendChild(row);}
+function renderFillQ(q,area){const row=document.createElement('div');row.className='fill-row';const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確答案：${q.ans}`);};btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});row.append(inp,btn);area.appendChild(row);}
+function renderMatch(q,area){const wrap=document.createElement('div');wrap.className='match-wrap';const lCol=document.createElement('div');lCol.className='match-col';const rCol=document.createElement('div');rCol.className='match-col';const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);let lPicked=null,rPicked=null,matched=0;pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});wrap.append(lCol,rCol);area.appendChild(wrap);function tryM(){if(!lPicked||!rPicked)return;const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}lPicked=null;rPicked=null;}wrap.addEventListener('click',e=>{if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}tryM();});}
+let dragEl=null;
+function renderSort(q,area){const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));const list=document.createElement('div');list.className='sort-list';shuffled.forEach(item=>{const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});el.addEventListener('dragend',()=>el.classList.remove('dragging'));el.addEventListener('dragover',e=>e.preventDefault());el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});list.appendChild(el);});area.appendChild(list);const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});area.appendChild(chk);}
+function finish(ok,q,extraMsg){const pts=calcPts(ok,q.type);if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;document.getElementById('fbmsg').textContent=msg;document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;const nb=document.getElementById('nextBtn');nb.className='next-btn show';const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};}
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+function startTimer(sec){S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';S.timer=setInterval(()=>{S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}},1000);}
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+function showResult(){clearInterval(S.timer);showScreen('result');const max=S.qs.length*6;const pct=max>0?S.score/max:0;let emoji,title,msg;if(pct>=.9){emoji='🏆';title='歷史高手！';msg='第六冊民主革命與二十世紀大戰掌握得非常好！繼續保持！';}else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點複習一下！';}else if(pct>=.5){emoji='📖';title='繼續加油！';msg='去錯題複習區針對弱點加強！';}else{emoji='💪';title='不要灰心！';msg='把筆記再仔細看一遍，再來挑戰！';}document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';document.getElementById('rMsg').textContent=msg;const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}else document.getElementById('rWeak').style.display='none';const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';if(pct>=.75)confetti();}
+function renderWP(){const bank=loadWB();const panel=document.getElementById('wrongPanel');const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;pw.style.display='block';cl.style.display='block';}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#27ae60','#1a7a3a','#156a30','#52c77a','#c8f0d8'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

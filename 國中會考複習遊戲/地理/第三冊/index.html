@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地理闖關王 第三冊</title>
+<style>
+:root{
+  --bg:#fff8f0;--ink:#0a1a2a;--red:#c0392b;--gold:#c67c1e;
+  --teal:#8e5a1a;--blue:#7d4e0f;--accent:#e67e22;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(10,26,42,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(230,126,34,.08) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(198,124,30,.06) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#fde8c8 0%,var(--bg) 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(10,26,42,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(10,26,42,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(10,26,42,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(10,26,42,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(10,26,42,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#fde8c8;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(10,26,42,.48);margin-top:3px;line-height:1.4;}
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(10,26,42,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(10,26,42,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(10,26,42,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(10,26,42,.38);border:1px solid rgba(10,26,42,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:#ff6b6b;animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#fde8c8;color:var(--teal);}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#fde8c8;color:#7d4e0f;}
+.qtag.match{background:#fce8d0;color:#b06010;}
+.qtag.sort{background:#fde8d0;color:#d35400;}
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(10,26,42,.43);margin-bottom:11px;font-style:italic;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#fef3e8;border:2px solid #f0c080;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#fde8c8;}
+.opt.ok{background:#d4f5e2;border-color:#1a7a3a;color:#1a7a3a;font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #f0c080;background:#fef3e8;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:#1a7a3a;}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:#1a7a3a;background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--blue);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#fef3e8;border:2px solid #f0c080;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:var(--gold);background:#fde8c8;font-weight:700;}
+.match-item.matched{border-color:#1a7a3a;background:#d4f5e2;color:#1a7a3a;font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#fde8c8;border:2px solid #f0c080;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--teal);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:#1a7a3a;border-left:4px solid #1a7a3a;}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+#result{background:linear-gradient(155deg,#fde8c8 0%,var(--bg) 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(10,26,42,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(10,26,42,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(10,26,42,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#fef3e8;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">地理闖關王</div>
+    <div class="home-badge">地理 第三冊 · 單元5+6+附錄 · 會考複習</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip on" data-t="u5a">🇨🇳 中國自然環境</div>
+      <div class="tchip on" data-t="u5b">🌾 中國農牧業</div>
+      <div class="tchip on" data-t="u5c">👥 中國人口</div>
+      <div class="tchip on" data-t="u5d">🏭 中國產業經濟</div>
+      <div class="tchip on" data-t="app">🌍 全球氣候</div>
+      <div class="tchip on" data-t="u6a">🗾 東北亞自然與氣候</div>
+      <div class="tchip on" data-t="u6b">⚙️ 東北亞經濟</div>
+      <div class="tchip on" data-t="u6c">🌴 東南亞</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+<div class="screen" id="game">
+  <div class="gbar">
+    <div><div class="gbar-left" id="gInfo">第 1 / 50 題</div><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;"><div class="gbar-timer" id="gTimer" style="display:none;">20</div><div><div class="gbar-score" id="gScore">0 分</div><div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox"><div class="fb-title" id="fbtitle"></div><div id="fbmsg"></div></div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div><div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div><div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div><div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+<div class="combo" id="combo"></div>
+<script>
+const SK='geo_book3_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+// ===== 單元5 中國自然環境 =====
+{t:'u5a',type:'mc',era:'中國概況・基本資料',q:'中國國土面積約為多少平方公里？排名世界第幾？',opts:['約360萬，第5','約960萬，第3','約500萬，第4','約1200萬，第2'],ans:1,explain:'中國國土面積約960萬平方公里，為世界第三大國（僅次於俄羅斯、加拿大），約為臺灣的265倍。'},
+{t:'u5a',type:'mc',era:'中國地形・三大階梯',q:'中國地形「西高東低、呈三級階梯」，從西到東，第一階梯的平均高度為何？代表地形為何？',opts:['約1,000-2,000公尺，黃土高原','超過4,000公尺，青藏高原','約1,000公尺，四川盆地','低於500公尺，東北平原'],ans:1,explain:'第一階梯（最高）：青藏高原，平均超過4,000公尺，有「世界屋脊」之稱。第二階梯：1,000-2,000公尺，高原盆地（黃土高原、內蒙古高原）。第三階梯：低於1,000公尺，平原丘陵。'},
+{t:'u5a',type:'mc',era:'中國地形・秦嶺淮河',q:'秦嶺、淮河一線是中國重要的地理分界線，以北與以南的差異，下列何者正確？',opts:['以北年降水量>750mm，以南<750mm','以北最冷月均溫<0℃，主食小麥；以南>0℃，主食稻米','以北為熱帶氣候，以南為溫帶氣候','以北緯度較低，氣溫較高'],ans:1,explain:'秦嶺淮河為中國南北分界：以北最冷月均溫<0℃、年降水<750mm、溫帶季風氣候、主食小麥；以南>0℃、>750mm、副熱帶/熱帶季風、主食稻米、河運發達。'},
+{t:'u5a',type:'sort',era:'中國地形・三階梯排序',q:'請將中國三大階梯依「海拔由高到低」排列（最高排第一）：',items:['第二階梯（高原盆地，黃土高原）','第三階梯（平原丘陵，東北平原）','第一階梯（青藏高原）'],correctOrder:[2,0,1],explain:'第一階梯（青藏高原，>4000公尺）→第二階梯（高原盆地，1000-2000公尺）→第三階梯（平原丘陵，<1000公尺）。河川多由西向東流，注入太平洋。'},
+{t:'u5a',type:'mc',era:'中國氣候・夏季特徵',q:'中國夏季「南北溫差小」的主要原因為何？',opts:['夏季颱風帶來均勻降雨使氣溫穩定','北部緯度雖高，但日照時間長，彌補了緯度差；東部地勢低平，氣溫普遍>20℃','北方冬季冷，夏季蒸發大，使南北溫差縮小','夏季西南季風帶來大量水氣，調節氣溫'],ans:1,explain:'夏季南北溫差小：北方緯度高但日照時間長，彌補了緯度差距；加上東部整體地勢低平，夏季氣溫普遍超過20℃，南北差距不大。'},
+{t:'u5a',type:'mc',era:'中國氣候・冬季特徵',q:'中國冬季「南北溫差大」，1月均溫0℃等溫線大致通過哪裡？',opts:['長城沿線（北緯40度）','秦嶺、淮河（北緯33度附近）','黃河流域（北緯35度）','長江流域（北緯30度）'],ans:1,explain:'中國1月均溫0℃等溫線大致沿秦嶺、淮河走向，以北為冬季嚴寒（受西伯利亞冷高壓影響），以南冬季溫暖。南北溫差大是冬季最顯著的氣候特徵。'},
+{t:'u5a',type:'mc',era:'中國氣候・乾燥氣候',q:'中國西北（蒙古、新疆）屬於「乾燥氣候」，主要原因為何？',opts:['地勢低，受海洋影響大','距海遙遠且地形阻隔，水氣難以深入內陸，年降水量<250mm','緯度低，氣候炎熱乾燥','受西南季風影響強烈'],ans:1,explain:'乾燥氣候分布於蒙古、新疆：距海遙遠（海陸位置），加上高山阻隔（阿爾泰山等），太平洋、印度洋水氣無法深入，年降水量<250mm，形成草原、沙漠氣候。'},
+{t:'u5a',type:'tf',era:'中國地形・河川',q:'中國河川多由西向東流，主要注入太平洋；興建南水北調工程是為了彌補南部河流水量不足的問題。',ans:false,explain:'南水北調是將南方（長江流域）的充沛水資源，調往水資源不足的北方（黃河、海河流域），解決北多南少的問題。中國降水呈「東多西少、南多北少」，北方才是缺水地區。'},
+{t:'u5a',type:'match',era:'中國地形・高原配對',q:'請將中國高原與其特色配對：',pairs:[['青藏高原','世界最高高原，世界屋脊，氣溫低，農業較少'],['黃土高原','土質疏鬆，易受流水侵蝕，地表崎嶇不平'],['內蒙古高原','平坦遼闊，東部草場豐美，冬季寒冷'],['四川盆地','形勢封閉，開闊梯田，農業發達，夏季悶熱']],explain:'中國四大高原：青藏（世界最高）、黃土（易侵蝕）、內蒙古（草原放牧）、雲貴（石灰岩地形，喀斯特地貌）。'},
+
+// ===== 單元5 中國農牧業 =====
+{t:'u5b',type:'mc',era:'中國農業・農牧分界',q:'中國傳統農業與牧業的分界線，大約沿哪條降水量等雨線劃分？',opts:['250mm等雨線','500mm等雨線','750mm等雨線','1000mm等雨線'],ans:1,explain:'500mm等雨線（大約沿大興安嶺—陰山—蘭州—拉薩一線）是中國農牧業的重要分界，以東以南農業為主，以西以北牧業為主。'},
+{t:'u5b',type:'mc',era:'中國農業・東西差異',q:'中國東部（農業區）與西部（牧業區）的主要差異，下列何者正確？',opts:['東部地廣人稀，以遊牧為主；西部人口密集，農業發達','東部面積43%佔全國人口94%，地勢平坦氣候濕潤農業發達；西部面積57%人口僅6%，多高山乾漠不利農耕','東部礦產資源豐富；西部人口密集製造業發達','東西部農牧業發展程度相當'],ans:1,explain:'東部：面積佔43%、人口94%，地勢低平、氣候濕潤、交通便利，農業和工業發達；西部：面積57%、人口僅6%，高山多、氣候乾燥，主要以牧業（高原）和礦產開採為主。'},
+{t:'u5b',type:'match',era:'中國農業・地區配對',q:'請將中國農業地區與主要作物配對：',pairs:[['東北平原','旱田，大豆、小麥（小麥饅頭）'],['長江中下游平原','水田，水稻（米食）'],['新疆（乾燥氣候）','綠洲農業，哈密瓜、棉花'],['雲南縱谷','種植青稞、耐高寒作物']],explain:'東北（旱作）以小麥大豆為主；長江流域（水田）以稻米為主；新疆綠洲靠雪山融水，日照長產甜瓜棉花；雲貴高原種青稞等耐寒作物。'},
+{t:'u5b',type:'tf',era:'中國農業・挑戰',q:'中國農業面臨「人均可耕地面積小於世界平均」的問題，主因是地廣人稀，農業勞動力不足。',ans:false,explain:'中國農業挑戰：人均可耕地低於世界平均——主因是人口眾多（地狹人稠），並非地廣人稀。其他問題：水資源分配不均、水土流失、農牧業生態惡化等。'},
+{t:'u5b',type:'mc',era:'中國農業・轉型',q:'中國農業轉型措施中，「建立全國性商品糧基地」的目的為何？',opts:['以自給自足為目標，減少農業貿易','設立稻米、小麥等生產專區，擴大生產規模，確保糧食供應穩定','推廣有機農業，提升農產品品質','縮小農業規模，促進農村勞動力轉移城市'],ans:1,explain:'建立全國性商品糧基地：政府規劃重點農業生產區（如東北旱作、長江流域稻米），集中資源擴大生產，以穩定全國糧食供應，確保14億人的糧食安全。'},
+
+// ===== 單元5 中國人口 =====
+{t:'u5c',type:'mc',era:'中國人口・分布',q:'中國人口分布以「黑河—騰衝線」為界，東西半部差異為何？',opts:['東半部面積57%，人口94%；西半部面積43%，人口6%','東半部面積43%，人口94%；西半部面積57%，人口6%','東西半部面積與人口比例均等','西半部人口多，東半部人口少'],ans:1,explain:'黑河（黑龍江）到騰衝（雲南）連線：東半部面積佔43%，卻集中94%人口；西半部面積57%，人口僅6%。東部地勢低平、氣候宜農、交通便利，人口高度集中。'},
+{t:'u5c',type:'mc',era:'中國人口・一胎化',q:'中國1979年實施「一胎化政策」，其影響為何？',opts:['人口急速增長，超過20億','自然增加率加速，人口問題加劇','自然增加率快速下降，1980-2020年由12%降至1%，但導致少子化、高齡化、性別失衡等問題','出生率上升，人口均衡發展'],ans:2,explain:'一胎化政策（1979-2015）：有效降低出生率，自然增加率顯著下降；但副作用：少子化（幼年人口少）、高齡化（老年比例升）、性別失衡（重男輕女→性別比偏高→男多女少）。'},
+{t:'u5c',type:'tf',era:'中國人口・放寬政策',q:'中國2016年實施「全面二孩政策」、2021年開放三孩，但因育齡婦女數減少及年輕世代經濟壓力，出生率未明顯回升。',ans:true,explain:'放寬一胎化後，中國嘗試鼓勵生育，但出生率並未顯著上升，原因：育齡婦女（一胎化時代出生）數量減少、年輕人養育成本高、生育意願低。人口問題難以短期逆轉。'},
+{t:'u5c',type:'mc',era:'中國人口・性別失衡',q:'中國因長期一胎化政策與傳統重男輕女觀念，導致出生性別比異常，其影響為何？',opts:['女性比男性多，造成就業市場失衡','新生兒性別比達110:100（男多女少），適婚男性找不到配偶','男女比例均衡，不影響社會','女性因重視教育程度較高，就業競爭力強'],ans:1,explain:'中國性別失衡：出生性別比約110（男）:100（女），即男多女少。長期影響：適婚男性找不到配偶（「光棍危機」）、人口結構扭曲。政府宣傳性別平等，推動男孩女孩一樣好。'},
+{t:'u5c',type:'mc',era:'中國人口・國內移民',q:'中國近代「春運」現象反映了什麼人口移動趨勢？',opts:['農村人口因天災向城市避難','東南沿海經濟發達，都市化程度高，吸引內陸農村人口大量移入打工，春節返鄉形成春運','北方農業豐收，農村人口不需移動','大城市人口往農村疏散的逆城市化現象'],ans:1,explain:'春運：東部沿海（長三角、珠三角）經濟發達吸引大量內地農村勞動力（民工）移入，每逢農曆春節大量返鄉，形成全球最大規模的人口移動「春運」現象。'},
+{t:'u5c',type:'mc',era:'中國人口・少數民族',q:'中國少數民族共有幾族？漢族佔全國人口比例約為多少？',opts:['25族，漢族70%','54族，漢族80%','55族（共56族），漢族約91%','100族，漢族50%'],ans:2,explain:'中國共有56個民族，其中漢族最多（約91%），少數民族共55族（約9%），主要分布於東北、西北、西南邊疆地帶，設有自治區（如西藏、新疆、內蒙古等）。'},
+
+// ===== 單元5 中國產業經濟 =====
+{t:'u5d',type:'mc',era:'中國工業・改革開放',q:'中國1978年「改革開放」的主要措施與影響，下列何者正確？',opts:['實施計畫經濟，由政府統一分配資源','引進外資、設立沿海經濟特區（廈門、汕頭、深圳等），開放市場，推動中國經濟快速成長','關閉對外貿易，發展自主工業','以農業生產為核心，不鼓勵工業發展'],ans:1,explain:'1978年改革開放：引進外資外貿、設立經濟特區（深圳等五大）、以勞力密集加工出口業為主體，帶動東部沿海都市化及GDP快速成長，中國成為「世界工廠」。'},
+{t:'u5d',type:'mc',era:'中國工業・四大經濟圈',q:'中國「長三角經濟圈」的核心城市為何？主要特色為何？',opts:['北京，政治中心，科技發展快','上海（含蘇州、杭州等），都市化程度最高，金融業高科技產業發達','廣州深圳，最早開放，加工出口業起家','成都重慶，內陸城市，輻射西部地區'],ans:1,explain:'長三角（上海、江蘇、浙江）：中國都市化程度最高、GDP最高的區域，金融、高科技、先進製造業發達，以上海為核心。'},
+{t:'u5d',type:'mc',era:'中國工業・珠三角',q:'中國珠三角（廣東省）經濟圈的發展特色為何？',opts:['歷史最悠久，以文化旅遊為主','最早改革開放，加工出口業起家，後轉型為創新產業中心（深圳科技）','礦產資源豐富，以重工業為主','人口最多，以農業和糧食生產為主'],ans:1,explain:'珠三角：最早開放（1978年深圳等特區），以勞力密集加工出口業起步，後升級轉型，深圳成為全球科技創新中心（華為、騰訊、比亞迪等），現為新創產業中心。'},
+{t:'u5d',type:'mc',era:'中國經濟・世界角色',q:'中國從「世界工廠」轉型為「世界市場」，主要原因為何？',opts:['中國工資上漲，不再有低廉勞力優勢','人民所得提高，消費能力提升，吸引各國企業進入；加上網路普及，電子商務發達，成為全球最大消費市場','中國停止出口，改為全數內銷','中國加入世貿組織後，被迫開放市場'],ans:1,explain:'中國「世界市場」：14億人口的消費能力隨所得提升而增強；網路、電子商務（阿里巴巴、京東）使消費更便利，中國現為全球最大消費市場，成為各跨國企業必爭之地。'},
+{t:'u5d',type:'match',era:'中國城市・特色配對',q:'請將中國主要城市與特色配對：',pairs:[['北京','首都、政治中心，近年科技發展（中關村）'],['上海','最大都市，金融中心，浦東新區，外貿發達'],['廣州','中國南方水陸交通樞紐，商業城市'],['深圳','最早設立的經濟特區，現為新創產業中心']],explain:'中國四大城市：北京（政治）、上海（金融經濟）、廣州（南部樞紐）、深圳（科技創新）。上海GDP全球城市前三，深圳是中國矽谷。'},
+{t:'u5d',type:'tf',era:'中國經濟・一帶一路',q:'「一帶一路」政策（2013年）：「一帶」指陸上絲綢之路（中國→中亞→歐洲），「一路」指21世紀海上絲綢之路（中國→東南亞→非洲→歐洲）。',ans:true,explain:'一帶一路：透過投資基礎建設，連結亞、歐、非三大洲。爭議：部分國家因過度倚賴中國投資而積累鉅額債務（「債務陷阱外交」），斯里蘭卡漢班托塔港即為案例。'},
+{t:'u5d',type:'mc',era:'中國環境・問題',q:'中國經濟快速發展造成的主要環境問題，下列何者正確？',opts:['中國碳排放量居全球第二，主要影響臺灣農業','霧霾：大量化石燃料使用造成空汙，擴散影響南韓、日本；水資源緊張：因人口與工業需求，跨國水壩引發下游爭議','環境問題不嚴重，中國已完全轉型綠能','沙漠化問題僅限新疆，不影響其他地區'],ans:1,explain:'中國環境三大問題：碳排放（全球第一）→全球暖化；霧霾（燃煤+沙漠化）→影響東亞（臺灣東北季風、韓日西北季風）；水資源（攔壩建設影響湄公河等下游國家農業）。'},
+
+// ===== 附錄 全球氣候 =====
+{t:'app',type:'mc',era:'全球氣候・影響因素',q:'影響氣候的主要因素中，「緯度」的影響為何？',opts:['緯度越高，氣溫越高，年溫差越小','緯度越低（靠近赤道），太陽輻射角大，氣溫越高；緯度越高，氣溫越低，年溫差越大','緯度對氣溫沒有影響，主要受洋流控制','赤道緯度最低，氣溫最低'],ans:1,explain:'緯度是影響氣溫最重要因素：低緯（赤道）太陽輻射角大→氣溫高、年溫差小；高緯（兩極）輻射角小→氣溫低、年溫差大（冬冷夏暖）。'},
+{t:'app',type:'mc',era:'全球氣候・洋流影響',q:'下列關於洋流對氣候影響的敘述，何者正確？',opts:['暖流：使沿岸氣候寒冷乾燥；涼流：使沿岸溫暖潮濕','暖流：低緯往高緯流，使沿岸溫暖潮濕；涼流：中緯往低緯流，使沿岸寒冷少雨','洋流只影響降水，不影響氣溫','涼流流經地區降水增多'],ans:1,explain:'暖流（如黑潮）：由低緯流向高緯，帶來溫暖潮濕空氣；涼流（如祕魯涼流）：由高緯（中緯）流向低緯，帶來寒冷乾燥空氣，沿岸常有沙漠（如納米布沙漠）。'},
+{t:'app',type:'match',era:'全球氣候・熱帶氣候類型',q:'請將熱帶氣候類型與其主要特徵配對：',pairs:[['熱帶雨林氣候','赤道附近，全年高溫多雨，多對流雨'],['熱帶草原氣候','熱帶雨林南北兩側，夏濕冬乾，乾濕分明'],['熱帶沙漠氣候','回歸線附近，乾燥少雨，日溫差大'],['熱帶季風氣候','亞洲東南部，夏雨集中，冬乾燥少雨']],explain:'熱帶四種氣候：雨林（全年多雨）→草原（乾濕分明）→沙漠（極端乾燥）→季風（集中夏雨）。位置：赤道→熱帶（雨林→草原→沙漠），亞洲另有熱帶季風。'},
+{t:'app',type:'mc',era:'全球氣候・溫帶氣候',q:'「溫帶地中海型氣候」的主要特徵為何？分布在哪裡？',opts:['全年有雨，年溫差小，分布大陸西岸高緯','夏乾冬雨，分布南北緯30-40度大陸西岸','夏雨冬乾，分布大陸東岸','四季均勻降雨，分布大陸內陸'],ans:1,explain:'地中海型氣候：分布在南北緯30-40度大陸西岸，夏季受副熱帶高壓控制→乾燥少雨；冬季偏移帶來西風帶→溫和多雨。特色：「夏乾冬雨」，適合橄欖、葡萄等地中海農業。'},
+{t:'app',type:'mc',era:'全球氣候・溫帶大陸性',q:'「溫帶大陸性氣候」的主要特徵為何？',opts:['四季分明，夏涼冬暖，年降水多','分布北半球大陸內部，遠離海洋，夏熱冬寒，年溫差大，年降水少','全年多雨，溫暖濕潤','分布大陸西岸，冬暖夏涼，年降水均勻'],ans:1,explain:'溫帶大陸性氣候：分布北半球大陸內部（美國中部、俄羅斯西伯利亞），遠離海洋，大陸性質差大→夏熱冬寒、年溫差大、年降水少，以草原、森林景觀為主。'},
+{t:'app',type:'tf',era:'全球氣候・高地氣候',q:'高地氣候分布於海拔超過3,000公尺的地區，如青藏高原，特色是終年低溫、年溫差較小，氣溫與植被隨高度垂直變化。',ans:true,explain:'高地氣候：海拔高（>3000公尺）→氣溫低；由於高度變化比緯度帶更快改變氣溫，因此植被與氣溫呈「垂直地帶性」，從山腳熱帶→山頂極地景觀。'},
+{t:'app',type:'mc',era:'亞洲季風・特徵',q:'亞洲季風氣候形成的主要原因為何？',opts:['亞洲位於赤道附近，全年受太陽直射','亞洲大陸面積廣大，使海陸性質差異顯著，形成夏季海陸風向相反的季風氣候','亞洲四面環海，水氣充足','亞洲地勢高，阻擋太平洋水氣'],ans:1,explain:'亞洲季風：亞洲大陸廣大，造成顯著海陸性質差異。夏季大陸溫度高→低壓→海洋季風吹入（夏季風）；冬季大陸冷→高壓→往海洋吹（冬季風），夏雨冬乾。'},
+
+// ===== 單元6 東北亞自然環境 =====
+{t:'u6a',type:'mc',era:'東北亞・位置',q:'東北亞包含哪些主要國家與地區？',opts:['越南、泰國、緬甸、印尼','日本、朝鮮半島（南北韓）、中國東北部','印度、巴基斯坦、斯里蘭卡','菲律賓、馬來西亞、新加坡'],ans:1,explain:'東北亞：日本群島、朝鮮半島（南韓＋北韓）、中國東北部（東北三省），是亞洲東北角，靠近太平洋西岸，屬溫帶季風氣候為主。'},
+{t:'u6a',type:'mc',era:'東北亞・日本地形',q:'日本群島位於亞歐板塊與哪兩個板塊的交界，因此多火山地震？',opts:['非洲板塊、印澳板塊','太平洋板塊、菲律賓海板塊','北美板塊、南美板塊','印度板塊、阿拉伯板塊'],ans:1,explain:'日本位於亞歐板塊與太平洋板塊、菲律賓海板塊的交界，是環太平洋火山地震帶的一部分（「東亞島弧」），多火山、溫泉、地震，因此地震頻率高。'},
+{t:'u6a',type:'mc',era:'東北亞・日本氣候',q:'日本氣候受「黑潮（暖流）」與「親潮（涼流）」影響，下列敘述何者正確？',opts:['黑潮流經東岸，使沿岸寒冷少雨','黑潮使日本氣候較同緯度大陸溫暖；日本四面環海，降水季節分布較均勻、年降水較豐沛','親潮帶來溫暖潮濕空氣，促進農業','洋流對日本氣候沒有顯著影響'],ans:1,explain:'黑潮（暖流）：沿日本南岸流過，帶來溫暖潮濕，使日本較同緯度大陸溫暖；親潮（涼流）：沿東北岸流下，北海道附近冬季寒冷。四面環海使年降水豐沛（>1000mm）。'},
+{t:'u6a',type:'mc',era:'東北亞・朝鮮半島氣候',q:'朝鮮半島與日本群島在氣候上的主要差異為何？',opts:['朝鮮半島降水更多，因四面環海','朝鮮半島與亞洲大陸相連，受大陸冷高壓影響，冬季比日本更冷，年溫差比日本大；夏雨冬乾較日本明顯','朝鮮半島全年有雨，氣候更溫暖','兩地氣候完全相同，無差異'],ans:1,explain:'朝鮮半島：與大陸相連→大陸性質強，冬季受西伯利亞冷高壓影響，比同緯度日本更冷，年溫差更大；日本四面環海→海洋性強，年溫差較小，冬較暖，年降水豐沛。'},
+{t:'u6a',type:'tf',era:'東北亞・日本冬季',q:'日本冬季西北季風帶來的大量降雪主要集中在本州島西岸（日本海沿岸），東岸（太平洋側）則較少雪。',ans:true,explain:'冬季西北季風由西伯利亞吹來，過日本海吸收水氣，遇本州西岸山脈→強降雪（日本海側冬季全球降雪量最大）；翻越山脈後乾燥，東岸降雪少（太平洋側冬季晴乾）。'},
+
+// ===== 單元6 東北亞經濟 =====
+{t:'u6b',type:'mc',era:'日本經濟・工業特色',q:'日本工業為「亞洲之首」，下列敘述何者正確？',opts:['日本礦產豐富，工業以原料型為主','汽車工業是日本經濟骨幹（豐田Toyota、本田Honda），高科技（3C、家電、AI機器人）以精密工業產品外銷鄰近國家','日本以農業出口為主，工業規模小','日本工業完全依賴中國投資'],ans:1,explain:'日本工業：汽車（豐田、本田全球百大品牌）、精密機械、3C電子、家電、AI機器人（自動化因應老齡化）。高附加價值產品出口，進口初級能源與原料（逆差→順差策略）。'},
+{t:'u6b',type:'mc',era:'日本農業・特色',q:'日本農業的主要特色為何？',opts:['土地廣大，以大規模機械化農業為主','山多田少、地狹人稠，以集約耕作為主，有機無毒精緻農業品質優、價格高','農業佔GDP比例最高，是日本最重要產業','農業勞動力充裕，農產品大量出口'],ans:1,explain:'日本農業：山多田少（平原僅13%）→集約耕作；供應市場需求→有機精緻農業（哈密瓜等高價）；都市近郊園藝農業（蔬菜花卉）；近年開發農業AI自動化解決勞力老化。'},
+{t:'u6b',type:'mc',era:'日本社會・高齡化',q:'日本面臨嚴重高齡化問題（老年人口>20%），對策包括哪些？',opts:['鼓勵高生育率，大量補助生育費用，效果顯著','透過產業合作吸引國際資金、開發勝任力需求的技術型機器人、推動醫療護理服務產業','強制外來移民入籍，解決勞動力不足','關閉工廠，減少勞動力需求'],ans:1,explain:'日本高齡化對策：吸引外資保持競爭力；開發機器人、AI技術取代人力（護理機器人、自動倉儲）；推動銀髮族醫療、輔具、遠距看診醫療服務產業，形成新興商機。'},
+{t:'u6b',type:'mc',era:'南韓經濟・發展歷程',q:'南韓工業從早期的「勞力密集加工出口」到現在的高科技轉型，其代表產業為何？',opts:['以農業出口為主，稻米大量外銷','早期以紡織製鞋出口（類似臺灣），後轉型：以三星、現代等大企業帶動半導體、造船、汽車等重工業及3C電子出口','南韓仍以傳統農業為主，未完成工業化','南韓只發展軍事工業，民生輕工業較差'],ans:1,explain:'南韓工業發展：早期勞力密集（紡織）→政府扶植大企業（財閥：三星、現代、LG）→重工業（造船、鋼鐵）→近年高科技（半導體、手機、電子）。三星電子半導體全球領先。'},
+{t:'u6b',type:'tf',era:'南韓文化・韓流',q:'南韓透過戲劇、K-pop、韓食等文化輸出（韓流），帶動觀光消費，財閥並協助在海外推廣韓國文化品牌，成為文化產業出口大國。',ans:true,explain:'韓流（Hallyu）：K-drama（愛的迫降）、K-pop（BTS、BLACKPINK）、韓食（泡菜、炸雞）席捲全球，帶動觀光、電影、美妝等文創出口，南韓成功將文化轉為重要經濟資源。'},
+{t:'u6b',type:'match',era:'北南韓・比較配對',q:'請將南韓與北韓的特徵配對：',pairs:[['北韓地勢','較高，東北多山，生長季短'],['南韓地勢','較低，西南沿海平原，生長季長'],['北韓礦產','豐富（煤礦等）'],['南韓礦產','缺乏，依賴進口']],explain:'北韓（朝鮮民主主義人民共和國）：計畫經濟，礦產豐但工業技術落後；南韓（大韓民國）：市場經濟，礦產少但貿易發達。兩者以北緯38度（三八線）為界。'},
+
+// ===== 單元6 東南亞 =====
+{t:'u6c',type:'mc',era:'東南亞・位置',q:'東南亞的地理位置重要性為何？',opts:['位於大西洋與太平洋之間，控制全球航運','介於太平洋與印度洋之間，居東西方交通要衝，麻六甲海峽是歐、亞、非貿易的必經之地','位於南北極之間，是航空交通要道','位於赤道以北，農業資源豐富'],ans:1,explain:'東南亞扼守太平洋與印度洋之間的要道，尤其麻六甲海峽是全球最重要的商業航道之一，全球約1/4的海運貿易和1/3的石油輸送過此。新加坡因此成為重要貿易港。'},
+{t:'u6c',type:'mc',era:'東南亞・自然環境',q:'東南亞（中南半島）的地形特色為何？',opts:['以廣大平原為主，無重要山脈','北部為中國西南橫斷山脈延伸，河川多由南向北（縱谷地形）；南部多沖積平原和三角洲，是人口精華區','全區為火山島嶼組成','以高原地形為主，海拔普遍超過1,000公尺'],ans:1,explain:'中南半島地形：北部山脈（橫斷山脈延伸）→河川南流，形成縱谷；南部沖積平原（湄公河、伊洛瓦底江等三角洲），土地肥沃，人口密集，稻作農業發達。'},
+{t:'u6c',type:'mc',era:'東南亞・氣候',q:'東南亞大部分地區的主要氣候類型為何？各自分布在哪裡？',opts:['溫帶海洋性氣候，全年溫和多雨','熱帶季風氣候（10-23.5°N，中南半島等）及熱帶雨林氣候（赤道附近10°S-10°N，馬來半島、印尼等）','溫帶大陸性氣候，夏熱冬寒','地中海型氣候，夏乾冬濕'],ans:1,explain:'東南亞氣候：①熱帶季風（中南半島、菲律賓）：受冬夏季風影響，夏雨冬乾；②熱帶雨林（馬來西亞、印尼）：赤道附近全年高溫多雨，對流雨。以北緯10度為大致分界。'},
+{t:'u6c',type:'mc',era:'東南亞・多元文化',q:'東南亞文化多元，受多種外來影響，下列配對何者錯誤？',opts:['受印度影響：佛教傳入泰國、緬甸；吳哥窟（柬埔寨）是印度教建築','受中國影響：儒家文化、中文使用（新加坡），部分習俗飲食相近','受阿拉伯影響：伊斯蘭教傳入印尼、馬來西亞、菲律賓南部','受歐美殖民影響：菲律賓受西班牙、美國殖民，天主教信仰、英語普及'],ans:2,explain:'菲律賓：受西班牙殖民（信仰天主教）、再受美國殖民（英語普及），不是伊斯蘭教（菲律賓南部민答那峨有少數穆斯林）。印尼、馬來西亞受阿拉伯貿易影響才信奉伊斯蘭教。'},
+{t:'u6c',type:'mc',era:'東南亞・農業',q:'東南亞是世界重要的稻米出口地區，下列何者為前三大稻米出口國？',opts:['中國、日本、韓國','印度（第1）、泰國（第2）、越南（第3）','美國、加拿大、澳洲','巴西、阿根廷、墨西哥'],ans:1,explain:'東南亞及南亞是稻米主要出口地：印度（1）、泰國（2）、越南（3），高溫多雨氣候適合稻作。泰國香米、越南米全球知名，湄公河三角洲是重要稻米產區。'},
+{t:'u6c',type:'mc',era:'東南亞・工業',q:'東南亞「加工出口業」近年快速發展的主要原因為何？',opts:['東南亞高科技人才充裕，吸引半導體投資','自然資源豐富、廉價勞動力充足，加上受中美貿易戰影響，跨國企業將生產從中國移轉至東南亞','東南亞政府提供大量補貼鼓勵本土農業','東南亞以觀光業為主，工業發展有限'],ans:1,explain:'東南亞加工出口業興起：①廉價勞動力（越南、印尼等）；②中美貿易戰→跨國企業轉移供應鏈；③政府設置加工出口區吸引外資。電子、紡織、製鞋為主要出口品。'},
+{t:'u6c',type:'match',era:'東南亞・城市配對',q:'請將東南亞城市與特色配對：',pairs:[['新加坡','控制麻六甲海峽，世界重要轉口貿易港'],['胡志明市','越南最大城市，湄公河三角洲，工業商業中心'],['曼谷','泰國首都，位於昭披耶河三角洲，人口集中'],['雅加達（巴達維亞）','印尼最大城市，蘇門答臘北端，早期殖民據點']],explain:'東南亞重要城市：新加坡（國際貿易）、胡志明（越南商業）、曼谷（泰國政治）、雅加達（印尼首都，現遷至努山塔拉）。新加坡GDP全球最高之一。'},
+{t:'u6c',type:'mc',era:'東南亞・區域組織',q:'「東南亞國家協會（ASEAN）」的成員國有幾個？主要目的為何？',opts:['5國，促進農業合作','10國（越南、泰國、緬甸、柬埔寨、寮國、馬來西亞、新加坡、印尼、菲律賓、汶萊），透過關稅優惠促進自由貿易及社會文化合作','15國，建立共同軍事聯盟','20國，推動東南亞政治統一'],ans:1,explain:'ASEAN（東協）：10個成員國，成立於1967年，目的是促進區域經濟、社會、文化合作，透過自由貿易協定（關稅降低）深化內部貿易，是全球第三大市場。'},
+
+// ===== 補充加強題 =====
+{t:'u5a',type:'mc',era:'中國地形・特殊地形',q:'世界最高山峰珠穆朗瑪峰（聖母峰，8,848公尺）是哪個國家的天然邊界？',opts:['中國與俄羅斯','中國與印度之間的喜馬拉雅山','中國與日本之間','中國與越南的邊境山脈'],ans:1,explain:'珠穆朗瑪峰（聖母峰）位於喜馬拉雅山脈，為中國（西藏）與尼泊爾的天然國界，是世界最高峰。喜馬拉雅山也是中國與印度的天然屏障。'},
+{t:'u5d',type:'mc',era:'中國經濟・區域差異',q:'中國「西部開發」政策的主要目的為何？',opts:['吸引外資到西部沿海設廠','因西部地區自然資源豐富但對外交通不便，工業發展緩慢，故輸出煤礦、鐵礦等資源到東部，並引入東部資金促進西部發展','將東部過剩人口移往西部農業區','保護西部少數民族，禁止漢族移入'],ans:1,explain:'西部開發：西部礦產（煤、礦、石油天然氣）豐富但工業落後，政府透過西氣東輸、西電東送、青藏鐵路等政策基礎建設，帶動西部工業化，縮小東西差距。'},
+{t:'app',type:'mc',era:'全球氣候・季風盛行風系',q:'全球盛行風系中，「西風帶」分布在哪個緯度範圍？對氣候有何影響？',opts:['赤道附近（0-10度），終年無風','南、北緯40-60度，終年吹西南風/西北風，帶來溫和多雨（大陸西岸）','南、北緯23.5-30度，下沉氣流，氣候乾燥','南、北緯66.5度以上，帶來極地冷空氣'],ans:1,explain:'西風帶：南北緯40-60度，終年吹偏西風，吹向大陸西岸→帶來海洋溫濕氣流，形成溫帶海洋性氣候（全年有雨、冬暖夏涼）。如英國、紐西蘭等地。'},
+{t:'u6a',type:'mc',era:'東北亞・日本地形',q:'日本地形的主要特色，下列何者正確？',opts:['以廣大平原為主，農業發達','由北海道、本州、四國、九州四大島及數千小島組成，地形崎嶇多山（山地佔75%）、地震頻繁、多火山溫泉','全島地勢平坦，農業面積廣大','四面環沙漠，降水稀少'],ans:1,explain:'日本地形：四大島（北海道、本州、四國、九州）＋7000多個小島，山地佔75%（類似臺灣），平原少（如關東平原、濃尾平原）→農業集約。火山地震多（環太平洋火山帶）。'},
+{t:'u6c',type:'tf',era:'東南亞・麻六甲海峽',q:'麻六甲海峽位於馬來半島與蘇門答臘島之間，是印度洋通往太平洋的最短航道，由新加坡控制其出入口。',ans:true,explain:'麻六甲海峽：連接印度洋（安達曼海）與太平洋（南海），全長900km、最窄處約2.7km，是歐、亞、非洲貿易必經水道。新加坡位於出口，因此發展成全球重要轉口貿易港。'},
+];
+
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.panel).classList.add('active');if(tab.dataset.panel==='wrong')renderWP();});});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+function updateGo(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);const btn=document.getElementById('goBtn');if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}else{btn.disabled=true;btn.textContent='請選擇單元與模式';}}
+document.getElementById('goBtn').addEventListener('click',startGame);
+function startGame(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;const isLong=S.mode==='normal'||S.mode==='timed';let pool=QB.filter(q=>S.topics.includes(q.t));pool=shuffle(pool);S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));S.cur=0;showScreen('game');renderQ();}
+function startWrongPractice(){const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();}
+function renderQ(){if(S.cur>=S.qs.length){showResult();return;}const q=S.qs[S.cur];S.answered=false;const total=S.qs.length;document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));else document.getElementById('gLives').textContent='';const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort'};document.getElementById('qtag').textContent=tMap[q.type]||'題目';document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;document.getElementById('qtext').textContent=q.q;document.getElementById('qsub').textContent=q.hint||'';const area=document.getElementById('ans-area');area.innerHTML='';document.getElementById('fbbox').className='fb-box';document.getElementById('nextBtn').className='next-btn';if(q.type==='mc')renderMC(q,area);else if(q.type==='tf')renderTF(q,area);else if(q.type==='fill')renderFillQ(q,area);else if(q.type==='match')renderMatch(q,area);else if(q.type==='sort')renderSort(q,area);clearInterval(S.timer);const te=document.getElementById('gTimer');if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}else te.style.display='none';}
+function renderMC(q,area){const grid=document.createElement('div');grid.className='opts';q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt';btn.textContent=o;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const ok=i===q.ans;grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});finish(ok,q);});grid.appendChild(btn);});area.appendChild(grid);}
+function renderTF(q,area){const row=document.createElement('div');row.className='tf-row';['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const userT=i===0,ok=userT===q.ans;row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});finish(ok,q);});row.appendChild(btn);});area.appendChild(row);}
+function renderFillQ(q,area){const row=document.createElement('div');row.className='fill-row';const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確：${q.ans}`);};btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});row.append(inp,btn);area.appendChild(row);}
+function renderMatch(q,area){const wrap=document.createElement('div');wrap.className='match-wrap';const lCol=document.createElement('div');lCol.className='match-col';const rCol=document.createElement('div');rCol.className='match-col';const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);let lPicked=null,rPicked=null,matched=0;pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});wrap.append(lCol,rCol);area.appendChild(wrap);function tryM(){if(!lPicked||!rPicked)return;const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}lPicked=null;rPicked=null;}wrap.addEventListener('click',e=>{if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}tryM();});}
+let dragEl=null;
+function renderSort(q,area){const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));const list=document.createElement('div');list.className='sort-list';shuffled.forEach(item=>{const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});el.addEventListener('dragend',()=>el.classList.remove('dragging'));el.addEventListener('dragover',e=>e.preventDefault());el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});list.appendChild(el);});area.appendChild(list);const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});area.appendChild(chk);}
+function finish(ok,q,extraMsg){const pts=calcPts(ok,q.type);if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;document.getElementById('fbmsg').textContent=msg;document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;const nb=document.getElementById('nextBtn');nb.className='next-btn show';const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};}
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+function startTimer(sec){S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';S.timer=setInterval(()=>{S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}},1000);}
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+function showResult(){clearInterval(S.timer);showScreen('result');const max=S.qs.length*6;const pct=max>0?S.score/max:0;let emoji,title,msg;if(pct>=.9){emoji='🏆';title='地理高手！';msg='地理第三冊掌握得非常好！繼續保持！';}else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點複習！';}else if(pct>=.5){emoji='📖';title='繼續加油！';msg='去錯題複習區針對弱點加強！';}else{emoji='💪';title='不要灰心！';msg='把講義再仔細看一遍，再來挑戰！';}document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';document.getElementById('rMsg').textContent=msg;const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}else document.getElementById('rWeak').style.display='none';const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';if(pct>=.75)confetti();}
+function renderWP(){const bank=loadWB();const panel=document.getElementById('wrongPanel');const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;pw.style.display='block';cl.style.display='block';}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#e67e22','#c67c1e','#8e5a1a','#7d4e0f','#fde8c8'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

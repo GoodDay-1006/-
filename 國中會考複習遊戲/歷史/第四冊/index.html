@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>歷史闖關王 第四冊</title>
+<style>
+:root{
+  --bg:#f5fff8;--ink:#0a2a10;--red:#c0392b;--gold:#145a32;
+  --teal:#117a3a;--blue:#0e6630;--accent:#196f3d;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(10,42,16,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(25,111,61,.08) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 85% 75%,rgba(20,90,50,.06) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#c8f0d5 0%,#f5fff8 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--accent);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--accent);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:680px;margin-bottom:16px;border-bottom:2px solid rgba(10,42,16,.1);}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(10,42,16,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;width:100%;max-width:680px;}
+.tab-panel.active{display:block;}
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(10,42,16,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(10,42,16,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:white;font-weight:700;}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(10,42,16,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--accent);background:#c8f0d5;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(10,42,16,.48);margin-top:3px;line-height:1.4;}
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:680px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wrong-panel{width:100%;max-width:680px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(10,42,16,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(10,42,16,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(10,42,16,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:680px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(10,42,16,.38);border:1px solid rgba(10,42,16,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:680px;}
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--accent);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:var(--red);animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:680px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);border-radius:5px 0 0 5px;}
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#c8f0d5;color:var(--teal);}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:var(--green);}
+.qtag.match{background:#fce8d0;color:#b06010;}
+.qtag.sort{background:#fde8d0;color:#d35400;}
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(10,42,16,.43);margin-bottom:11px;font-style:italic;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#e8f8ee;border:2px solid #a8d8b8;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#c8f0d5;}
+.opt.ok{background:#d4f5e2;border-color:var(--green);color:var(--green);font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #a8d8b8;background:#e8f8ee;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:var(--green);}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--accent);}
+.fill-in.ok{border-color:var(--green);background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--blue);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#e8f8ee;border:2px solid #a8d8b8;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--accent);}
+.match-item.selected{border-color:var(--gold);background:#c8f0d5;font-weight:700;}
+.match-item.matched{border-color:var(--green);background:#d4f5e2;color:var(--green);font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#c8f0d5;border:2px solid #a8d8b8;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--teal);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:var(--green);border-left:4px solid var(--green);}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:680px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--accent);}
+#result{background:linear-gradient(155deg,#c8f0d5 0%,#f5fff8 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:480px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--accent);}
+.r-max{font-size:.8rem;color:rgba(10,42,16,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(10,42,16,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--accent);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(10,42,16,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#e8f8ee;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--accent);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">歷史闖關王</div>
+    <div class="home-badge">歷史 第四冊 · 單元7-8 · 會考複習</div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇單元（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip on" data-t="u7a">🏛️ 辛亥革命與中華民國建立</div>
+      <div class="tchip on" data-t="u7b">⚔️ 袁世凱與軍閥割據</div>
+      <div class="tchip on" data-t="u7c">📜 新文化運動與五四</div>
+      <div class="tchip on" data-t="u7d">🚩 北伐與國民政府</div>
+      <div class="tchip on" data-t="u8a">💥 中日戰爭</div>
+      <div class="tchip on" data-t="u8b">🔴 中共建國與毛澤東時期</div>
+      <div class="tchip on" data-t="u8c">🌏 改革開放與東亞局勢</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇單元與模式</button>
+  </div>
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+<div class="screen" id="game">
+  <div class="gbar">
+    <div><div class="gbar-left" id="gInfo">第 1 / 50 題</div><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div></div>
+    <div style="display:flex;gap:10px;align-items:center;"><div class="gbar-timer" id="gTimer" style="display:none;">20</div><div><div class="gbar-score" id="gScore">0 分</div><div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="fb-box" id="fbbox"><div class="fb-title" id="fbtitle"></div><div id="fbmsg"></div></div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div><div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div><div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div><div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+<div class="combo" id="combo"></div>
+<script>
+const SK='hist4_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+const QB=[
+
+// ══ 單元7a：辛亥革命與中華民國建立 ══
+{t:'u7a',era:'辛亥・武昌起義',type:'mc',
+ q:'辛亥革命（1911年）的導火線是？',
+ opts:[
+   'A 外國入侵中國',
+   'B 清廷調動湖北新軍鎮壓保路運動，引發革命派於武昌起義；各省紛紛宣布獨立脫離清廷',
+   'C 孫中山在廣州發動武裝起義',
+   'D 慈禧太后死亡引發政治危機'
+ ],ans:1,
+ explain:'辛亥革命導火線：清廷宣布鐵路國有化（四川保路運動激烈抗議）→清廷調湖北新軍鎮壓→湖北守備空虛→1911年10月10日（雙十）武昌起義→各省紛紛宣布獨立→1912年元旦，各省代表在南京成立中華民國臨時政府，推選孫中山為臨時大總統。'},
+
+{t:'u7a',era:'辛亥・改革派vs革命派',type:'match',
+ q:'請將晚清「改革派」與「革命派」的立場配對：',
+ pairs:[
+   ['改革派（如康有為、梁啟超）','主張實施君主立憲制度，在保留清廷的基礎上進行改革'],
+   ['革命派（如孫中山）','主張以武力推翻帝制，建立民主共和國（中華民國）'],
+ ],
+ explain:'晚清面對外力衝擊有兩種應對：改革派主張君主立憲（保留皇帝，限制皇權）；革命派主張共和革命（推翻帝制）。最終革命派成功，1912年中華民國成立，終結兩千年帝制。'},
+
+{t:'u7a',era:'辛亥・民國建立',type:'mc',
+ q:'1912年中華民國建立的意義是？',
+ opts:[
+   'A 中國恢復封建帝制',
+   'B 推翻兩千多年的帝制，建立亞洲第一個民主共和國',
+   'C 中國成為英國殖民地',
+   'D 中國被分裂為多個獨立國家'
+ ],ans:1,
+ explain:'1912年元旦，中華民國臨時政府在南京成立，孫中山就任臨時大總統。意義：推翻兩千多年的中國帝制，建立亞洲第一個民主共和國。隨後清帝溥儀遜位，清朝正式滅亡。（日本以為孟子家族的孟子是亞洲第一共和，此為亞洲第一民主共和國）'},
+
+// ══ 單元7b：袁世凱與軍閥割據 ══
+{t:'u7b',era:'袁世凱・掌權',type:'mc',
+ q:'袁世凱取得中華民國臨時大總統的方式是？',
+ opts:[
+   'A 民主選舉產生',
+   'B 孫中山退讓（以袁世凱逼清帝退位為交換），袁世凱就任臨時大總統；但他隨後將政府遷往北京，脫離南方的制衡',
+   'C 通過軍事政變奪權',
+   'D 由列強推薦擔任'
+ ],ans:1,
+ explain:'袁世凱掌權：孫中山以「若袁世凱能迫清帝退位，則讓位於他」為交換，袁世凱遂逼清帝遜位。孫中山讓位，袁世凱就任臨時大總統→但他隨即將政府遷往北京，遠離南方革命勢力的監督。'},
+
+{t:'u7b',era:'袁世凱・洪憲帝制',type:'mc',
+ q:'袁世凱「洪憲帝制」（民國5年）的始末是？',
+ opts:[
+   'A 袁世凱成功建立皇帝制度，統治中國多年',
+   'B 袁世凱恢復帝制，自稱皇帝，改國號為中華帝國，但遭到國內外強烈反對，83天後被迫取消，不久病死',
+   'C 袁世凱的帝制在革命軍攻擊下被推翻',
+   'D 袁世凱改革科舉制度，建立帝制教育'
+ ],ans:1,
+ explain:'洪憲帝制（民國5年，1916年）：袁世凱接受日本廿一條要求後，仍計畫恢復帝制，接受勸進稱帝，將當年定為洪憲元年，改國號為中華帝國。但遭到全國強烈反對，各省紛紛宣布獨立護國，83天後被迫取消帝制，袁世凱不久後病逝。'},
+
+{t:'u7b',era:'袁世凱・軍閥割據',type:'mc',
+ q:'袁世凱死後（民國5年後），中國出現什麼政治局面？',
+ opts:[
+   'A 孫中山立即統一中國',
+   'B 各地軍閥擁兵自重、各自為政，爭奪中央的北京政府，形成南北分裂的局面',
+   'C 中國被外國列強瓜分',
+   'D 清廷復辟成功，恢復帝制'
+ ],ans:1,
+ explain:'軍閥割據（民國5-17年）：袁世凱死後，各地軍閥擁兵自重，爭奪北京政府控制權，南北分裂（北方軍閥政府vs南方民國政府）。重要事件：南北議和失敗、護法運動、護國運動。孫中山南下廣州組建革命政府，試圖反攻北方。'},
+
+// ══ 單元7c：新文化運動與五四 ══
+{t:'u7c',era:'新文化・運動起源',type:'mc',
+ q:'新文化運動（民國4年，1915年後）的主要倡導者和訴求是？',
+ opts:[
+   'A 由袁世凱倡導，推廣傳統儒家文化',
+   'B 陳獨秀創辦《青年雜誌》（後改名《新青年》），提倡民主和科學，以白話文取代文言文，引進西方思潮',
+   'C 由外國傳教士發起，推廣基督教文化',
+   'D 清廷官員推動西洋技術學習'
+ ],ans:1,
+ explain:'新文化運動（民國4年，1915年）：陳獨秀創辦《青年雜誌》（後改名《新青年》），以北京大學為重鎮（蔡元培任校長）。主要訴求：①民主（德先生）與科學（賽先生）②白話文取代文言文（胡適、陳獨秀等人大力倡導）③挑戰儒家傳統思想。'},
+
+{t:'u7c',era:'新文化・五四運動',type:'mc',
+ q:'五四運動（民國8年，1919年5月4日）的起因是？',
+ opts:[
+   'A 中國軍隊對日本宣戰',
+   'B 巴黎和會上，列強決定將德國在山東的利益轉讓給日本，北京大學等學生群起示威，要求「外爭主權、內除國賊」，廢除二十一條',
+   'C 中國政府宣布廢除科舉制度',
+   'D 農民發動土地改革運動'
+ ],ans:1,
+ explain:'五四運動（民國8年5月4日，1919年）：第一次世界大戰後，中華民國以戰勝國身分參加巴黎和會，卻因列強將德國山東利益轉讓給日本（大感屈辱）→北京大學等學生群起示威（五月四日）→主張「外爭主權、內除國賊」、廢除廿一條、還我青島→全國各地罷市、罷工、罷課→北京政府拒絕在對德和約上簽字。'},
+
+{t:'u7c',era:'新文化・社會影響',type:'mc',
+ q:'新文化運動對中國社會中婦女地位最重要的影響是？',
+ opts:[
+   'A 使婦女完全退出社會，專注家庭',
+   'B 強調個人獨立自主，使婦女地位提升；女子開始和男子同校讀書（打破「男女授受不親」觀念），更多婦女走出家庭成為「新女性」',
+   'C 婦女被強制參軍服役',
+   'D 婦女的政治地位反而降低'
+ ],ans:1,
+ explain:'新文化運動對婦女的影響：①強調個人獨立自主精神，使婦女和兒童的地位獲得提升；②就學：女子開始和男子同校讀書，打破「男女授受不親」觀念；③就業：更多婦女走出家庭，成為投身社會的「新女性」（如公務機關開始用女性）；④政治：女性更積極參政。'},
+
+// ══ 單元7d：北伐與國民政府 ══
+{t:'u7d',era:'北伐・聯俄容共',type:'mc',
+ q:'孫中山在民國12年（1923年）確立的「聯俄容共」政策是指？',
+ opts:[
+   'A 與蘇聯聯合攻打日本',
+   'B 改組國民黨，讓共產黨員以個人身份加入國民黨，並在蘇聯協助下於廣州黃埔建立陸軍軍官學校',
+   'C 放棄三民主義，接受共產主義',
+   'D 與蘇聯簽訂防禦條約'
+ ],ans:1,
+ explain:'聯俄容共（民國12年，1923年）：孫中山因建立軍隊需要，接受蘇聯幫助。政策：①改組國民黨，允許共產黨員以個人身份加入（第一次國共合作）；②在蘇聯協助下，於廣州黃埔建立陸軍軍官學校，蔣中正任校長。目的：以黃埔軍校訓練軍官，準備北伐統一中國。'},
+
+{t:'u7d',era:'北伐・清黨',type:'mc',
+ q:'民國16年（1927年）蔣中正「清黨」的背景和影響是？',
+ opts:[
+   'A 蔣中正清除日本間諜',
+   'B 北伐進行中，國民黨與共產黨矛盾激化，蔣中正在上海發動「四一二事變」，逮捕並殺害共產黨人，第一次國共合作結束，南京另建國民政府',
+   'C 蔣中正清除軍閥勢力',
+   'D 蔣中正驅逐蘇聯顧問'
+ ],ans:1,
+ explain:'清黨（四一二事變，民國16年4月12日，1927年）：北伐期間，國民黨內部矛盾激化→蔣中正在上海逮捕並槍殺共產黨人和工人，在南京另建國民政府→第一次國共合作正式破裂。此後中共在江西建立蘇維埃政府（農村包圍城市），形成南北對立。'},
+
+{t:'u7d',era:'北伐・十年建設',type:'mc',
+ q:'民國17年至26年「十年建設」時期，國民政府的主要成就是？',
+ opts:[
+   'A 完全統一中國，消滅所有軍閥',
+   'B 重整收官、推廣國民教育、廣泛修築公路與鐵路、發展航空運輸，提升國家實力；但仍受到中共抵抗和日本侵略的威脅',
+   'C 推動工業化，使中國成為強國',
+   'D 完全消滅腐敗，建立廉潔政府'
+ ],ans:1,
+ explain:'十年建設（民國17-26年，1928-1937年）：北伐完成至中日戰爭全面爆發前。成就：①財政：重整稅收、推動幣制改革、發行法幣；②教育：推廣國民教育；③交通：廣泛修築公路、鐵路、發展航空運輸；④外交：收回部分租界主權。意義：提升國家實力，奠定長期抗戰的基礎。'},
+
+// ══ 單元8a：中日戰爭 ══
+{t:'u8a',era:'中日・盧溝橋事變',type:'mc',
+ q:'中日戰爭（民國26年，1937年）的導火線是？',
+ opts:[
+   'A 日本轟炸上海',
+   'B 盧溝橋事變（七七事變）：民國26年7月7日，中日兩軍在北平郊外盧溝橋爆發衝突，中日正式全面開戰',
+   'C 日本出兵朝鮮',
+   'D 滿洲國宣布獨立'
+ ],ans:1,
+ explain:'盧溝橋事變（七七事變，民國26年7月7日，1937年）：日軍藉夜間演習後發現士兵失蹤為由，在盧溝橋附近向中國軍隊開槍，成為中日全面戰爭的導火線，史稱「蘆溝橋事變」，也稱「七七事變」。'},
+
+{t:'u8a',era:'中日・南京大屠殺',type:'mc',
+ q:'民國26年（1937年）12月，日軍攻占中國首都南京後發生了什麼？',
+ opts:[
+   'A 中華民國政府宣布投降',
+   'B 日軍展開「南京大屠殺」，對中國平民進行大規模屠殺和暴行',
+   'C 中國軍隊守住南京成功擊退日軍',
+   'D 蔣中正率領軍隊反攻南京'
+ ],ans:1,
+ explain:'南京大屠殺（民國26年12月，1937年）：日軍攻陷中國首都南京後，對中國平民和俘虜進行大規模屠殺、強暴、掠奪等暴行，造成大量平民傷亡。國民政府遷都武漢，後再遷重慶，準備長期抗戰。'},
+
+{t:'u8a',era:'中日・珍珠港事件',type:'mc',
+ q:'民國30年（1941年）珍珠港事件的影響是？',
+ opts:[
+   'A 日本宣布向中國投降',
+   'B 日本偷襲美國夏威夷珍珠港，開啟第二次世界大戰太平洋戰場，美國對日宣戰，中日戰爭成為世界大戰的一部分',
+   'C 美國退出太平洋戰場',
+   'D 英國對日本宣戰'
+ ],ans:1,
+ explain:'珍珠港事件（民國30年12月8日，1941年）：日本起因為以大東亞共榮圈為目標，欲掌控東南亞及太平洋資源，偷襲美國夏威夷珍珠港→美國對日宣戰→開啟太平洋戰爭→中日戰爭成為第二次世界大戰的一部分，中美英等同盟國共同作戰。'},
+
+{t:'u8a',era:'中日・戰爭結束',type:'mc',
+ q:'第二次世界大戰（中日戰爭）在東亞結束的關鍵事件是？',
+ opts:[
+   'A 中國軍隊攻入日本本土',
+   'B 民國34年（1945年），美國先後在廣島、長崎投下原子彈，日本宣布無條件投降，二戰結束',
+   'C 蘇聯出兵幫助中國打敗日本',
+   'D 英國艦隊封鎖日本使其投降'
+ ],ans:1,
+ explain:'中日戰爭結束：民國34年（1945年）8月，美國在日本廣島（8月6日）和長崎（8月9日）投下原子彈；同時蘇聯對日宣戰；日本無法承受→8月15日日本宣布無條件投降→中日戰爭結束，台灣由中華民國接收。'},
+
+// ══ 單元8b：中共建國與毛澤東時期 ══
+{t:'u8b',era:'中共・建國',type:'mc',
+ q:'中華人民共和國成立（1949年10月1日）的背景是？',
+ opts:[
+   'A 蘇聯出兵中國，幫助中共建立政權',
+   'B 八年抗日戰爭期間中共壯大實力，國共內戰中國民政府敗退台灣，毛澤東在北京宣布成立中華人民共和國',
+   'C 美國支持中共取得政權',
+   'D 國民政府主動移交政權給中共'
+ ],ans:1,
+ explain:'中華人民共和國成立（1949年10月1日）：背景→抗日戰爭期間中共擴大根據地，蘇聯援助大量武器；國共內戰中，國民政府官員腐敗、民怨沸騰、民心盡失→情勢逆轉→民國38年（1949年）中華民國政府敗退台灣→毛澤東在北京宣布成立中華人民共和國。'},
+
+{t:'u8b',era:'中共・大躍進',type:'mc',
+ q:'毛澤東時期「大躍進」（1958年開始）的目標和結果是？',
+ opts:[
+   'A 成功讓中國超越美國，成為世界最大工業國',
+   'B 希望快速提升工業和農業產量，但農村推行人民公社、大鑄鋼鐵（土法煉鋼）等導致農業廢弛，造成數千萬人飢餓死亡',
+   'C 大躍進成功帶動中國經濟高速成長',
+   'D 大躍進使中國成功消除貧窮'
+ ],ans:1,
+ explain:'大躍進（1958年開始）：毛澤東希望快速超英趕美。農業：推行人民公社（集體生產），農業生產反而大幅下降。工業：號召全民大鑄鋼鐵（土法煉鋼），但人民缺乏技術，農田也因此荒廢。結果：大規模糧食短缺和饑荒，造成數千萬人死亡。大躍進失敗後，毛澤東的政治地位動搖。'},
+
+{t:'u8b',era:'中共・文化大革命',type:'mc',
+ q:'毛澤東發動「文化大革命」（1966-1976年）的手段和影響是？',
+ opts:[
+   'A 文革期間中國大力發展教育和科技',
+   'B 毛澤東為奪回權力，煽動青年成立紅衛兵，高呼「革命無罪」打擊官員、親友長輩、知識分子，破壞傳統倫理文化，造成中國十年浩劫',
+   'C 文革讓中國農業大幅提升',
+   'D 文革期間中國對外關係改善'
+ ],ans:1,
+ explain:'文化大革命（1966-1976年）：大躍進失敗後，毛澤東為奪回權力→1966年發動文化大革命→手段：煽動青年學生組成「紅衛兵」，打倒批鬥官員、親友長輩、知識分子，高呼「破四舊、立四新」→結果：破壞傳統倫理文化、教育停頓、道德淪喪，被視為「十年浩劫」，1976年毛澤東去世後文革才結束。'},
+
+// ══ 單元8c：改革開放與東亞局勢 ══
+{t:'u8c',era:'改革開放・鄧小平',type:'mc',
+ q:'鄧小平推行「改革開放」（1978年後）的主要措施是？',
+ opts:[
+   'A 恢復毛澤東的人民公社制度',
+   'B 在深圳等沿海地區設置「經濟特區」，以優惠條件吸引外國投資，帶動中國經濟發展',
+   'C 完全關閉中國市場，自力更生',
+   'D 讓中國加入蘇聯的計畫經濟體系'
+ ],ans:1,
+ explain:'改革開放（1978年後，鄧小平主導）：文革後鄧小平執政，推動改革開放。措施：①在沿海地區（深圳、廈門等）設置經濟特區，以優惠條件吸引外資；②廢除人民公社，農村分田到戶；③發展輕工業；④對外開放，加入世界貿易組織（2001年）。衝擊：農村壯年人口大量移入城市，城鄉差距擴大，貧富差距增加。'},
+
+{t:'u8c',era:'改革開放・六四',type:'mc',
+ q:'「六四天安門事件」（1989年6月4日）的背景和後果是？',
+ opts:[
+   'A 中共政府主動進行政治民主化改革',
+   'B 因經濟改革帶來的城鄉差距和官員腐敗，北京學生群聚天安門廣場示威，6月4日中共軍隊武力鎮壓，造成大量人員傷亡，引發西方國家制裁',
+   'C 學生示威成功推動中國政治改革',
+   'D 台灣政府支持北京學生運動'
+ ],ans:1,
+ explain:'六四天安門事件（1989年6月4日）：背景→改革開放帶來城鄉差距、官員腐敗、物價高漲，教育程度提升對外交流增加，人民要求民主。過程→北京大學等學生聚集天安門廣場示威，要求政治改革和民主。6月4日中共軍隊武力鎮壓，造成許多人員傷亡。後果：美國等西方國家對中共實行經濟制裁，中共高層改革派被迫出走，政府持續嚴格控管政治言論。'},
+
+{t:'u8c',era:'東亞・韓戰',type:'mc',
+ q:'韓戰（1950-1953年）的起因和結果是？',
+ opts:[
+   'A 美國入侵北韓，引發戰爭',
+   'B 1950年北韓在蘇聯支持下進攻南韓，美國為首的聯合國軍隊援助南韓，中國人民志願軍支援北韓，最終以北緯38度線為界停戰，至今仍維持停戰狀態',
+   'C 日本入侵朝鮮半島引發戰爭',
+   'D 韓國和北韓主動達成和平統一'
+ ],ans:1,
+ explain:'韓戰（1950-1953年）：背景→二戰後朝鮮半島以北緯38度線為界，北（蘇聯支持，共產政權）vs南（美國支持，民主政權）。1950年北韓南侵→美國為首聯合國軍隊援助南韓→中國人民志願軍入朝支援北韓→1953年雙方簽訂停戰協議，以北緯38度線為界，至今仍處於停戰狀態（正式未終戰）。'},
+
+{t:'u8c',era:'東亞・越戰',type:'mc',
+ q:'越戰（1961-1975年）的結果是？',
+ opts:[
+   'A 南越獲勝，越南維持分裂',
+   'B 1975年北越統一南越，越南成為共產主義國家',
+   'C 美國擊敗越共，維持南越政權',
+   'D 越南加入美國陣營'
+ ],ans:1,
+ explain:'越戰（1961-1975年）：背景→1954年越南脫離法國殖民，分裂為北越（共產）和南越（民主）。美國為阻止共產勢力擴張，派兵援助南越；中、蘇援助北越。美國國內反戰聲浪高漲→1973年全面撤軍→1975年北越統一南越→越南全土成為共產主義國家。'},
+
+{t:'u8c',era:'東亞・東南亞國家協會',type:'mc',
+ q:'東南亞國家協會（ASEAN，東協）成立的時間和目的是？',
+ opts:[
+   'A 1945年成立，目的是對抗日本',
+   'B 1967年，以印尼為首的5個東南亞國家成立，目的是加強彼此的區域合作，現已擴大至10個以上成員國，從政治安全合作轉型為重視經濟合作',
+   'C 1955年成立，目的是對抗美國',
+   'D 1980年成立，目的是聯合對抗中國'
+ ],ans:1,
+ explain:'東協（ASEAN）：1967年由印尼、泰國、馬來西亞、新加坡、菲律賓5國在曼谷成立，脫殖民統治的東南亞國家為加強彼此合作而組成。發展：1991年冷戰結束後轉型，著重經濟合作→建立東協自由貿易區→現擴大至10個以上成員國（成員含越南、緬甸、汶萊、寮國等）。'},
+
+];
+
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+document.querySelectorAll('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.panel).classList.add('active');if(tab.dataset.panel==='wrong')renderWP();});});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+function updateGo(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);const btn=document.getElementById('goBtn');if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}else{btn.disabled=true;btn.textContent='請選擇單元與模式';}}
+document.getElementById('goBtn').addEventListener('click',startGame);
+function startGame(){S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;const isLong=S.mode==='normal'||S.mode==='timed';let pool=QB.filter(q=>S.topics.includes(q.t));pool=shuffle(pool);S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));S.cur=0;showScreen('game');renderQ();}
+function startWrongPractice(){const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();}
+function renderQ(){if(S.cur>=S.qs.length){showResult();return;}const q=S.qs[S.cur];S.answered=false;const total=S.qs.length;document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));else document.getElementById('gLives').textContent='';const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題'};const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort'};document.getElementById('qtag').textContent=tMap[q.type]||'題目';document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;document.getElementById('qtext').textContent=q.q;document.getElementById('qsub').textContent=q.hint||'';const area=document.getElementById('ans-area');area.innerHTML='';document.getElementById('fbbox').className='fb-box';document.getElementById('nextBtn').className='next-btn';if(q.type==='mc')renderMC(q,area);else if(q.type==='tf')renderTF(q,area);else if(q.type==='fill')renderFillQ(q,area);else if(q.type==='match')renderMatch(q,area);else if(q.type==='sort')renderSort(q,area);clearInterval(S.timer);const te=document.getElementById('gTimer');if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}else te.style.display='none';}
+function renderMC(q,area){const grid=document.createElement('div');grid.className='opts';q.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt';btn.textContent=o;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const ok=i===q.ans;grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});finish(ok,q);});grid.appendChild(btn);});area.appendChild(grid);}
+function renderTF(q,area){const row=document.createElement('div');row.className='tf-row';['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;btn.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const userT=i===0,ok=userT===q.ans;row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});finish(ok,q);});row.appendChild(btn);});area.appendChild(row);}
+function renderFillQ(q,area){const row=document.createElement('div');row.className='fill-row';const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確：${q.ans}`);};btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});row.append(inp,btn);area.appendChild(row);}
+function renderMatch(q,area){const wrap=document.createElement('div');wrap.className='match-wrap';const lCol=document.createElement('div');lCol.className='match-col';const rCol=document.createElement('div');rCol.className='match-col';const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);let lPicked=null,rPicked=null,matched=0;pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});wrap.append(lCol,rCol);area.appendChild(wrap);function tryM(){if(!lPicked||!rPicked)return;const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}lPicked=null;rPicked=null;}wrap.addEventListener('click',e=>{if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}tryM();});}
+let dragEl=null;
+function renderSort(q,area){const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));const list=document.createElement('div');list.className='sort-list';shuffled.forEach(item=>{const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});el.addEventListener('dragend',()=>el.classList.remove('dragging'));el.addEventListener('dragover',e=>e.preventDefault());el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});list.appendChild(el);});area.appendChild(list);const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});area.appendChild(chk);}
+function finish(ok,q,extraMsg){const pts=calcPts(ok,q.type);if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;document.getElementById('fbmsg').textContent=msg;document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;const nb=document.getElementById('nextBtn');nb.className='next-btn show';const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};}
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+function startTimer(sec){S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';S.timer=setInterval(()=>{S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}},1000);}
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+function showResult(){clearInterval(S.timer);showScreen('result');const max=S.qs.length*6;const pct=max>0?S.score/max:0;let emoji,title,msg;if(pct>=.9){emoji='🏆';title='歷史達人！';msg='歷史第四冊掌握得非常好！全系列完成！';}else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點複習！';}else if(pct>=.5){emoji='📖';title='繼續加油！';msg='去錯題複習區針對弱點加強！';}else{emoji='💪';title='不要灰心！';msg='把講義再仔細看一遍，再來挑戰！';}document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';document.getElementById('rMsg').textContent=msg;const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}else document.getElementById('rWeak').style.display='none';const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';if(pct>=.75)confetti();}
+function renderWP(){const bank=loadWB();const panel=document.getElementById('wrongPanel');const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--accent);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;pw.style.display='block';cl.style.display='block';}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#196f3d','#145a32','#117a3a','#2ecc71','#c8f0d5'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>

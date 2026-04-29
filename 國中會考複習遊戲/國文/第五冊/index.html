@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>國文闖關王 第三冊</title>
+<style>
+:root{
+  --bg:#fff8f0;--ink:#2a1a0a;--red:#c0392b;--gold:#e8820a;
+  --teal:#1a6a5a;--blue:#1a3a8a;--pink:#c0396b;--purple:#6a2a83;
+  --green:#1a7a3a;--card:#ffffff;--shadow:rgba(42,26,10,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'PingFang TC','Microsoft JhengHei','微軟正黑體',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse 60% 40% at 15% 25%,rgba(232,130,10,.07) 0%,transparent 70%),
+  radial-gradient(ellipse 50% 50% at 85% 75%,rgba(106,42,131,.06) 0%,transparent 70%);pointer-events:none;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+
+/* ══ HOME ══ */
+#home{padding:24px 16px;justify-content:flex-start;background:linear-gradient(155deg,#fff0dc 0%,#fff8f0 60%);}
+.brush-title{font-size:clamp(1.6rem,6.5vw,2.8rem);font-weight:900;color:var(--ink);letter-spacing:.12em;position:relative;display:inline-block;padding:0 10px;}
+.brush-title::before,.brush-title::after{content:'';position:absolute;height:4px;width:36%;background:var(--gold);bottom:-5px;border-radius:2px;}
+.brush-title::before{left:0;}.brush-title::after{right:0;}
+.home-badge{display:inline-block;background:var(--gold);color:white;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.1em;margin-top:10px;}
+.home-header{text-align:center;margin-bottom:18px;width:100%;}
+
+.nav-tabs{display:flex;gap:6px;width:100%;max-width:660px;margin-bottom:16px;border-bottom:2px solid rgba(42,26,10,.1);padding-bottom:0;}
+.nav-tab{padding:8px 16px;font-weight:700;font-size:.85rem;color:rgba(42,26,10,.42);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;}
+.nav-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.tab-panel{display:none;width:100%;max-width:660px;}
+.tab-panel.active{display:block;}
+
+.slabel{font-size:.7rem;letter-spacing:.18em;color:rgba(42,26,10,.38);margin-bottom:8px;margin-top:14px;}
+.topic-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.tchip{padding:6px 13px;border-radius:17px;border:1.5px solid rgba(42,26,10,.18);background:white;font-size:.78rem;cursor:pointer;transition:all .2s;color:var(--ink);user-select:none;}
+.tchip.on{background:var(--gold);border-color:var(--gold);color:white;font-weight:700;}
+
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:4px;}
+@media(max-width:400px){.mode-grid{grid-template-columns:1fr;}}
+.mcard{background:white;border:2px solid rgba(42,26,10,.1);border-radius:13px;padding:15px 12px;cursor:pointer;transition:all .2s;text-align:center;}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 5px 16px var(--shadow);}
+.mcard.picked{border-color:var(--gold);background:#fff5e6;}
+.mcard .micon{font-size:1.7rem;display:block;margin-bottom:6px;}
+.mcard .mtitle{font-weight:900;font-size:.92rem;color:var(--ink);}
+.mcard .mdesc{font-size:.7rem;color:rgba(42,26,10,.48);margin-top:3px;line-height:1.4;}
+
+.go-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 0;font-size:1rem;font-weight:900;letter-spacing:.12em;cursor:pointer;margin-top:16px;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.3);width:100%;max-width:660px;}
+.go-btn:hover:not(:disabled){transform:translateY(-2px);}
+.go-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* 錯題複習 */
+.wrong-panel{width:100%;max-width:660px;}
+.wrong-summary{background:white;border-radius:13px;padding:15px;box-shadow:0 3px 13px var(--shadow);margin-bottom:12px;}
+.wrong-summary h3{font-size:.95rem;font-weight:900;color:var(--ink);margin-bottom:7px;}
+.wrong-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.wstat{background:var(--bg);border-radius:8px;padding:9px 14px;text-align:center;flex:1;min-width:80px;}
+.wstat .wnum{font-size:1.5rem;font-weight:900;color:var(--red);}
+.wstat .wlbl{font-size:.7rem;color:rgba(42,26,10,.48);}
+.wrong-list{display:flex;flex-direction:column;gap:7px;}
+.wrong-item{background:white;border-radius:9px;padding:11px 13px;box-shadow:0 2px 7px var(--shadow);border-left:4px solid var(--red);}
+.wrong-item .wi-era{font-size:.68rem;color:rgba(42,26,10,.38);letter-spacing:.08em;margin-bottom:3px;}
+.wrong-item .wi-q{font-size:.86rem;color:var(--ink);font-weight:700;line-height:1.5;}
+.wrong-item .wi-ans{font-size:.78rem;color:var(--teal);margin-top:3px;}
+.empty-wrong{text-align:center;padding:36px;color:rgba(42,26,10,.33);font-size:.88rem;}
+.practice-wrong-btn{background:var(--teal);color:white;border:none;border-radius:10px;padding:12px 0;font-size:.95rem;font-weight:900;cursor:pointer;width:100%;max-width:660px;margin-top:12px;}
+.practice-wrong-btn:hover{opacity:.88;}
+.clear-wrong-btn{background:transparent;color:rgba(42,26,10,.38);border:1px solid rgba(42,26,10,.18);border-radius:8px;padding:7px 16px;font-size:.78rem;cursor:pointer;margin-top:7px;width:100%;max-width:660px;}
+
+/* ══ GAME ══ */
+#game{background:var(--bg);padding:9px 13px 22px;}
+.gbar{width:100%;max-width:660px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);border-radius:12px;padding:9px 14px;margin-bottom:11px;color:white;}
+.gbar-left{font-size:.76rem;opacity:.58;}
+.gbar-score{background:var(--gold);color:white;font-weight:900;border-radius:13px;padding:3px 11px;font-size:.88rem;}
+.gbar-timer{font-weight:900;font-size:.98rem;min-width:22px;text-align:center;}
+.gbar-timer.hot{color:var(--red);animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.32;}}
+.prog-bar{height:3px;background:rgba(255,255,255,.16);border-radius:2px;margin-top:5px;}
+.prog-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .4s;}
+
+.qcard{background:white;border-radius:14px;padding:19px 17px;width:100%;max-width:660px;box-shadow:0 4px 17px var(--shadow);margin-bottom:11px;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--gold);border-radius:5px 0 0 5px;}
+
+.qtag{display:inline-block;font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:9px;margin-bottom:10px;letter-spacing:.05em;}
+.qtag.mc{background:#e5f0fd;color:var(--blue);}
+.qtag.tf{background:#fef8e6;color:#a07800;}
+.qtag.fill{background:#e8f8ee;color:var(--green);}
+.qtag.match{background:#fce8d0;color:#b06010;}
+.qtag.sort{background:#ece5fd;color:var(--purple);}
+.qtag.fsy{background:#e5fde8;color:#1a7a1a;}
+
+.qtext{font-size:clamp(.9rem,2.7vw,1.08rem);font-weight:700;color:var(--ink);line-height:1.75;margin-bottom:13px;}
+.qsub{font-size:.78rem;color:rgba(42,26,10,.43);margin-bottom:11px;font-style:italic;}
+
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+@media(max-width:380px){.opts{grid-template-columns:1fr;}}
+.opt{background:#f8f5f0;border:2px solid #e8e0d8;border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--ink);cursor:pointer;text-align:left;transition:all .17s;line-height:1.4;}
+.opt:hover:not(:disabled){border-color:var(--gold);background:#fff5e6;}
+.opt.ok{background:#d4f5e2;border-color:var(--green);color:var(--green);font-weight:700;}
+.opt.bad{background:#fad8d8;border-color:var(--red);color:var(--red);}
+
+.tf-row{display:flex;gap:9px;justify-content:center;}
+.tfbtn{flex:1;max-width:125px;padding:12px;border-radius:11px;border:2px solid #e8e0d8;background:#f8f5f0;font-size:1.25rem;font-weight:900;cursor:pointer;transition:all .17s;color:var(--ink);}
+.tfbtn:hover:not(:disabled){transform:scale(1.05);}
+.tfbtn.ok{background:#d4f5e2;border-color:var(--green);}
+.tfbtn.bad{background:#fad8d8;border-color:var(--red);}
+
+.fill-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fill-in{border:2px solid #ccc;border-radius:8px;padding:8px 11px;font-size:.9rem;outline:none;min-width:130px;flex:1;transition:border-color .2s;color:var(--ink);background:white;}
+.fill-in:focus{border-color:var(--gold);}
+.fill-in.ok{border-color:var(--green);background:#d4f5e2;}
+.fill-in.bad{border-color:var(--red);background:#fad8d8;}
+.sub-btn{background:var(--blue);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.sub-btn:hover{opacity:.85;}
+
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.match-col{display:flex;flex-direction:column;gap:5px;}
+.match-item{background:#f8f5f0;border:2px solid #e8e0d8;border-radius:9px;padding:8px 10px;font-size:.8rem;cursor:pointer;transition:all .17s;min-height:38px;display:flex;align-items:center;color:var(--ink);line-height:1.35;}
+.match-item:hover:not(.done){border-color:var(--gold);}
+.match-item.selected{border-color:var(--gold);background:#fff5e6;font-weight:700;}
+.match-item.matched{border-color:var(--green);background:#d4f5e2;color:var(--green);font-weight:700;}
+.match-item.wrong-flash{border-color:var(--red);background:#fad8d8;}
+
+.fsy-table{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:.79rem;}
+.fsy-table th{background:var(--gold);color:white;padding:5px 8px;text-align:center;}
+.fsy-table td{border:1px solid #e8e0d8;padding:6px 8px;text-align:center;}
+.fsy-table tr:nth-child(even) td{background:#f8f5f0;}
+
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{background:#f0f0ff;border:2px solid #c8c5e9;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:grab;font-size:.83rem;user-select:none;color:var(--ink);}
+.sort-item:active{cursor:grabbing;}
+.sort-item.dragging{opacity:.4;}
+.sort-handle{color:#aaa;}
+.sort-check{background:var(--teal);color:white;border:none;border-radius:9px;padding:9px 20px;font-weight:700;font-size:.83rem;cursor:pointer;margin-top:8px;}
+
+.idiom-box{background:#fff5dc;border:1.5px solid var(--gold);border-radius:10px;padding:11px 13px;margin-top:11px;display:none;}
+.idiom-box.show{display:block;}
+.idiom-box .ib-title{font-size:.7rem;color:var(--gold);font-weight:700;letter-spacing:.1em;margin-bottom:4px;}
+.idiom-box .ib-word{font-size:1.05rem;font-weight:900;color:var(--ink);margin-bottom:3px;}
+.idiom-box .ib-def{font-size:.82rem;color:rgba(42,26,10,.72);line-height:1.6;}
+.idiom-box .ib-ex{font-size:.76rem;color:rgba(42,26,10,.48);margin-top:3px;font-style:italic;}
+
+.fb-box{border-radius:10px;padding:10px 13px;margin-top:11px;font-size:.82rem;line-height:1.6;display:none;}
+.fb-box.show{display:block;}
+.fb-box.ok{background:#d4f5e2;color:var(--green);border-left:4px solid var(--green);}
+.fb-box.bad{background:#fad8d8;color:var(--red);border-left:4px solid var(--red);}
+.fb-title{font-weight:900;margin-bottom:2px;}
+
+.next-btn{background:var(--ink);color:white;border:none;border-radius:10px;padding:12px 0;font-weight:900;font-size:.95rem;cursor:pointer;width:100%;max-width:660px;margin-top:4px;display:none;transition:background .2s;}
+.next-btn.show{display:block;}
+.next-btn:hover{background:var(--gold);}
+
+/* ══ RESULT ══ */
+#result{background:linear-gradient(155deg,#fff0dc 0%,#fff8f0 100%);padding:32px 14px;justify-content:center;}
+.result-card{background:white;border-radius:18px;padding:28px 22px;max-width:460px;width:100%;text-align:center;box-shadow:0 8px 26px var(--shadow);}
+.r-emoji{font-size:3.3rem;margin-bottom:8px;}
+.r-title{font-size:1.6rem;font-weight:900;color:var(--ink);margin-bottom:5px;}
+.r-score{font-size:2.8rem;font-weight:900;color:var(--gold);}
+.r-max{font-size:.8rem;color:rgba(42,26,10,.4);margin-bottom:13px;}
+.r-stars{font-size:1.7rem;margin-bottom:13px;}
+.r-msg{font-size:.86rem;color:rgba(42,26,10,.58);line-height:1.7;margin-bottom:16px;}
+.r-weak{background:var(--bg);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+.r-weak h4{color:var(--gold);font-size:.76rem;letter-spacing:.1em;margin-bottom:5px;}
+.r-weak p{font-size:.78rem;color:rgba(42,26,10,.68);line-height:1.8;}
+.r-saved{font-size:.73rem;color:var(--teal);margin-top:9px;}
+.r-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.r-btn{flex:1;padding:10px;border-radius:9px;font-weight:900;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;}
+.r-btn.pri{background:var(--red);color:white;}
+.r-btn.sec{background:#f0ece8;color:var(--ink);}
+.r-btn.ter{background:var(--teal);color:white;}
+.r-btn:hover{transform:translateY(-2px);}
+
+.combo{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;font-size:2.1rem;font-weight:900;color:var(--gold);pointer-events:none;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);}
+.combo.show{transform:translate(-50%,-80%) scale(1);}
+.cf{position:fixed;top:-10px;width:8px;height:14px;border-radius:2px;pointer-events:none;z-index:998;animation:fall 2s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+
+<!-- ══ HOME ══ -->
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="brush-title">國文闖關王</div>
+    <div class="home-badge">第三冊 · 單元13-15 · 語文複習</div>
+  </div>
+
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-panel="play">🎮 開始遊戲</div>
+    <div class="nav-tab" data-panel="wrong">❌ 錯題複習區</div>
+  </div>
+
+  <div class="tab-panel active" id="panel-play">
+    <div class="slabel">選擇主題（可多選）</div>
+    <div class="topic-row" id="topicRow">
+      <div class="tchip on" data-t="fsy">🔤 形音義辨析</div>
+      <div class="tchip on" data-t="char">📖 多義字</div>
+      <div class="tchip on" data-t="idiom">🌸 成語詞語</div>
+      <div class="tchip on" data-t="rhetoric">🎭 修辭法</div>
+      <div class="tchip on" data-t="couplet">📜 對聯宋詞</div>
+      <div class="tchip on" data-t="idiom2">💬 慣用語</div>
+      <div class="tchip on" data-t="sentence">🔗 句意關係</div>
+      <div class="tchip on" data-t="tongword">字 通同字</div>
+      <div class="tchip on" data-t="poem">🎵 詩詞名言</div>
+    </div>
+    <div class="slabel">選擇模式</div>
+    <div class="mode-grid">
+      <div class="mcard" data-m="normal"><span class="micon">📝</span><div class="mtitle">練習模式</div><div class="mdesc">不限時・50題・有解析</div></div>
+      <div class="mcard" data-m="timed"><span class="micon">⏱️</span><div class="mtitle">限時模式</div><div class="mdesc">每題20秒・50題</div></div>
+      <div class="mcard" data-m="blitz"><span class="micon">⚡</span><div class="mtitle">閃電模式</div><div class="mdesc">每題8秒・20題</div></div>
+      <div class="mcard" data-m="survival"><span class="micon">❤️</span><div class="mtitle">生存模式</div><div class="mdesc">答錯3次結束・20題</div></div>
+    </div>
+    <button class="go-btn" id="goBtn" disabled>請選擇主題與模式</button>
+  </div>
+
+  <div class="tab-panel" id="panel-wrong">
+    <div class="wrong-panel" id="wrongPanel"></div>
+    <button class="practice-wrong-btn" id="practiceWrongBtn" style="display:none;" onclick="startWrongPractice()">針對錯題練習 🔥</button>
+    <button class="clear-wrong-btn" id="clearWrongBtn" style="display:none;" onclick="clearWrong()">清除所有錯題記錄</button>
+  </div>
+</div>
+
+<!-- ══ GAME ══ -->
+<div class="screen" id="game">
+  <div class="gbar">
+    <div>
+      <div class="gbar-left" id="gInfo">第 1 / 50 題</div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div class="gbar-timer" id="gTimer" style="display:none;">20</div>
+      <div>
+        <div class="gbar-score" id="gScore">0 分</div>
+        <div style="font-size:.67rem;color:rgba(255,255,255,.48);text-align:right;margin-top:2px;" id="gLives"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="qcard" id="qcard">
+    <div class="qtag mc" id="qtag">選擇題</div>
+    <div class="qtext" id="qtext">載入中…</div>
+    <div class="qsub" id="qsub"></div>
+    <div id="ans-area"></div>
+    <div class="idiom-box" id="idiomBox">
+      <div class="ib-title">📚 成語／詞語小教室</div>
+      <div class="ib-word" id="ibWord"></div>
+      <div class="ib-def" id="ibDef"></div>
+      <div class="ib-ex" id="ibEx"></div>
+    </div>
+    <div class="fb-box" id="fbbox">
+      <div class="fb-title" id="fbtitle"></div>
+      <div id="fbmsg"></div>
+    </div>
+  </div>
+  <button class="next-btn" id="nextBtn">下一題 →</button>
+</div>
+
+<!-- ══ RESULT ══ -->
+<div class="screen" id="result">
+  <div class="result-card">
+    <div class="r-emoji" id="rEmoji">🎉</div>
+    <div class="r-title" id="rTitle">太棒了！</div>
+    <div class="r-score" id="rScore">0</div>
+    <div class="r-max" id="rMax">分</div>
+    <div class="r-stars" id="rStars">⭐⭐⭐</div>
+    <div class="r-msg" id="rMsg"></div>
+    <div class="r-weak" id="rWeak" style="display:none;"><h4>📌 本次建議複習</h4><p id="rWeakList"></p></div>
+    <div class="r-saved" id="rSaved"></div>
+    <div class="r-btns">
+      <button class="r-btn pri" onclick="restart()">再玩一次 🔄</button>
+      <button class="r-btn ter" onclick="goWrong()">查看錯題 ❌</button>
+      <button class="r-btn sec" onclick="goHome()">回首頁 🏠</button>
+    </div>
+  </div>
+</div>
+
+<div class="combo" id="combo"></div>
+
+<script>
+// ══ STORAGE ══
+const SK='cw3_wrong_v1';
+function loadWB(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function saveWB(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function addWB(q){let b=loadWB();const i=b.findIndex(x=>x.q===q.q);if(i===-1){b.push({...q,wrongCount:1,lastWrong:Date.now()});}else{b[i].wrongCount=(b[i].wrongCount||1)+1;b[i].lastWrong=Date.now();}saveWB(b);}
+function removeWB(q){let b=loadWB();b=b.filter(x=>x.q!==q.q);saveWB(b);}
+
+// ══════════════════════════════════════════════════════
+//  QUESTION BANK — 第三冊單元13-15
+// ══════════════════════════════════════════════════════
+const QB=[
+
+// ══ 形音義辨析 ══
+{t:'fsy',era:'形音義・薄/博/膊',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'薄',ping:'bó',def:'薄弱、稀薄',ex:'薄弱、淡薄'},
+   {char:'博',ping:'bó',def:'廣博、豐富',ex:'博學、博覽'},
+   {char:'膊',ping:'bó',def:'手臂、肩膊',ex:'赤膊、肩膊'},
+ ],
+ askQ:'「___學多聞」應填入哪個字？',
+ opts:['薄','博','膊','搏'],ans:1,
+ explain:'「博學多聞」的「博」是廣博的意思，形容知識淵博豐富。'},
+
+{t:'fsy',era:'形音義・廖/膠/攪',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'廖',ping:'liào',def:'姓氏；稀少',ex:'廖姓'},
+   {char:'膠',ping:'jiāo',def:'黏性物質；膠水',ex:'膠水、橡膠'},
+   {char:'攪',ping:'jiǎo',def:'攪拌、擾亂',ex:'攪拌、攪局'},
+ ],
+ askQ:'「用棒子___拌」應填入哪個字？',
+ opts:['廖','膠','攪','繳'],ans:2,
+ explain:'「攪拌」的「攪」是用手（提手旁）旋轉混合的意思。'},
+
+{t:'fsy',era:'形音義・競/竟/境',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'競',ping:'jìng',def:'競爭、比賽',ex:'競爭、競技'},
+   {char:'竟',ping:'jìng',def:'竟然、終究',ex:'竟然、畢竟'},
+   {char:'境',ping:'jìng',def:'境界、環境',ex:'境界、環境'},
+ ],
+ askQ:'「___然如此」應填入哪個字？',
+ opts:['競','竟','境','敬'],ans:1,
+ explain:'「竟然」的「竟」是表示出乎意料的副詞，與競爭的「競」形近但意義不同。'},
+
+{t:'fsy',era:'形音義・覦/覬/窺',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'覦',ping:'yú',def:'非分的希望（覬覦）',ex:'覬覦'},
+   {char:'覬',ping:'jì',def:'希望得到（覬覦）',ex:'覬覦'},
+   {char:'窺',ping:'kuī',def:'偷看、窺探',ex:'窺視、窺探'},
+ ],
+ askQ:'「___视别人」應填入哪個字？',
+ opts:['覦','覬','窺','規'],ans:2,
+ explain:'「窺視」的「窺」是偷偷地看、探察，穴字頭表示從洞孔中看。'},
+
+{t:'fsy',era:'形音義・廈/廈',type:'fsy',
+ q:'辨認多音字「廈」：',
+ chars:[
+   {char:'廈(shà)',ping:'ㄕㄚˋ',def:'大廈、高樓',ex:'大廈、廈門'},
+   {char:'廈(xià)',ping:'ㄒㄧㄚˋ',def:'廳堂後面的小屋',ex:'廊廈'},
+ ],
+ askQ:'「台北一○一大___」中「廈」讀作？',
+ opts:['shà（ㄕㄚˋ）大廈','xià（ㄒㄧㄚˋ）廊廈','兩者皆可','都不對'],ans:0,
+ explain:'「大廈」讀 shà，指高大的樓房建築。「廈門」的廈也讀 shà。'},
+
+{t:'fsy',era:'形音義・嘟/滴/嫣',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'嘟',ping:'dū',def:'嘴嘟起；嘟囔',ex:'嘟嘴、嘟囔'},
+   {char:'滴',ping:'dī',def:'水滴；滴落',ex:'水滴、滴落'},
+   {char:'嫣',ping:'yān',def:'美麗、嫣然',ex:'嫣然、嫣紅'},
+ ],
+ askQ:'「___然一笑」應填入哪個字？',
+ opts:['嘟','滴','嫣','燕'],ans:2,
+ explain:'「嫣然一笑」的「嫣」形容美麗動人的笑容，女字旁表示與女性美麗相關。'},
+
+{t:'fsy',era:'形音義・濃/農/膿',type:'fsy',
+ q:'辨認形近字：',
+ chars:[
+   {char:'濃',ping:'nóng',def:'濃厚、濃郁',ex:'濃厚、濃縮'},
+   {char:'農',ping:'nóng',def:'農業、農夫',ex:'農業、農民'},
+   {char:'膿',ping:'nóng',def:'膿液（傷口化膿）',ex:'化膿、膿包'},
+ ],
+ askQ:'「___眉大眼」應填入哪個字？',
+ opts:['濃','農','膿','穠'],ans:0,
+ explain:'「濃眉大眼」的「濃」是濃密的意思，水字旁表示與液體濃度有關，引申為濃密。'},
+
+{t:'fsy',era:'形音義・藝/於/捷',type:'fsy',
+ q:'辨認多義字「於」的用法：',
+ chars:[
+   {char:'於（介詞）',ping:'yú',def:'在、到、從',ex:'生於台灣、於心不忍'},
+   {char:'於（比較）',ping:'yú',def:'比（表比較）',ex:'青出於藍'},
+   {char:'於（被動）',ping:'yú',def:'被（表被動）',ex:'見笑於人'},
+ ],
+ askQ:'「青出___藍」中的「於」是哪種用法？',
+ opts:['表示地點（在）','表示比較（比）','表示被動（被）','表示時間'],ans:1,
+ explain:'「青出於藍」的「於」是比較詞，意思是「青色比藍色還深」，引申比喻後輩超越前輩。'},
+
+// ══ 多義字 ══
+{t:'char',era:'多義字・容',type:'mc',
+ q:'「容許」中的「容」是哪個意思？',
+ opts:['A 面貌、外貌','B 允許、許可','C 收容、接納','D 裝飾'],ans:1,
+ explain:'「容許」的「容」是「允許、許可」的意思。'},
+
+{t:'char',era:'多義字・容',type:'mc',
+ q:'「容貌出眾」中的「容」是哪個意思？',
+ opts:['A 允許','B 面貌、外表','C 包容','D 裝飾'],ans:1,
+ explain:'「容貌」的「容」是「面貌、外表」的意思，容颜、儀容均是此義。'},
+
+{t:'char',era:'多義字・約',type:'mc',
+ q:'「節約」中的「約」是哪個意思？',
+ opts:['A 大略、大約','B 限制、節省','C 預先設定','D 繩子'],ans:1,
+ explain:'「節約」的「約」是「限制、節省」的意思，不浪費、有節制。'},
+
+{t:'char',era:'多義字・了',type:'mc',
+ q:'「了然」中的「了」是哪個意思？',
+ opts:['A 完結','B 明白、清楚','C 聰明、機靈','D 助詞'],ans:1,
+ explain:'「了然」的「了」是「明白、清楚」的意思，如「一目了然」即看一眼就全部明白。'},
+
+{t:'char',era:'多義字・赤',type:'mc',
+ q:'「赤子之心」中的「赤子」是什麼意思？',
+ opts:['A 忠誠的人','B 嬰兒','C 紅色的孩子','D 貧窮的人'],ans:1,
+ explain:'「赤子」原指剛出生的嬰兒（皮膚赤紅），「赤子之心」比喻純真善良如嬰兒的心。'},
+
+{t:'char',era:'多義字・逸',type:'mc',
+ q:'「安逸」中的「逸」是哪個意思？',
+ opts:['A 逃走','B 舒適、悠閒','C 超絕、出眾','D 散失'],ans:1,
+ explain:'「安逸」的「逸」是「舒適、悠閒」的意思，生活安逸即生活舒適安樂。'},
+
+{t:'char',era:'多義字・疾',type:'mc',
+ q:'「疾言厲色」中的「疾」是哪個意思？',
+ opts:['A 疾病','B 痛恨','C 快速、急速','D 嫉妒'],ans:2,
+ explain:'「疾言厲色」的「疾」是「快速、急速」，形容說話急促、臉色嚴厲。'},
+
+{t:'char',era:'多義字・負',type:'mc',
+ q:'「負荊請罪」中的「負」是哪個意思？',
+ opts:['A 失敗','B 背負、扛著','C 辜負','D 承擔責任'],ans:1,
+ explain:'「負荊請罪」的「負」是「背負、扛著」，廉頗背著荊條去向藺相如請罪。'},
+
+{t:'char',era:'多義字・及',type:'mc',
+ q:'「望塵莫及」中的「及」是哪個意思？',
+ opts:['A 到達、趕上','B 以及','C 及時','D 兄弟姊妹'],ans:0,
+ explain:'「望塵莫及」的「及」是「到達、趕上」，形容只能看到前面的塵土，卻根本追不上。'},
+
+// ══ 成語詞語 ══
+{t:'idiom',era:'成語・單元13',type:'mc',
+ q:'「才高八斗」比喻什麼？',
+ opts:['A 身材高大','B 才學出眾，非常有才華','C 爬很高的山','D 非常努力'],ans:1,
+ explain:'「才高八斗」出自曹植，曹植自謙天下文才共十斗，自己得八斗，用來比喻才學非常出眾。',
+ idiom:{word:'才高八斗',def:'形容人的才學非常出眾、才華橫溢。出自南朝謝靈運稱讚曹植的典故。',ex:'例：他的文學造詣之深，真可謂才高八斗。'}},
+
+{t:'idiom',era:'成語・單元13',type:'mc',
+ q:'「鉅細靡遺」的意思是？',
+ opts:['A 非常節省，不浪費','B 大小事情都詳盡無遺，沒有遺漏','C 形容工作很累','D 非常謹慎'],ans:1,
+ explain:'「鉅細靡遺」形容大小事情都詳細記錄或說明，沒有任何遺漏。',
+ idiom:{word:'鉅細靡遺',def:'大到小的事情，全都詳盡無遺，一點都沒有遺漏。靡：沒有。',ex:'例：他把整件事的來龍去脈鉅細靡遺地描述了一遍。'}},
+
+{t:'idiom',era:'成語・單元13',type:'mc',
+ q:'「曲高和寡」比喻什麼？',
+ opts:['A 唱歌音調很高','B 藝術品位或學問太高深，能欣賞的人少','C 朋友很少','D 曲子很難彈奏'],ans:1,
+ explain:'「曲高和寡」原指樂曲越高雅，能附和的人越少，比喻言行或作品高深，知音難求。',
+ idiom:{word:'曲高和寡',def:'樂曲越高雅，能附和的人越少。比喻言行、作品等格調高深，理解或欣賞的人很少。',ex:'例：他的詩作曲高和寡，一般讀者難以理解。'}},
+
+{t:'idiom',era:'成語・單元13',type:'mc',
+ q:'「珠圓玉潤」比喻什麼？',
+ opts:['A 珠寶很貴重','B 比喻文詞圓潤或歌聲婉轉','C 臉蛋圓潤可愛','D 工藝精湛'],ans:1,
+ explain:'「珠圓玉潤」比喻文詞圓潤流暢，或聲音如珠玉般圓潤悅耳。',
+ idiom:{word:'珠圓玉潤',def:'比喻文詞圓潤流暢，或聲音婉轉悅耳，如珠子般圓、玉石般潤澤。',ex:'例：她的歌聲珠圓玉潤，令人陶醉。'}},
+
+{t:'idiom',era:'成語・單元13',type:'mc',
+ q:'「虛應故事」的意思是？',
+ opts:['A 說故事','B 敷衍塞責，照例辦理而不認真','C 回憶往事','D 應付考試'],ans:1,
+ explain:'「虛應故事」指只是敷衍了事，按照慣例辦理，並不認真對待。',
+ idiom:{word:'虛應故事',def:'只是做表面工作敷衍了事，照例應付，並不認真對待。故事：舊例、老規矩。',ex:'例：他虛應故事地點個頭，根本沒有認真聽。'}},
+
+{t:'idiom',era:'成語・單元14',type:'mc',
+ q:'「因心衡慮」是什麼意思？',
+ opts:['A 用心思考、仔細考慮','B 心情憂鬱','C 因為擔心而睡不著','D 想法很多'],ans:0,
+ explain:'「因心衡慮」指用心思量，仔細考慮，衡慮即衡量思考。',
+ idiom:{word:'因心衡慮',def:'用心仔細地思量考慮，衡量各種情況後再做決定。',ex:'例：這個決定事關重大，必須因心衡慮，不可草率。'}},
+
+{t:'idiom',era:'成語・單元14',type:'mc',
+ q:'「引人入勝」形容什麼？',
+ opts:['A 帶人進入景色優美的地方','B 形容事物精彩，能吸引人的興趣','C 引誘別人做壞事','D 帶隊參觀'],ans:1,
+ explain:'「引人入勝」形容事物非常精彩，能深深吸引人的興趣，令人沉浸其中。',
+ idiom:{word:'引人入勝',def:'形容事物非常精彩有趣，能吸引人的注意力，令人流連忘返。勝：美好的境界。',ex:'例：這本小說情節引人入勝，讓人一口氣讀完。'}},
+
+{t:'idiom',era:'成語・單元14',type:'mc',
+ q:'「別出心裁」是什麼意思？',
+ opts:['A 心思很奇怪','B 獨創新意，不同於他人','C 剪裁技術好','D 別有用心'],ans:1,
+ explain:'「別出心裁」指在設計、構思上獨創新意，與眾不同，有自己獨特的創意。',
+ idiom:{word:'別出心裁',def:'獨創新意，不依照一般的方式，有自己獨特的巧思和風格。',ex:'例：這道菜的擺盤別出心裁，讓人眼睛一亮。'}},
+
+{t:'idiom',era:'成語・單元14',type:'mc',
+ q:'「宅心仁厚」形容什麼樣的人？',
+ opts:['A 住在豪宅的富人','B 心地善良、待人寬厚','C 非常謹慎的人','D 有錢有勢的人'],ans:1,
+ explain:'「宅心仁厚」形容一個人心地善良、待人寬厚仁慈，宅心即存心。',
+ idiom:{word:'宅心仁厚',def:'形容人心地善良、待人寬厚仁慈，是品德良好的讚美之詞。',ex:'例：他宅心仁厚，經常幫助需要的人。'}},
+
+{t:'idiom',era:'成語・單元15',type:'fsy',
+ q:'辨認形近成語：守先待後 vs 永先啟後',
+ chars:[
+   {char:'守先待後',ping:'shǒu xiān dài hòu',def:'承繼前人成就，等待後人發揚',ex:'守先待後，繼往開來'},
+   {char:'承先啟後',ping:'chéng xiān qǐ hòu',def:'繼承前人，開創後人',ex:'承先啟後，發揚光大'},
+ ],
+ askQ:'「___，繼往開來」應填入哪個成語？',
+ opts:['守先待後','承先啟後','守株待兔','繼往開來'],ans:1,
+ explain:'「承先啟後」指繼承前人的成就，並開創新的局面讓後人繼續發揚。'},
+
+{t:'idiom',era:'成語・單元15',type:'mc',
+ q:'「貪求無饜」的意思是？',
+ opts:['A 非常節儉','B 貪得無厭，欲望永不滿足','C 追求完美','D 不知足'],ans:1,
+ explain:'「貪求無饜」形容貪心無止境，欲望永遠無法滿足，饜即吃飽、滿足。',
+ idiom:{word:'貪求無饜',def:'形容貪心無止境，索求不停，永遠不知滿足。饜：吃飽、滿足。',ex:'例：他貪求無饜，即使已經富有仍不知滿足。'}},
+
+{t:'idiom',era:'成語・單元15',type:'mc',
+ q:'「蹣跚」形容什麼樣的步態？',
+ opts:['A 輕盈快速','B 走路歪斜不穩','C 大步向前','D 原地踏步'],ans:1,
+ explain:'「蹣跚」形容走路歪斜不穩，步履艱難的樣子，常用於描寫老人或受傷者的步態。',
+ idiom:{word:'蹣跚',def:'形容走路搖晃不穩，步履艱難的樣子。',ex:'例：老人蹣跚地走向公園的長椅。'}},
+
+{t:'idiom',era:'成語配對',type:'match',
+ q:'請將成語與正確釋義配對：',
+ pairs:[['才高八斗','才學出眾'],['曲高和寡','知音難求'],['引人入勝','精彩吸引人'],['別出心裁','獨創新意']],
+ explain:'才高八斗＝才華橫溢；曲高和寡＝理解的人少；引人入勝＝非常精彩；別出心裁＝有新創意。',
+ idiom:{word:'成語配對',def:'以上四個成語：才高八斗（才華）、曲高和寡（高雅知音少）、引人入勝（吸引人）、別出心裁（創意）。',ex:''}},
+
+// ══ 修辭法 ══
+{t:'rhetoric',era:'修辭・轉品',type:'mc',
+ q:'「轉品」修辭的定義是？',
+ opts:[
+   'A 把一種詞性轉換成另一種詞性來使用',
+   'B 用一種事物比喻另一種',
+   'C 並列兩個意思相反的事物',
+   'D 重複同一詞語加強語氣'
+ ],ans:0,
+ explain:'轉品：把一個詞語的詞性臨時改變，轉換成另一種詞性來使用，如「春紅」（名詞「紅」轉為名詞用法指紅花）。'},
+
+{t:'rhetoric',era:'修辭・轉品',type:'mc',
+ q:'「下里巴人」中的「下里巴人」後來被用來形容什麼？',
+ opts:['A 鄉下的村民','B 通俗的文藝作品','C 沒有教養的人','D 貧窮的人'],ans:1,
+ explain:'「下里巴人」原是古代楚國的通俗歌曲，後來比喻通俗的文藝作品，常與「陽春白雪」對用。'},
+
+{t:'rhetoric',era:'修辭・映襯',type:'mc',
+ q:'「生於憂患，而死於安樂也」屬於哪種映襯？',
+ opts:['A 正映襯（相近的並列）','B 反映襯（相反的對比）','C 雙關','D 排比'],ans:1,
+ explain:'「生於憂患，死於安樂」是反映襯：憂患（逆境）和安樂（順境）相反，透過對比突顯主旨。'},
+
+{t:'rhetoric',era:'修辭・摹寫',type:'mc',
+ q:'「水皆縹碧，千丈見底，游魚細石，直視無礙，急湍甚箭，猛浪若奔」主要使用了什麼修辭？',
+ opts:['A 純粹摹寫（視覺）','B 視覺摹寫＋譬喻','C 聽覺摹寫','D 排比'],ans:1,
+ explain:'前段「水皆縹碧……直視無礙」是視覺摹寫；「急湍甚箭，猛浪若奔」則用譬喻（比喻水流），兩者兼用。'},
+
+{t:'rhetoric',era:'修辭・感嘆',type:'mc',
+ q:'「感嘆」修辭的特點是？',
+ opts:[
+   'A 用疑問形式表達確定意思',
+   'B 用強烈的情感語氣表達讚美、哀傷、驚訝等情緒',
+   'C 重複相同的詞語',
+   'D 把無生命事物人格化'
+ ],ans:1,
+ explain:'感嘆：用強烈的情緒語氣抒發讚美、哀傷、驚訝、憤慨等情感，常帶「啊、哦、唉」等嘆詞。'},
+
+{t:'rhetoric',era:'修辭・回文',type:'mc',
+ q:'「回文」修辭的定義是？',
+ opts:[
+   'A 顛倒詞序後意思不變或另有新意',
+   'B 前後兩句意思相反',
+   'C 同一詞語重複使用',
+   'D 用具體描寫抽象'
+ ],ans:0,
+ explain:'回文：將詞句顛倒排列後，仍可讀通，且意思相同或相關，如「柳堤風靜人眠晝，晝眠人靜風堤柳」。'},
+
+{t:'rhetoric',era:'修辭・對偶',type:'match',
+ q:'請將修辭類型與例句配對：',
+ pairs:[
+   ['泉水激石，泠泠作響；好鳥相鳴，嚶嚶成韻','對偶（排句對）'],
+   ['紅的火紅，白的雪白，青的靛青，綠的碧綠','轉品（顏色轉名詞）'],
+   ['以肥脂塞意焦慮，用糖漿淺嘗悲傷','轉化（形象化）'],
+   ['終日學終日誤，終日不學終日誤','回文'],
+ ],
+ explain:'排句對偶；轉品；轉化（形象化）；回文（顛倒仍可讀）。'},
+
+// ══ 對聯宋詞 ══
+{t:'couplet',era:'對聯',type:'mc',
+ q:'對聯的上聯末字應是哪種聲調？',
+ opts:['A 陰平（一聲）','B 陽平（二聲）','C 仄聲（三、四聲）','D 不限'],ans:2,
+ explain:'對聯格律：上聯末字必須是仄聲（三聲或四聲），下聯末字必須是平聲（一聲或二聲）。'},
+
+{t:'couplet',era:'對聯',type:'mc',
+ q:'對聯的基本要求包含哪些？',
+ opts:[
+   'A 只要字數相同即可',
+   'B 字數相等、詞性相同、平仄協調、意義相關',
+   'C 只要內容有趣',
+   'D 必須押韻'
+ ],ans:1,
+ explain:'對聯四大要求：①字數相等 ②詞性相同（名對名、動對動） ③平仄協調（上仄下平） ④意義相關。'},
+
+{t:'couplet',era:'宋詞',type:'mc',
+ q:'宋詞按照字數多寡可分為哪兩類？',
+ opts:['A 長調和短調','B 豪放派和婉約派','C 令詞和慢詞','D 上片和下片'],ans:2,
+ explain:'宋詞依字數分：令詞（小令，58字以下）和慢詞（91字以上），另有中調（59-90字）。'},
+
+{t:'couplet',era:'宋詞',type:'mc',
+ q:'宋詞的「詞牌」是指什麼？',
+ opts:['A 詞的題目','B 詞的格式名稱，規定音韻、句數和字數','C 作者的名字','D 詞的主題'],ans:1,
+ explain:'詞牌是詞的格式名稱，規定每首詞的音韻格律、句數和字數，如「水調歌頭」、「念奴嬌」等。'},
+
+{t:'couplet',era:'宋詞',type:'mc',
+ q:'「豪放派」宋詞的代表詞人是？',
+ opts:['A 李清照','B 柳永','C 蘇軾和辛棄疾','D 晏殊'],ans:2,
+ explain:'宋詞豪放派代表：蘇軾（東坡）、辛棄疾；婉約派代表：李清照、柳永、晏殊等。'},
+
+{t:'couplet',era:'歌詠人物',type:'mc',
+ q:'「大江東去，浪淘盡，千古風流人物」是哪位詞人的作品？',
+ opts:['A 李白','B 杜甫','C 蘇軾','D 辛棄疾'],ans:2,
+ explain:'「大江東去」出自蘇軾的《念奴嬌・赤壁懷古》，是豪放派宋詞的代表作。'},
+
+// ══ 慣用語 ══
+{t:'idiom2',era:'慣用語',type:'mc',
+ q:'「試金石」比喻什麼？',
+ opts:['A 黃金的一種','B 用以檢驗人品或事物真偽優劣的標準','C 考試題目','D 珍貴的石頭'],ans:1,
+ explain:'「試金石」原是鑑定黃金真假的黑色石頭，比喻用來考驗人品或事物真偽的標準或事物。',
+ idiom:{word:'試金石',def:'原指鑑定黃金成色的黑色石頭，比喻可以測驗、衡量某人品德或事物優劣的標準。',ex:'例：困難是考驗友情真假的試金石。'}},
+
+{t:'idiom2',era:'慣用語',type:'mc',
+ q:'「象牙塔」比喻什麼？',
+ opts:['A 大象的牙齒','B 脫離現實生活的理想世界','C 象徵權力的地方','D 珍貴的收藏'],ans:1,
+ explain:'「象牙塔」比喻脫離現實、不問世事的環境，多指學術界沉浸於研究而不關注現實社會。',
+ idiom:{word:'象牙塔',def:'比喻脫離現實生活、不關心社會現實的理想世界或環境，常指學術界的孤立狀態。',ex:'例：學者不應躲在象牙塔中，應該關心社會現實。'}},
+
+{t:'idiom2',era:'慣用語',type:'mc',
+ q:'「傳聲筒」比喻什麼？的人？',
+ opts:['A 聲音很大的人','B 專門替特定人傳達或宣傳意見，無自己立場的人','C 廣播員','D 喜歡說閒話的人'],ans:1,
+ explain:'「傳聲筒」比喻沒有自己立場，只是替別人傳達意見或宣傳的工具性人物。',
+ idiom:{word:'傳聲筒',def:'比喻沒有獨立立場，專門替特定人傳達或宣傳意見的人，缺乏自己的判斷。',ex:'例：他只是老闆的傳聲筒，沒有自己的想法。'}},
+
+{t:'idiom2',era:'慣用語配對',type:'match',
+ q:'請將慣用語與正確解釋配對：',
+ pairs:[['狗腿','為壞人奔走辦事，胡作非為的人'],['黑手','在幕後策劃操縱的人'],['老油條','經驗老到處世圓滑的人'],['活字典','知識淵博，無所不知的人']],
+ explain:'狗腿＝為壞人辦事；黑手＝幕後操縱；老油條＝圓滑世故；活字典＝學識豐富。'},
+
+{t:'idiom2',era:'慣用語',type:'mc',
+ q:'「鐵公雞」比喻什麼？',
+ opts:['A 鐵做的公雞玩具','B 形容非常吝嗇、一毛不拔的人','C 很強壯的人','D 個性剛硬的人'],ans:1,
+ explain:'「鐵公雞」比喻極度吝嗇、不肯花錢的人，諧音「一毛不拔」（鐵公雞拔不出毛）。',
+ idiom:{word:'鐵公雞',def:'比喻非常吝嗇、不肯花錢的人。因為鐵做的公雞一根毛也拔不下來，故有此比喻。',ex:'例：他是出了名的鐵公雞，從不請客吃飯。'}},
+
+// ══ 句意關係 ══
+{t:'sentence',era:'句意關係',type:'mc',
+ q:'「因果句」的標誌詞通常有哪些？',
+ opts:['A 雖然…但是…','B 因為…所以…、既然…就…','C 如果…那麼…','D 不但…而且…'],ans:1,
+ explain:'因果關係標誌詞：因為…所以…；既然…就…；由於…因此…；前因後果，有承接關係。'},
+
+{t:'sentence',era:'句意關係',type:'mc',
+ q:'「並列關係」的特點是？',
+ opts:['A 前後意思相反','B 兩句意思相近或相關，地位平等','C 前句是條件，後句是結果','D 後句比前句程度更深'],ans:1,
+ explain:'並列關係：兩個句子表達的意思相近或語意地位相同，可以互換順序而不影響整體意思。'},
+
+{t:'sentence',era:'句意關係',type:'mc',
+ q:'「只知其一，不知其二」屬於哪種句意關係？',
+ opts:['A 因果關係','B 轉折關係','C 並列關係','D 遞進關係'],ans:2,
+ explain:'「只知其一，不知其二」前後兩句並列，說明知道和不知道的範圍，屬並列關係。'},
+
+{t:'sentence',era:'句意關係',type:'mc',
+ q:'「停車坐愛楓林晚，霜葉紅於二月花」前後句的關係是？',
+ opts:['A 因果關係（停車是因為愛楓林）','B 轉折關係','C 條件關係','D 並列關係'],ans:0,
+ explain:'前句「停車」是結果，後句解釋原因（因為喜愛楓林），屬於因果關係（結果在前，原因在後）。'},
+
+{t:'sentence',era:'句意關係',type:'sort',
+ q:'請根據句意關係，將以下例句標誌詞從因果→並列→轉折→遞進排列：',
+ items:['不但…而且…（遞進）','因為…所以…（因果）','雖然…但是…（轉折）','一方面…一方面…（並列）'],
+ correctOrder:[1,3,2,0],
+ explain:'因果（因為所以）→並列（一方面一方面）→轉折（雖然但是）→遞進（不但而且）'},
+
+// ══ 通同字 ══
+{t:'tongword',era:'通同字',type:'mc',
+ q:'「無動於衷」中的「衷」通什麼字？',
+ opts:['忠','中','心','眾'],ans:1,
+ explain:'「衷」通「中」，「無動於衷」即內心沒有任何感動或反應。'},
+
+{t:'tongword',era:'通同字',type:'mc',
+ q:'下列哪組是通同字關係？',
+ opts:['A 覽—覓（形近）','B 暝—冥（通同，都有黑暗之意）','C 競—竟（形近）','D 廖—廠（形近）'],ans:1,
+ explain:'「暝」通「冥」，都有黑暗、昏暗之意，是通同字關係。形近字只是外形相似，意思不同。'},
+
+{t:'tongword',era:'通同字',type:'mc',
+ q:'「青草踏回路，白雲相與還」中「與」通什麼字？',
+ opts:['給','舉','語','余'],ans:1,
+ explain:'此句「與」通「舉」，意思是「一起、共同」，指與白雲一同歸去的意境。'},
+
+{t:'tongword',era:'通同字',type:'match',
+ q:'請將通同字與其本字配對：',
+ pairs:[['暝（黑暗）','冥'],['說（喜悅）','悅'],['罔（無）','無'],['大（超過）','太']],
+ explain:'暝通冥；說通悅（學而時習之，不亦說乎）；罔通無；大通太。'},
+
+// ══ 詩詞名言 ══
+{t:'poem',era:'詩詞・思鄉懷舊',type:'mc',
+ q:'「獨在異鄉為異客，每逢佳節倍思親」的作者是？',
+ opts:['A 李白','B 杜甫','C 王維','D 白居易'],ans:2,
+ explain:'出自王維《九月九日憶山東兄弟》，每逢重陽節更加思念遠方的親人，是思鄉懷親的名句。'},
+
+{t:'poem',era:'詩詞・時間珍惜',type:'mc',
+ q:'「百年那得更百年，今日還須愛今日」強調什麼道理？',
+ opts:['A 長壽的方法','B 珍惜當下時光，及時努力','C 要享受生活','D 不要後悔'],ans:1,
+ explain:'此句出自王世貞，說明人生短暫，百年難再，應珍惜當下時光，及時努力，不要虛度光陰。'},
+
+{t:'poem',era:'詩詞・立志知足',type:'mc',
+ q:'「道雖邇，不行不至；事雖小，不為不成」的意思是？',
+ opts:['A 路近才要走','B 即使路近也要去走，即使事小也要去做，重在實踐','C 小事不必做','D 事情要選大的做'],ans:1,
+ explain:'出自荀子，強調實踐的重要性：再近的路不走就到不了，再小的事不做就不會成功。'},
+
+{t:'poem',era:'詩詞・學習',type:'mc',
+ q:'「問渠哪得清如許？為有源頭活水來」比喻什麼？',
+ opts:['A 水源充足的河流','B 不斷吸收新知，才能保持思想的清新活力','C 環境清潔的重要','D 讀書要有好環境'],ans:1,
+ explain:'出自朱熹《觀書有感》，以水的清澈比喻知識的活力——持續學習才是思想靈活的源泉。'},
+
+{t:'poem',era:'詩詞・人生智慧',type:'mc',
+ q:'「好鳥枝頭亦朋友，落花水面皆文章」傳達什麼精神？',
+ opts:['A 要愛護大自然','B 萬物皆可為師，處處留意就能有所感悟','C 喜歡養鳥賞花','D 文章要寫大自然'],ans:1,
+ explain:'出自翁森四時讀書樂，說明有心向學的人，身邊的事物都能成為學習的素材和靈感。'},
+
+];
+
+// ══ STATE & LOGIC ══
+let S={mode:null,topics:[],qs:[],cur:0,score:0,lives:3,combo:0,answered:false,timer:null,tval:0,wrong:{},isWP:false};
+
+document.querySelectorAll('.nav-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.panel).classList.add('active');
+    if(tab.dataset.panel==='wrong')renderWP();
+  });
+});
+document.querySelectorAll('.tchip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');updateGo();}));
+document.querySelectorAll('.mcard').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mcard').forEach(x=>x.classList.remove('picked'));c.classList.add('picked');S.mode=c.dataset.m;updateGo();}));
+function updateGo(){
+  S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);
+  const btn=document.getElementById('goBtn');
+  if(S.topics.length&&S.mode){btn.disabled=false;btn.textContent='開始闖關 🚀';}
+  else{btn.disabled=true;btn.textContent='請選擇主題與模式';}
+}
+document.getElementById('goBtn').addEventListener('click',startGame);
+
+function startGame(){
+  S.topics=[...document.querySelectorAll('.tchip.on')].map(c=>c.dataset.t);
+  S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=false;
+  const isLong=S.mode==='normal'||S.mode==='timed';
+  let pool=QB.filter(q=>S.topics.includes(q.t));
+  pool=shuffle(pool);
+  S.qs=pool.slice(0,Math.min(isLong?50:20,pool.length));
+  S.cur=0;showScreen('game');renderQ();
+}
+function startWrongPractice(){
+  const bank=loadWB();if(!bank.length){alert('沒有錯題記錄！');return;}
+  S.score=0;S.lives=3;S.combo=0;S.answered=false;S.wrong={};S.isWP=true;S.mode='normal';
+  S.qs=shuffle([...bank]).slice(0,Math.min(20,bank.length));S.cur=0;showScreen('game');renderQ();
+}
+
+function renderQ(){
+  if(S.cur>=S.qs.length){showResult();return;}
+  const q=S.qs[S.cur];S.answered=false;
+  const total=S.qs.length;
+  document.getElementById('gInfo').textContent=`第 ${S.cur+1} / ${total} 題${S.isWP?' 📌錯題':''}`;
+  document.getElementById('progFill').style.width=`${(S.cur/total)*100}%`;
+  document.getElementById('gScore').textContent=`${S.score} 分`;
+  if(S.mode==='survival')document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives));
+  else document.getElementById('gLives').textContent='';
+  const tMap={mc:'選擇題',tf:'是非題',fill:'填空題',match:'連連看',sort:'排序題',fsy:'形音義辨析'};
+  const cMap={mc:'mc',tf:'tf',fill:'fill',match:'match',sort:'sort',fsy:'fsy'};
+  document.getElementById('qtag').textContent=tMap[q.type]||'題目';
+  document.getElementById('qtag').className=`qtag ${cMap[q.type]||'mc'}`;
+  document.getElementById('qtext').textContent=q.q;
+  document.getElementById('qsub').textContent=q.hint||'';
+  const area=document.getElementById('ans-area');area.innerHTML='';
+  document.getElementById('idiomBox').className='idiom-box';
+  document.getElementById('fbbox').className='fb-box';
+  document.getElementById('nextBtn').className='next-btn';
+  if(q.type==='fsy')renderFSY(q,area);
+  else if(q.type==='mc')renderMC(q,area);
+  else if(q.type==='tf')renderTF(q,area);
+  else if(q.type==='fill')renderFill(q,area);
+  else if(q.type==='match')renderMatch(q,area);
+  else if(q.type==='sort')renderSort(q,area);
+  clearInterval(S.timer);
+  const te=document.getElementById('gTimer');
+  if(S.mode==='blitz'||S.mode==='timed'){te.style.display='block';startTimer(S.mode==='blitz'?8:20);}
+  else te.style.display='none';
+}
+
+function renderFSY(q,area){
+  const tbl=document.createElement('table');tbl.className='fsy-table';
+  tbl.innerHTML=`<tr><th>字形</th><th>讀音</th><th>字義</th><th>詞例</th></tr>`+
+    q.chars.map(c=>`<tr><td><strong style="font-size:1.2rem;">${c.char}</strong></td><td>${c.ping}</td><td>${c.def}</td><td style="font-size:.75rem;">${c.ex}</td></tr>`).join('');
+  area.appendChild(tbl);
+  const sub=document.createElement('div');
+  sub.style.cssText='font-weight:700;font-size:.92rem;color:var(--ink);margin:10px 0 9px;line-height:1.6;';
+  sub.textContent=q.askQ;area.appendChild(sub);
+  renderMC(q,area);
+}
+
+function renderMC(q,area){
+  const grid=document.createElement('div');grid.className='opts';
+  q.opts.forEach((o,i)=>{
+    const btn=document.createElement('button');btn.className='opt';btn.textContent=o;
+    btn.addEventListener('click',()=>{
+      if(S.answered)return;S.answered=true;clearInterval(S.timer);
+      const ok=i===q.ans;
+      grid.querySelectorAll('.opt').forEach((b,bi)=>{b.disabled=true;if(bi===q.ans)b.classList.add('ok');else if(bi===i&&!ok)b.classList.add('bad');});
+      finish(ok,q);
+    });
+    grid.appendChild(btn);
+  });
+  area.appendChild(grid);
+}
+
+function renderTF(q,area){
+  const row=document.createElement('div');row.className='tf-row';
+  ['⭕ 正確','❌ 錯誤'].forEach((label,i)=>{
+    const btn=document.createElement('button');btn.className='tfbtn';btn.innerHTML=label;
+    btn.addEventListener('click',()=>{
+      if(S.answered)return;S.answered=true;clearInterval(S.timer);
+      const userT=i===0,ok=userT===q.ans;
+      row.querySelectorAll('.tfbtn').forEach((b,bi)=>{b.disabled=true;const bT=bi===0;if(bT===q.ans)b.classList.add('ok');else if(bT===userT&&!ok)b.classList.add('bad');});
+      finish(ok,q);
+    });
+    row.appendChild(btn);
+  });
+  area.appendChild(row);
+}
+
+function renderFill(q,area){
+  const row=document.createElement('div');row.className='fill-row';
+  const inp=document.createElement('input');inp.className='fill-in';inp.placeholder='輸入答案…';
+  const btn=document.createElement('button');btn.className='sub-btn';btn.textContent='確認';
+  const go=()=>{if(S.answered||!inp.value.trim())return;S.answered=true;clearInterval(S.timer);const val=inp.value.trim();const ok=val===q.ans||(q.alts&&q.alts.some(a=>val.includes(a)));inp.disabled=true;btn.disabled=true;inp.classList.add(ok?'ok':'bad');finish(ok,q,ok?null:`正確：${q.ans}`);};
+  btn.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});
+  row.append(inp,btn);area.appendChild(row);
+}
+
+function renderMatch(q,area){
+  const wrap=document.createElement('div');wrap.className='match-wrap';
+  const lCol=document.createElement('div');lCol.className='match-col';
+  const rCol=document.createElement('div');rCol.className='match-col';
+  const pairs=q.pairs;const shuffledR=shuffle([...pairs.map((p,i)=>({text:p[1],origIdx:i}))]);
+  let lPicked=null,rPicked=null,matched=0;
+  pairs.forEach((p,i)=>{const el=document.createElement('div');el.className='match-item';el.textContent=p[0];el.dataset.idx=i;el.dataset.side='left';lCol.appendChild(el);});
+  shuffledR.forEach(p=>{const el=document.createElement('div');el.className='match-item';el.textContent=p.text;el.dataset.origIdx=p.origIdx;el.dataset.side='right';rCol.appendChild(el);});
+  wrap.append(lCol,rCol);area.appendChild(wrap);
+  function tryM(){
+    if(!lPicked||!rPicked)return;
+    const li=parseInt(lPicked.dataset.idx),ri=parseInt(rPicked.dataset.origIdx);
+    if(li===ri){[lPicked,rPicked].forEach(el=>{el.classList.remove('selected');el.classList.add('matched','done');});matched++;if(matched===pairs.length){S.answered=true;clearInterval(S.timer);finish(true,q);}}
+    else{[lPicked,rPicked].forEach(el=>el.classList.add('wrong-flash'));setTimeout(()=>{if(lPicked)lPicked.classList.remove('selected','wrong-flash');if(rPicked)rPicked.classList.remove('selected','wrong-flash');lPicked=null;rPicked=null;},600);return;}
+    lPicked=null;rPicked=null;
+  }
+  wrap.addEventListener('click',e=>{
+    if(S.answered)return;const item=e.target.closest('.match-item');if(!item||item.classList.contains('matched'))return;
+    if(item.dataset.side==='left'){if(lPicked)lPicked.classList.remove('selected');lPicked=item;item.classList.add('selected');}
+    else{if(rPicked)rPicked.classList.remove('selected');rPicked=item;item.classList.add('selected');}
+    tryM();
+  });
+}
+
+let dragEl=null;
+function renderSort(q,area){
+  const shuffled=shuffle([...q.items.keys()].map(i=>({i,text:q.items[i]})));
+  const list=document.createElement('div');list.className='sort-list';
+  shuffled.forEach(item=>{
+    const el=document.createElement('div');el.className='sort-item';el.draggable=true;el.dataset.orig=item.i;
+    el.innerHTML=`<span class="sort-handle">☰</span><span>${item.text}</span>`;
+    el.addEventListener('dragstart',()=>{dragEl=el;el.classList.add('dragging');});
+    el.addEventListener('dragend',()=>el.classList.remove('dragging'));
+    el.addEventListener('dragover',e=>e.preventDefault());
+    el.addEventListener('drop',e=>{e.preventDefault();if(dragEl&&dragEl!==el){const all=[...list.querySelectorAll('.sort-item')];const si=all.indexOf(dragEl),ti=all.indexOf(el);if(si<ti)list.insertBefore(dragEl,el.nextSibling);else list.insertBefore(dragEl,el);}});
+    list.appendChild(el);
+  });
+  area.appendChild(list);
+  const chk=document.createElement('button');chk.className='sort-check';chk.textContent='確認順序 ✓';
+  chk.addEventListener('click',()=>{if(S.answered)return;S.answered=true;clearInterval(S.timer);const order=[...list.querySelectorAll('.sort-item')].map(el=>+el.dataset.orig);finish(JSON.stringify(order)===JSON.stringify(q.correctOrder),q);});
+  area.appendChild(chk);
+}
+
+function finish(ok,q,extraMsg){
+  const pts=calcPts(ok,q.type);
+  if(ok){S.score+=pts;S.combo++;document.getElementById('gScore').textContent=`${S.score} 分`;if(S.combo>=3)showCombo(S.combo);if(S.isWP)removeWB(q);}
+  else{S.combo=0;if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);}
+  if(q.idiom){document.getElementById('ibWord').textContent=q.idiom.word;document.getElementById('ibDef').textContent=q.idiom.def;document.getElementById('ibEx').textContent=q.idiom.ex||'';document.getElementById('idiomBox').className='idiom-box show';}
+  document.getElementById('fbtitle').textContent=ok?'✅ 答對了！':'❌ 答錯了';
+  let msg=q.explain||'';if(extraMsg)msg=extraMsg+'　'+msg;
+  document.getElementById('fbmsg').textContent=msg;
+  document.getElementById('fbbox').className=`fb-box show ${ok?'ok':'bad'}`;
+  const nb=document.getElementById('nextBtn');nb.className='next-btn show';
+  const isLast=S.cur+1>=S.qs.length,isDead=S.mode==='survival'&&S.lives<=0;
+  nb.textContent=(isLast||isDead)?'查看結果 →':'下一題 →';
+  nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length||isDead)showResult();else renderQ();};
+}
+function calcPts(ok,type){if(!ok)return 0;const base={mc:5,tf:3,fill:6,match:8,sort:7,fsy:6}[type]||5;const combo=S.combo>=4?3:S.combo>=2?1:0;const mB=(S.mode==='blitz'||S.mode==='survival')?2:0;return base+combo+mB;}
+
+function startTimer(sec){
+  S.tval=sec;const el=document.getElementById('gTimer');el.textContent=sec;el.className='gbar-timer';
+  S.timer=setInterval(()=>{
+    S.tval--;el.textContent=S.tval;if(S.tval<=3)el.className='gbar-timer hot';
+    if(S.tval<=0){clearInterval(S.timer);if(!S.answered){S.answered=true;S.combo=0;const q=S.qs[S.cur];
+      document.getElementById('fbtitle').textContent='⏰ 時間到！';document.getElementById('fbmsg').textContent=q.explain||'';
+      document.getElementById('fbbox').className='fb-box show bad';document.querySelectorAll('.opt,.tfbtn,.fill-in,.sub-btn').forEach(b=>b.disabled=true);
+      if(S.mode==='survival')S.lives=Math.max(0,S.lives-1);S.wrong[q.era]=(S.wrong[q.era]||0)+1;addWB(q);
+      if(q.idiom){document.getElementById('ibWord').textContent=q.idiom.word;document.getElementById('ibDef').textContent=q.idiom.def;document.getElementById('ibEx').textContent=q.idiom.ex||'';document.getElementById('idiomBox').className='idiom-box show';}
+      const nb=document.getElementById('nextBtn');nb.className='next-btn show';nb.textContent=S.cur+1>=S.qs.length?'查看結果 →':'下一題 →';nb.onclick=()=>{S.cur++;if(S.cur>=S.qs.length)showResult();else renderQ();};}}
+  },1000);
+}
+function showCombo(n){const el=document.getElementById('combo');el.textContent=`🔥 ${n}連勝！`;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200);}
+
+function showResult(){
+  clearInterval(S.timer);showScreen('result');
+  const max=S.qs.length*6;const pct=max>0?S.score/max:0;
+  let emoji,title,msg;
+  if(pct>=.9){emoji='🏆';title='國文高手！';msg='第三冊的內容你掌握得非常好！繼續加油！';}
+  else if(pct>=.7){emoji='🎯';title='表現優異！';msg='大部分都答對了，再針對弱點多複習！';}
+  else if(pct>=.5){emoji='📖';title='繼續加油！';msg='有些地方需要再複習，去錯題複習區針對加強！';}
+  else{emoji='💪';title='不要灰心！';msg='把講義再仔細看一遍，然後針對錯題練習！';}
+  document.getElementById('rEmoji').textContent=emoji;document.getElementById('rTitle').textContent=title;
+  document.getElementById('rScore').textContent=S.score;document.getElementById('rMax').textContent=`滿分約 ${max} 分`;
+  document.getElementById('rStars').textContent=pct>=.9?'⭐⭐⭐⭐⭐':pct>=.7?'⭐⭐⭐⭐':pct>=.5?'⭐⭐⭐':'⭐⭐';
+  document.getElementById('rMsg').textContent=msg;
+  const weakList=Object.entries(S.wrong).sort((a,b)=>b[1]-a[1]);
+  if(weakList.length){document.getElementById('rWeak').style.display='block';document.getElementById('rWeakList').innerHTML=weakList.map(([k,v])=>`• ${k}（答錯${v}題）`).join('<br>');}
+  else document.getElementById('rWeak').style.display='none';
+  const wc=loadWB().length;document.getElementById('rSaved').textContent=wc>0?`📌 錯題庫共有 ${wc} 題，可至錯題複習區加強`:'';
+  if(pct>=.75)confetti();
+}
+
+function renderWP(){
+  const bank=loadWB();const panel=document.getElementById('wrongPanel');
+  const pw=document.getElementById('practiceWrongBtn');const cl=document.getElementById('clearWrongBtn');
+  if(!bank.length){panel.innerHTML=`<div class="empty-wrong">🎉 目前沒有錯題記錄！<br>答錯的題目會自動記錄在這裡。</div>`;pw.style.display='none';cl.style.display='none';return;}
+  const top=[...bank].sort((a,b)=>(b.wrongCount||1)-(a.wrongCount||1));
+  panel.innerHTML=`<div class="wrong-summary"><h3>❌ 錯題統計</h3><div class="wrong-stats"><div class="wstat"><div class="wnum">${bank.length}</div><div class="wlbl">總錯題數</div></div><div class="wstat"><div class="wnum" style="color:var(--gold);">${top[0]?top[0].wrongCount:0}</div><div class="wlbl">最多錯${top[0]?'（'+top[0].era+'）':''}</div></div></div></div><div class="wrong-list">${top.map(q=>`<div class="wrong-item"><div class="wi-era">${q.era} · 答錯 ${q.wrongCount||1} 次</div><div class="wi-q">${q.q}</div><div class="wi-ans">✓ ${q.type==='tf'?(q.ans?'正確':'錯誤'):(q.opts?q.opts[q.ans]:q.ans||'')}</div></div>`).join('')}</div>`;
+  pw.style.display='block';cl.style.display='block';
+}
+function clearWrong(){if(confirm('確定要清除所有錯題記錄嗎？')){saveWB([]);renderWP();}}
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function confetti(){const cols=['#e8820a','#c0392b','#1a6a5a','#1a3a8a','#fff8f0'];for(let i=0;i<45;i++){setTimeout(()=>{const el=document.createElement('div');el.className='cf';el.style.left=Math.random()*100+'vw';el.style.background=cols[Math.floor(Math.random()*cols.length)];el.style.animationDuration=(1.2+Math.random()*1.2)+'s';document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*35);}}
+function restart(){startGame();}
+function goHome(){showScreen('home');}
+function goWrong(){showScreen('home');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelector('[data-panel="wrong"]').classList.add('active');document.getElementById('panel-wrong').classList.add('active');renderWP();}
+</script>
+</body>
+</html>
